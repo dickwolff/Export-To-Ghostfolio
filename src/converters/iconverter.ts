@@ -1,6 +1,5 @@
-import { GhostfolioExport } from "../../models/ghostfolioExport";
 
 export interface IConverter {
 
-    processFile(inputFile: string): GhostfolioExport;
+    processFile(inputFile: string, callback: any): void;
 }

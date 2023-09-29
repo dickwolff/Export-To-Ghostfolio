@@ -11,20 +11,24 @@ import { GhostfolioService } from "../ghostfolioService";
 export class Trading212Converter implements IConverter {
 
     private ghostfolioService: GhostfolioService;
+    private progress: cliProgress.MultiBar;
 
     constructor() {
+
         this.ghostfolioService = new GhostfolioService();
+        this.progress = new cliProgress.MultiBar({ stopOnComplete: true, forceRedraw: true }, cliProgress.Presets.shades_classic);
     }
 
-    public processFile(inputFile: string): GhostfolioExport {
+    public processFile(inputFile: string, callback: any): void {
 
-        let result: GhostfolioExport;
+        // Read file contents of the CSV export.
+        const csvFile = fs.readFileSync(inputFile, "utf-8");
 
         // Parse the CSV and convert to Ghostfolio import format.
-        parse(inputFile, {
+        parse(csvFile, {
             delimiter: ",",
             fromLine: 2,
-            columns: this.processHeaders(inputFile),
+            columns: this.processHeaders(csvFile),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
@@ -64,17 +68,16 @@ export class Trading212Converter implements IConverter {
             let errorExport = false;
 
             console.log(`Read CSV file ${inputFile}. Start processing..`);
-            result = {
+            const result: GhostfolioExport = {
                 meta: {
                     date: new Date(),
                     version: "v0"
                 },
                 activities: []
             }
-
-            // Start progress bar.
-            const progress = new cliProgress.MultiBar({ stopOnComplete: true, forceRedraw: true }, cliProgress.Presets.shades_classic);
-            const bar1 = progress.create(records.length, 0);
+            
+            // Populate the progress bar.
+            const bar1 = this.progress.create(records.length, 0);
 
             for (let idx = 0; idx < records.length; idx++) {
                 const record = records[idx];
@@ -88,7 +91,7 @@ export class Trading212Converter implements IConverter {
                 }
 
                 let ticker: any;
-                try { ticker = await this.ghostfolioService.getTicker(record, progress); }
+                try { ticker = await this.ghostfolioService.getTicker(record, this.progress); }
                 catch (err) {
                     errorExport = true;
                     break;
@@ -113,21 +116,18 @@ export class Trading212Converter implements IConverter {
                     symbol: ticker.symbol
                 });
 
-                bar1.increment();   
+                bar1.increment();
             }
 
-            progress.stop()
+            this.progress.stop()
+
+            callback(result);
         });
-        
-        return result;
     }
 
-    private processHeaders(inputFile: string): string[] {
+    private processHeaders(csvFile: string): string[] {
 
         const csvHeaders = [];
-
-        // Read file contents of the CSV export.
-        const csvFile = fs.readFileSync(inputFile, "utf-8");
 
         // Get header line and split in columns.
         const firstLine = csvFile.split('\n')[0];

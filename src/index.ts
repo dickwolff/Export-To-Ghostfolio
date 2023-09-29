@@ -1,6 +1,8 @@
 import * as fs from "fs";
 import { IConverter } from "./converters/iconverter";
 import { Trading212Converter } from "./converters/trading212";
+import { GhostfolioActivity } from "../models/ghostfolioActivity";
+import { GhostfolioExport } from "../models/ghostfolioExport";
 
 require("dotenv").config();
 
@@ -21,8 +23,10 @@ switch (process.argv[2].toLocaleLowerCase()) {
 }
 
 // Map the file to a Ghostfolio import.
-const importFile = converter.processFile(inputFile);
+converter.processFile(inputFile, (result: GhostfolioExport) => {
 
-// Write result to file.
-//const result = JSON.stringify(importFile);
-//fs.writeFileSync(`ghostfolio-${process.argv[2].toLocaleLowerCase()}.json`, result, { encoding: "utf-8" });
+    // Write result to file.
+    const fileContents = JSON.stringify(result);
+    fs.writeFileSync(`ghostfolio-${process.argv[2].toLocaleLowerCase()}.json`, fileContents, { encoding: "utf-8" });
+});
+
