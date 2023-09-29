@@ -1,8 +1,7 @@
 import * as fs from "fs";
 import { IConverter } from "./converters/iconverter";
-import { Trading212Converter } from "./converters/trading212";
-import { GhostfolioActivity } from "../models/ghostfolioActivity";
 import { GhostfolioExport } from "../models/ghostfolioExport";
+import { Trading212Converter } from "./converters/trading212Converter";
 
 require("dotenv").config();
 
