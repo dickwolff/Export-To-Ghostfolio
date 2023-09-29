@@ -48,7 +48,7 @@ The export file can now be imported in Ghostfolio by going to Portfolio > Activi
 
 The list below contains some plans of how this project could be improved. Options are to be validated on their feasibility.
 
-- [ ] More robust header checking
+- [x] More robust header checking
 - [ ] More user friendly import (not via command line)
 - [ ] Connect directly to Trading 212 API (removing the manual export step)
 - [ ] Import directly into Ghostfolio via the API (removing the manual import step)
