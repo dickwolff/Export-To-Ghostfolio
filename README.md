@@ -36,7 +36,7 @@ The repository contains a sample `.env` file. Rename this from `.env.sample`.
 - Put your Ghostfolio secret in `GHOSTFOLIO_SECRET`. The secret is what you use to log in to Ghostfolio.
   - This is used to generate a bearer token, which is used to retrieve ticker information via Ghostfolio's Lookup API.
   
-You can now run `npm run start [exporttype]`. Replace `[exporttype]` with the source (e.g. 'trading212'). The tool will open your export and will convert this. It retrieves the tickers that are supported YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN). 
+You can now run `npm run start [exporttype]`. Replace `[exporttype]` with the source (e.g. `Trading212`). The tool will open your export and will convert this. It retrieves the tickers that are supported YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN). 
   
 The export file can now be imported in Ghostfolio by going to Portfolio > Activities and pressing the 3 dots at the top right of the table. Since Ghostfolio 1.221.0, you can now preview the import and validate the data has been converted correctly. When it is to your satisfaction, press import to add the activities to your portfolio.
 
