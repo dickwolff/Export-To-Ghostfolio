@@ -2,23 +2,27 @@ import * as fs from "fs";
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { GhostfolioExport } from "../../models/ghostfolioExport";
-import { IConverter } from "./iconverter";
+import { AbstractConverter } from "./abstractconverter";
 import { GhostfolioOrderType } from "../../models/ghostfolioOrderType";
 import { Trading212Record } from "../../models/trading212Record";
 import * as cliProgress from "cli-progress";
 import { GhostfolioService } from "../ghostfolioService";
 
-export class Trading212Converter implements IConverter {
+export class Trading212Converter extends AbstractConverter {
 
     private ghostfolioService: GhostfolioService;
     private progress: cliProgress.MultiBar;
 
     constructor() {
+        super();
 
         this.ghostfolioService = new GhostfolioService();
         this.progress = new cliProgress.MultiBar({ stopOnComplete: true, forceRedraw: true }, cliProgress.Presets.shades_classic);
     }
 
+    /**
+     * @inheritdoc
+     */
     public processFile(inputFile: string, callback: any): void {
 
         // Read file contents of the CSV export.
@@ -75,7 +79,7 @@ export class Trading212Converter implements IConverter {
                 },
                 activities: []
             }
-            
+
             // Populate the progress bar.
             const bar1 = this.progress.create(records.length, 0);
 
@@ -91,7 +95,14 @@ export class Trading212Converter implements IConverter {
                 }
 
                 let ticker: any;
-                try { ticker = await this.ghostfolioService.getTicker(record, this.progress); }
+                try {
+                    ticker = await this.ghostfolioService.getTicker(
+                        record.isin,
+                        record.ticker,
+                        record.name,
+                        record.currencyPriceShare,
+                        this.progress);
+                }
                 catch (err) {
                     errorExport = true;
                     break;
@@ -123,41 +134,5 @@ export class Trading212Converter implements IConverter {
 
             callback(result);
         });
-    }
-
-    private processHeaders(csvFile: string): string[] {
-
-        const csvHeaders = [];
-
-        // Get header line and split in columns.
-        const firstLine = csvFile.split('\n')[0];
-        const colsInFile = firstLine.split(',');
-
-        for (let idx = 0; idx <= colsInFile.length; idx++) {
-
-            // Ignore empty columns.
-            if (!colsInFile[idx]) {
-                continue;
-            }
-            // Replace all charachters except a-z, and camelCase the string.
-            let col: string = this.camelize(colsInFile[idx]);
-
-            // Manual polishing..
-            if (col === "iSIN") {
-                col = col.toLocaleLowerCase();
-            } else if (col.endsWith("EUR")) {
-                col = col.slice(0, -3) + "Eur";
-            }
-
-            csvHeaders.push(col);
-        }
-
-        return csvHeaders;
-    }
-
-    private camelize(str): string {
-        return str.replace(/[^a-zA-Z ]/g, "").replace(/(?:^\w|[A-Z]|\b\w)/g, function (word, index) {
-            return index === 0 ? word.toLowerCase() : word.toUpperCase();
-        }).replace(/\s+/g, '');
     }
 }
