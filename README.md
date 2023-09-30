@@ -19,6 +19,11 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 
 Go to Trading 212 and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
 
+#### DEGIRO
+
+Go to DEGIRO and create an export file (via Inbox > Account Overview, see image below). Choose the period from which you wish to export your history and click download.
+
+![image](https://github.com/dickwolff/Export-To-Ghostfolio/assets/5620002/ff48baf9-5725-4efc-a9ec-fbbf0472a656)
 
 ### Use the tool
 
