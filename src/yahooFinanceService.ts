@@ -7,6 +7,19 @@ export class YahooFinanceService {
     private isinTickerCache: Map<string, string> = new Map<string, string>();
     private tickerCache: Map<string, YahooFinanceRecord> = new Map<string, YahooFinanceRecord>();
 
+    constructor() {
+        
+        // Override logging, not interested in yahooFinance2 debug logging..
+        yahooFinance.setGlobalConfig({
+            logger: {
+                info: (...args: any[]) => console.log(...args),
+                warn: (...args: any[]) => console.error(...args),
+                error: (...args: any[]) => console.error(...args),
+                debug: (...args: any[]) => this.sink(),
+            }
+        })
+    }
+
     /**
      * Get tickers for a security.
      * 
@@ -31,7 +44,6 @@ export class YahooFinanceService {
                 return tickerMatch[1];
             }
         }
-
         // The security is not known. Try to find is.
 
         // First try by ISIN.
@@ -53,8 +65,6 @@ export class YahooFinanceService {
             const queryByTicker = await this.getTickersByQuery(symbol);
             tickerMatch = queryByTicker.find(i => i.currency === expectedCurrency);
         }
-        else {
-        }
 
         // If still no currency match has been found, try to query Yahoo Finance by name exclusively and search again.
         if (!tickerMatch && name) {
@@ -65,10 +75,10 @@ export class YahooFinanceService {
 
         // If a match was found, store it in cache by symbol and return it.
         if (tickerMatch) {
-            this.logDebug(`getTicker(): Match found for ${isin}`, progress);
+            this.logDebug(`getTicker(): Match found for ${isin | symbol}`, progress);
             this.tickerCache[tickerMatch.symbol] = tickerMatch;
-            
-            return this.tickerCache[isin];
+
+            return this.tickerCache[tickerMatch.symbol];
         }
 
         return null;
@@ -91,8 +101,9 @@ export class YahooFinanceService {
         const result: YahooFinanceRecord[] = [];
 
         // Loop through the resulted quotes and retrieve summary data.
-        queryResult.quotes.forEach(async (quote) => {
-            
+        for (let idx = 0; idx < queryResult.quotes.length; idx++) {
+            const quote = queryResult.quotes[idx];
+
             const quoteSummaryResult = await yahooFinance.quoteSummary(quote.symbol);
 
             result.push({
@@ -100,8 +111,8 @@ export class YahooFinanceService {
                 exchange: quoteSummaryResult.price.exchange,
                 price: quoteSummaryResult.price.regularMarketPrice,
                 symbol: quoteSummaryResult.price.symbol
-            })
-        });
+            });
+        }
 
         return result;
     }
@@ -118,4 +129,6 @@ export class YahooFinanceService {
             }
         }
     }
+
+    private sink() { }
 }
