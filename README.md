@@ -35,7 +35,7 @@ Run `npm install` to install all required packages.
 
 The repository contains a sample `.env` file. Rename this from `.env.sample`.
 
-- Put your Trading 212 export file path in the `INPUT_FILE` variable.
+- Put your export file path in the `INPUT_FILE` variable. This has to be relative to the root of the project.
 - Put the Ghostfolio account name where you want your transactions to end up at in `GHOSTFOLIO_ACCOUNT_ID` 
   - This can be retrieved by going to Accounts > select your account and copying the ID from the URL 
   
