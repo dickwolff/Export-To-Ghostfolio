@@ -1,8 +1,8 @@
 import * as fs from "fs";
-import { AbstractConverter } from "./converters/abstractconverter";
-import { GhostfolioExport } from "../models/ghostfolioExport";
-import { Trading212Converter } from "./converters/trading212Converter";
+import { GhostfolioExport } from "./models/ghostfolioExport";
 import { DeGiroConverter } from "./converters/degiroConverter";
+import { AbstractConverter } from "./converters/abstractconverter";
+import { Trading212Converter } from "./converters/trading212Converter";
 
 require("dotenv").config();
 
@@ -36,4 +36,3 @@ converter.processFile(inputFile, (result: GhostfolioExport) => {
     
     console.log(`Wrote data to 'ghostfolio-${process.argv[2].toLocaleLowerCase()}.json'!`);
 });
-

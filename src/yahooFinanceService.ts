@@ -1,5 +1,5 @@
 import yahooFinance from 'yahoo-finance2';
-import { YahooFinanceRecord } from '../models/yahooFinanceRecord';
+import { YahooFinanceRecord } from './models/yahooFinanceRecord';
 
 export class YahooFinanceService {
 

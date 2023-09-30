@@ -1,13 +1,13 @@
 import * as fs from "fs";
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
-import { GhostfolioExport } from "../../models/ghostfolioExport";
-import { AbstractConverter } from "./abstractconverter";
-import { GhostfolioOrderType } from "../../models/ghostfolioOrderType";
-import { Trading212Record } from "../../models/trading212Record";
 import * as cliProgress from "cli-progress";
+import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
-import { YahooFinanceRecord } from "../../models/yahooFinanceRecord";
+import { GhostfolioExport } from "../models/ghostfolioExport";
+import { Trading212Record } from "../models/trading212Record";
+import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
+import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class Trading212Converter extends AbstractConverter {
 

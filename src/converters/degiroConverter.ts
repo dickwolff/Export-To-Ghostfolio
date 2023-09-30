@@ -1,13 +1,13 @@
 import * as fs from "fs";
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
-import { GhostfolioExport } from "../../models/ghostfolioExport";
-import { AbstractConverter } from "./abstractconverter";
-import { GhostfolioOrderType } from "../../models/ghostfolioOrderType";
 import * as cliProgress from "cli-progress";
+import { DeGiroRecord } from "../models/degiroRecord";
+import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
-import { DeGiroRecord } from "../../models/degiroRecord";
-import { YahooFinanceRecord } from "../../models/yahooFinanceRecord";
+import { GhostfolioExport } from "../models/ghostfolioExport";
+import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
+import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class DeGiroConverter extends AbstractConverter {
 
