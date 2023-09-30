@@ -7,6 +7,7 @@ import { GhostfolioOrderType } from "../../models/ghostfolioOrderType";
 import * as cliProgress from "cli-progress";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { DeGiroRecord } from "../../models/degiroRecord";
+import { YahooFinanceRecord } from "../../models/yahooFinanceRecord";
 
 export class DeGiroConverter extends AbstractConverter {
 
@@ -79,9 +80,9 @@ export class DeGiroConverter extends AbstractConverter {
         // TODO: Is is possible to add currency? So VWRL.AS is retrieved for IE00B3RBWM25 instead of VWRL.L.
         // Maybe add yahoo-finance2 library that Ghostfolio uses, so I dont need to call Ghostfolio for this.
 
-        let ticker;
+        let security: YahooFinanceRecord;
         try {
-          ticker = await this.yahooFinanceService.getTicker(
+          security = await this.yahooFinanceService.getSecurity(
             record.isin,
             null,
             null,
@@ -146,7 +147,7 @@ export class DeGiroConverter extends AbstractConverter {
 
               // Set the buy transaction data.
               result.activities[result.activities.length - 1].type = orderType;
-              result.activities[result.activities.length - 1].symbol = ticker.symbol;
+              result.activities[result.activities.length - 1].symbol = security.symbol;
               result.activities[result.activities.length - 1].quantity = numberShares;
               result.activities[result.activities.length - 1].unitPrice = unitPrice;
               result.activities[result.activities.length - 1].currency = record.currency;
@@ -167,7 +168,7 @@ export class DeGiroConverter extends AbstractConverter {
             // For a Sale record, the preceding record should be "txfees". This means the sale had a transaction fee associated.
             if (result.activities[result.activities.length - 1].comment === "txfees") {
               result.activities[result.activities.length - 1].type = orderType;
-              result.activities[result.activities.length - 1].symbol = ticker.symbol;
+              result.activities[result.activities.length - 1].symbol = security.symbol;
               result.activities[result.activities.length - 1].quantity = numberShares;
               result.activities[result.activities.length - 1].unitPrice = unitPrice;
               result.activities[result.activities.length - 1].currency = record.currency;
@@ -200,7 +201,7 @@ export class DeGiroConverter extends AbstractConverter {
         const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
     
         // Log whenever there was no match found.
-        if (!ticker) {
+        if (!security) {
           throw new Error(`Could not find a match for ${orderType} action for ${record.isin} (index ${idx}) with currency ${record.currency}..`);
         }
 
@@ -215,7 +216,7 @@ export class DeGiroConverter extends AbstractConverter {
           currency: record.currency,
           dataSource: "YAHOO",
           date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-          symbol: ticker
+          symbol: security.symbol
         });
 
         bar1.increment();

@@ -7,6 +7,7 @@ import { GhostfolioOrderType } from "../../models/ghostfolioOrderType";
 import { Trading212Record } from "../../models/trading212Record";
 import * as cliProgress from "cli-progress";
 import { YahooFinanceService } from "../yahooFinanceService";
+import { YahooFinanceRecord } from "../../models/yahooFinanceRecord";
 
 export class Trading212Converter extends AbstractConverter {
 
@@ -94,9 +95,9 @@ export class Trading212Converter extends AbstractConverter {
                     continue;
                 }
 
-                let ticker: any;
+                let security: YahooFinanceRecord;
                 try {
-                    ticker = await this.yahooFinanceService.getTicker(
+                    security = await this.yahooFinanceService.getSecurity(
                         record.isin,
                         record.ticker,
                         record.name,
@@ -109,7 +110,7 @@ export class Trading212Converter extends AbstractConverter {
                 }
 
                 // Log whenever there was no match found.
-                if (!ticker) {
+                if (!security) {
                     throw new Error(`Could not find a match for ${record.action} action for ${record.ticker} (index ${idx}) with currency ${record.currencyPriceShare}..`);
                 }
 
@@ -124,7 +125,7 @@ export class Trading212Converter extends AbstractConverter {
                     currency: record.currencyPriceShare,
                     dataSource: "YAHOO",
                     date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: ticker.symbol
+                    symbol: security.symbol
                 });
 
                 bar1.increment();

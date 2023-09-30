@@ -3,7 +3,7 @@ import { YahooFinanceRecord } from '../models/yahooFinanceRecord';
 
 export class YahooFinanceService {
 
-    // Local cache of earlier retrieved tickers.
+    // Local cache of earlier retrieved symbols.
     private isinSymbolCache: Map<string, string> = new Map<string, string>();
     private symbolCache: Map<string, YahooFinanceRecord> = new Map<string, YahooFinanceRecord>();
 
@@ -21,86 +21,86 @@ export class YahooFinanceService {
     }
 
     /**
-     * Get tickers for a security.
+     * Get a security.
      * 
      * @param isin The isin of the security
      * @param symbol The symbol of the security
      * @param progress The progress bar instance, for logging (optional)
-     * @returns The ticker that is retrieved from cache or Yahoo Finance.
+     * @returns The security that is retrieved from cache or Yahoo Finance.
      */
-    public async getTicker(isin?, symbol?, name?, expectedCurrency?, progress?): Promise<YahooFinanceRecord> {
+    public async getSecurity(isin?, symbol?, name?, expectedCurrency?, progress?): Promise<YahooFinanceRecord> {
 
-        // When isin was given, check wether there is a ticker conversion cached. Then change map. 
+        // When isin was given, check wether there is a symbol conversion cached. Then change map. 
         if (isin && this.isinSymbolCache.has(isin)) {
             symbol = this.isinSymbolCache[isin];
         }
 
-        // Second, check if the requested security is known by ticker (if given).
+        // Second, check if the requested security is known by symbol (if given).
         if (symbol) {
-            const tickerMatch = this.symbolCache.has(symbol);
+                const symbolMatch = this.symbolCache.has(symbol);
 
             // If a match was found, return the security.
-            if (tickerMatch) {
-                return tickerMatch[1];
+            if (symbolMatch) {
+                return symbolMatch[1];
             }
         }
         // The security is not known. Try to find is.
 
         // First try by ISIN.
-        let tickers = await this.getTickersByQuery(isin);
-        this.logDebug(`getTicker(): Found ${tickers.length} matches by ISIN`, progress);
+        let symbols = await this.getSymbolsByQuery(isin);
+        this.logDebug(`getSecurity(): Found ${symbols.length} matches by ISIN`, progress);
 
         // If no result found by ISIN, try by symbol.
-        if (tickers.length == 0 && symbol) {
-            this.logDebug(`getTicker(): Not a single symbol found for ISIN ${isin}, trying by symbol ${symbol}`, progress);
-            tickers = await this.getTickersByQuery(symbol);
+        if (symbols.length == 0 && symbol) {
+            this.logDebug(`getSecurity(): Not a single symbol found for ISIN ${isin}, trying by symbol ${symbol}`, progress);
+            symbols = await this.getSymbolsByQuery(symbol);
         }
 
         // Find a symbol that has the same currency.
-        let tickerMatch = tickers.find(i => i.currency === expectedCurrency);
+        let symbolMatch = symbols.find(i => i.currency === expectedCurrency);
 
-        // If no currency match has been found, try to query Yahoo Finance by ticker exclusively and search again.
-        if (!tickerMatch && symbol) {
-            this.logDebug(`getTicker(): No initial match found, trying by symbol ${symbol}`, progress);
-            const queryByTicker = await this.getTickersByQuery(symbol);
-            tickerMatch = queryByTicker.find(i => i.currency === expectedCurrency);
+        // If no currency match has been found, try to query Yahoo Finance by symbol exclusively and search again.
+        if (!symbolMatch && symbol) {
+            this.logDebug(`getSecurity(): No initial match found, trying by symbol ${symbol}`, progress);
+            const queryBySymbol = await this.getSymbolsByQuery(symbol);
+            symbolMatch = queryBySymbol.find(i => i.currency === expectedCurrency);
         }
 
         // If still no currency match has been found, try to query Yahoo Finance by name exclusively and search again.
-        if (!tickerMatch && name) {
-            this.logDebug(`getTicker(): No match found for symbol ${symbol}, trying by name ${name}`, progress);
-            const queryByTicker = await this.getTickersByQuery(name);
-            tickerMatch = queryByTicker.find(i => i.currency === expectedCurrency);
+        if (!symbolMatch && name) {
+            this.logDebug(`getSecurity(): No match found for symbol ${symbol}, trying by name ${name}`, progress);
+            const queryBySymbol = await this.getSymbolsByQuery(name);
+            symbolMatch = queryBySymbol.find(i => i.currency === expectedCurrency);
         }
 
         // If a match was found, store it in cache..
-        if (tickerMatch) {
+        if (symbolMatch) {
 
-            this.logDebug(`getTicker(): Match found for ${isin | symbol}`, progress);
+            this.logDebug(`getSymbol(): Match found for ${isin | symbol}`, progress);
 
             // If there was an isin given, place it in the isin-symbol mapping cache.
             if (isin) {
-                this.isinSymbolCache[isin] = tickerMatch.symbol;
+                this.isinSymbolCache[isin] = symbolMatch.symbol;
             }
 
             // Store the record in cache by symbol.
-            this.symbolCache[tickerMatch.symbol] = tickerMatch;
+            this.symbolCache[symbolMatch.symbol] = symbolMatch;
 
-            return this.symbolCache[tickerMatch.symbol];
+            return symbolMatch;
         }
 
-        this.logDebug(`No result found for ${isin | symbol | name}..`);
+        this.logDebug(`getSymbol(): No result found for ${isin | symbol | name}..`);
 
         return null;
     }
 
     /**
-     * Get tickers for a security by a given key.
+     * Get symbols for a security by a given key.
      * 
      * @param query The security identification to query by.
-     * @returns The tickers that are retrieved from Yahoo Finance, if any.
+     * @returns The symbols that are retrieved from Yahoo Finance, if any.
      */
-    public async getTickersByQuery(query: string): Promise<YahooFinanceRecord[]> {
+    private async getSymbolsByQuery(query: string): Promise<YahooFinanceRecord[]> {
 
         // First get quotes for the query.
         const queryResult = await yahooFinance.search(query, {
