@@ -1,7 +1,0 @@
-Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Total (EUR),Withholding tax,Currency (Withholding tax),Charge amount (EUR),Notes,ID
-Deposit,2022-03-26 06:50:14,,,,,,,,34.00,,,34.00,"Transaction ID: W12391891273HJUHIHIA",c565c568-8e14-4bb6-810a-e642e0d3e65c
-Market buy,2022-03-28 10:27:15,NL0010273215,ASML,"ASML Holding",0.0021880000,621.50,EUR,1.00000,1.36,,,,,EOF1234567890
-Market buy,2022-03-28 13:30:11,US11135F1012,AVGO,"Broadcom",0.0017848000,626.00,USD,1.09541,1.02,,,,,EOF1234567890
-Market buy,2022-03-28 13:30:12,US22160K1051,COST,"Costco",0.0020059000,557.00,USD,1.09541,1.02,,,,,EOF1234567890
-Dividend (Ordinary),2022-05-16 09:37:52,NL0010273215,ASML,"ASML Holding",0.0021880000,3.15,EUR,Not available,0.01,0.00,EUR,,,
-Dividend (Ordinary),2022-05-17 12:30:55,US00287Y1091,ABBV,"AbbVie",0.0069388000,1.20,USD,Not available,0.01,0.00,USD,,,

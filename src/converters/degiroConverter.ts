@@ -5,18 +5,18 @@ import { GhostfolioExport } from "../../models/ghostfolioExport";
 import { AbstractConverter } from "./abstractconverter";
 import { GhostfolioOrderType } from "../../models/ghostfolioOrderType";
 import * as cliProgress from "cli-progress";
-import { GhostfolioService } from "../ghostfolioService";
+import { YahooFinanceService } from "../yahooFinanceService";
 import { DeGiroRecord } from "../../models/degiroRecord";
 
 export class DeGiroConverter extends AbstractConverter {
 
-  private ghostfolioService: GhostfolioService;
+  private yahooFinanceService: YahooFinanceService;
   private progress: cliProgress.MultiBar;
 
   constructor() {
     super();
 
-    this.ghostfolioService = new GhostfolioService();
+    this.yahooFinanceService = new YahooFinanceService();
     this.progress = new cliProgress.MultiBar({ stopOnComplete: true, forceRedraw: true }, cliProgress.Presets.shades_classic);
   }
 
@@ -81,7 +81,7 @@ export class DeGiroConverter extends AbstractConverter {
 
         let ticker;
         try {
-          ticker = await this.ghostfolioService.getTicker(
+          ticker = await this.yahooFinanceService.getTicker(
             record.isin,
             null,
             null,

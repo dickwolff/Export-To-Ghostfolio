@@ -6,17 +6,17 @@ import { AbstractConverter } from "./abstractconverter";
 import { GhostfolioOrderType } from "../../models/ghostfolioOrderType";
 import { Trading212Record } from "../../models/trading212Record";
 import * as cliProgress from "cli-progress";
-import { GhostfolioService } from "../ghostfolioService";
+import { YahooFinanceService } from "../yahooFinanceService";
 
 export class Trading212Converter extends AbstractConverter {
 
-    private ghostfolioService: GhostfolioService;
+    private yahooFinanceService: YahooFinanceService;
     private progress: cliProgress.MultiBar;
 
     constructor() {
         super();
 
-        this.ghostfolioService = new GhostfolioService();
+        this.yahooFinanceService = new YahooFinanceService();
         this.progress = new cliProgress.MultiBar({ stopOnComplete: true, forceRedraw: true }, cliProgress.Presets.shades_classic);
     }
 
@@ -96,7 +96,7 @@ export class Trading212Converter extends AbstractConverter {
 
                 let ticker: any;
                 try {
-                    ticker = await this.ghostfolioService.getTicker(
+                    ticker = await this.yahooFinanceService.getTicker(
                         record.isin,
                         record.ticker,
                         record.name,
