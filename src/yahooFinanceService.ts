@@ -4,8 +4,8 @@ import { YahooFinanceRecord } from '../models/yahooFinanceRecord';
 export class YahooFinanceService {
 
     // Local cache of earlier retrieved tickers.
-    private isinTickerCache: Map<string, string> = new Map<string, string>();
-    private tickerCache: Map<string, YahooFinanceRecord> = new Map<string, YahooFinanceRecord>();
+    private isinSymbolCache: Map<string, string> = new Map<string, string>();
+    private symbolCache: Map<string, YahooFinanceRecord> = new Map<string, YahooFinanceRecord>();
 
     constructor() {
         
@@ -31,13 +31,13 @@ export class YahooFinanceService {
     public async getTicker(isin?, symbol?, name?, expectedCurrency?, progress?): Promise<YahooFinanceRecord> {
 
         // When isin was given, check wether there is a ticker conversion cached. Then change map. 
-        if (isin && this.isinTickerCache.has(isin)) {
-            symbol = this.isinTickerCache[isin];
+        if (isin && this.isinSymbolCache.has(isin)) {
+            symbol = this.isinSymbolCache[isin];
         }
 
         // Second, check if the requested security is known by ticker (if given).
         if (symbol) {
-            const tickerMatch = this.tickerCache.has(symbol);
+            const tickerMatch = this.symbolCache.has(symbol);
 
             // If a match was found, return the security.
             if (tickerMatch) {
@@ -73,13 +73,23 @@ export class YahooFinanceService {
             tickerMatch = queryByTicker.find(i => i.currency === expectedCurrency);
         }
 
-        // If a match was found, store it in cache by symbol and return it.
+        // If a match was found, store it in cache..
         if (tickerMatch) {
-            this.logDebug(`getTicker(): Match found for ${isin | symbol}`, progress);
-            this.tickerCache[tickerMatch.symbol] = tickerMatch;
 
-            return this.tickerCache[tickerMatch.symbol];
+            this.logDebug(`getTicker(): Match found for ${isin | symbol}`, progress);
+
+            // If there was an isin given, place it in the isin-symbol mapping cache.
+            if (isin) {
+                this.isinSymbolCache[isin] = tickerMatch.symbol;
+            }
+
+            // Store the record in cache by symbol.
+            this.symbolCache[tickerMatch.symbol] = tickerMatch;
+
+            return this.symbolCache[tickerMatch.symbol];
         }
+
+        this.logDebug(`No result found for ${isin | symbol | name}..`);
 
         return null;
     }
