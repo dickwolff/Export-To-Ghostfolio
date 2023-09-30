@@ -6,6 +6,7 @@
 This tool allows you to convert a multiple transaction exports (CSV) to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for:
 
 - [Trading 212](https://trading212.com)
+- [DEGIRO](https://degiro.com)
 
 
 **NOTICE: It is recommended to only use this when you have a local instance of Ghostfolio, so you don't spam the online service hosted by Ghostfolio!**
@@ -18,6 +19,11 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 
 Go to Trading 212 and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
 
+#### DEGIRO
+
+Go to DEGIRO and create an export file (via Inbox > Account Overview, see image below). Choose the period from which you wish to export your history and click download.
+
+![image](https://github.com/dickwolff/Export-To-Ghostfolio/assets/5620002/ff48baf9-5725-4efc-a9ec-fbbf0472a656)
 
 ### Use the tool
 
@@ -36,7 +42,12 @@ The repository contains a sample `.env` file. Rename this from `.env.sample`.
 - Put your Ghostfolio secret in `GHOSTFOLIO_SECRET`. The secret is what you use to log in to Ghostfolio.
   - This is used to generate a bearer token, which is used to retrieve ticker information via Ghostfolio's Lookup API.
   
-You can now run `npm run start [exporttype]`. Replace `[exporttype]` with the source (e.g. `Trading212`). The tool will open your export and will convert this. It retrieves the tickers that are supported YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN). 
+You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the tickers that are supported YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN). 
+
+| Exporter | Run command |
+| --- | --- |
+| Trading 212 | `run start trading212` |
+| DEGIRO | `run start degiro` |
   
 The export file can now be imported in Ghostfolio by going to Portfolio > Activities and pressing the 3 dots at the top right of the table. Since Ghostfolio 1.221.0, you can now preview the import and validate the data has been converted correctly. When it is to your satisfaction, press import to add the activities to your portfolio.
 

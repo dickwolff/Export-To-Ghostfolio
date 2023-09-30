@@ -1,7 +1,11 @@
+import { constants } from "buffer";
 
 export class GhostfolioService {
 
     private cachedBearerToken: string;
+
+    // Local cache of earlier retrieved tickers.
+    private tickerCache = {};
 
     /**
      * Get tickers for a security.
@@ -11,44 +15,52 @@ export class GhostfolioService {
      * @param progress The progress bar instance, for logging (optional)
      * @returns The tickers that are retrieved from Ghostfolio.
      */
-    public async getTicker(record, progress?): Promise<any> {
+    public async getTicker(isin?, ticker?, name?, expectedCurrency?, progress?): Promise<any> {
 
-        // First try by ISIN.
-        let tickers = await this.getTickersByQuery(record.isin);
+        // If the ticker is not known, retrieve the data for the first time.
+        if (!this.tickerCache[isin]) {
 
-        // If no result found by ISIN, try by ticker.
-        if (tickers.length == 0) {
-            this.logDebug(`getTicker(): Not a single ticker found for ISIN ${record.isin}, trying by ticker ${record.ticker}`, progress);
-            tickers = await this.getTickersByQuery(record.ticker);
-        }
-        else {
-            this.logDebug(`getTicker(): Found ${tickers.length} matches by ISIN`, progress);
+            // First try by ISIN.
+            let tickers = await this.getTickersByQuery(isin);
+
+            // If no result found by ISIN, try by ticker.
+            if (tickers.length == 0 && ticker) {
+                this.logDebug(`getTicker(): Not a single ticker found for ISIN ${isin}, trying by ticker ${ticker}`, progress);
+                tickers = await this.getTickersByQuery(ticker);
+            }
+            else {
+                this.logDebug(`getTicker(): Found ${tickers.length} matches by ISIN`, progress);
+            }
+            
+            // Find a symbol that has the same currency.
+            let tickerMatch = tickers.find(i => i.currency === expectedCurrency);
+
+            // If no currency match has been found, try to query Ghostfolio by ticker exclusively and search again.
+            if (!tickerMatch && ticker) {
+                this.logDebug(`getTicker(): No initial match found, trying by ticker ${ticker}`, progress);
+                const queryByTicker = await this.getTickersByQuery(ticker);
+                tickerMatch = queryByTicker.find(i => i.currency === expectedCurrency);
+            }
+            else {
+                this.logDebug(`getTicker(): Match found for ticker ${ticker}`, progress);
+            }
+
+            // If still no currency match has been found, try to query Ghostfolio by name exclusively and search again.
+            if (!tickerMatch && name) {
+                this.logDebug(`getTicker(): No match found for ticker ${ticker}, trying by name ${name}`, progress);
+                const queryByTicker = await this.getTickersByQuery(name);
+                tickerMatch = queryByTicker.find(i => i.currency === expectedCurrency);
+            }
+            else {
+                this.logDebug(`getTicker(): Match found for name ${name}`, progress);
+            }
+            
+            if (tickerMatch) {
+                this.tickerCache[isin] = tickerMatch;
+            }
         }
 
-        // Find a symbol that has the same currency.
-        let tickerMatch = tickers.find(i => i.currency === record.currencyPriceShare);
-
-        // If no currency match has been found, try to query Ghostfolio by ticker exclusively and search again.
-        if (!tickerMatch) {
-            this.logDebug(`getTicker(): No initial match found, trying by ticker ${record.ticker}`, progress);
-            const queryByTicker = await this.getTickersByQuery(record.ticker);
-            tickerMatch = queryByTicker.find(i => i.currency === record.currencyPriceShare);
-        }
-        else {
-            this.logDebug(`getTicker(): Match found for ticker ${record.ticker}`, progress);
-        }
-
-        // If still no currency match has been found, try to query Ghostfolio by name exclusively and search again.
-        if (!tickerMatch) {
-            this.logDebug(`getTicker(): No match found for ticker ${record.ticker}, trying by name ${record.name}`, progress);
-            const queryByTicker = await this.getTickersByQuery(record.name);
-            tickerMatch = queryByTicker.find(i => i.currency === record.currencyPriceShare);
-        }
-        else {
-            this.logDebug(`getTicker(): Match found for name ${record.name}`, progress);
-        }
-
-        return tickerMatch;
+        return this.tickerCache[isin];
     }
 
     /**

@@ -1,14 +1,15 @@
 import * as fs from "fs";
-import { IConverter } from "./converters/iconverter";
+import { AbstractConverter } from "./converters/abstractconverter";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import { Trading212Converter } from "./converters/trading212Converter";
+import { DeGiroConverter } from "./converters/degiroConverter";
 
 require("dotenv").config();
 
 // Define import file path.
 const inputFile = process.env.INPUT_FILE;
 
-let converter: IConverter;
+let converter: AbstractConverter;
 
 // Determine convertor type.
 switch (process.argv[2].toLocaleLowerCase()) {
@@ -16,7 +17,10 @@ switch (process.argv[2].toLocaleLowerCase()) {
         console.log("Processing file using Trading212 converter");
         converter = new Trading212Converter();
         break;
-
+    case "degiro":
+        console.log("Processing file using DeGiro converter");
+        converter = new DeGiroConverter();
+        break;
     default:
         throw new Error("No converter provided (i.e. trading212, degiro)");
 }
