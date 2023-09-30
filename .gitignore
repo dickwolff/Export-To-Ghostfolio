@@ -36,11 +36,14 @@ dist/**/*
 # ignore package-lock
 package-lock.json
 
-# Allow sample export file
-!sample-t212-export.csv
+# Allow sample export files
+!sample-*-export.csv
 
 # Ignore Trading 212 export files (by default name: from_date_to_date_acc.csv)
 from_*.csv
 
+# Ignore DEGIRO export files (by default name: Account.csv)
+Account.csv
+
 # Ignore export file
-ghostfolio-t212.json
+ghostfolio-*.json

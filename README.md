@@ -39,11 +39,9 @@ The repository contains a sample `.env` file. Rename this from `.env.sample`.
   - This can be retrieved by going to Accounts > select your account and copying the ID from the URL 
   
     ![image](https://user-images.githubusercontent.com/5620002/203353840-f5db7323-fb2f-4f4f-befc-e4e340466a74.png)
-- Put your local Ghostfolio endpoint in `GHOSTFOLIO_API_URL`. This is your hostname/ip address with port number (e.g. `http://192.168.1.55:3333`)
-- Put your Ghostfolio secret in `GHOSTFOLIO_SECRET`. The secret is what you use to log in to Ghostfolio.
-  - This is used to generate a bearer token, which is used to retrieve ticker information via Ghostfolio's Lookup API.
-  
-You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the tickers that are supported YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN). 
+- Optionally you can enable debug logging by setting the `DEBUG_LOGGING` variable to `TRUE`.
+
+You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the symbols that are supported with YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN). 
 
 | Exporter | Run command |
 | --- | --- |

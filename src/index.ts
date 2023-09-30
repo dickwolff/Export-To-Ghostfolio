@@ -28,8 +28,12 @@ switch (process.argv[2].toLocaleLowerCase()) {
 // Map the file to a Ghostfolio import.
 converter.processFile(inputFile, (result: GhostfolioExport) => {
 
+    console.log("Processing complete, writing to file..")
+
     // Write result to file.
     const fileContents = JSON.stringify(result);
     fs.writeFileSync(`ghostfolio-${process.argv[2].toLocaleLowerCase()}.json`, fileContents, { encoding: "utf-8" });
+    
+    console.log(`Wrote data to 'ghostfolio-${process.argv[2].toLocaleLowerCase()}.json'!`);
 });
 
