@@ -1,5 +1,18 @@
+import * as cliProgress from "cli-progress";
 
 export abstract class AbstractConverter {
+
+    protected progress: cliProgress.MultiBar;
+
+    constructor() {
+        this.progress = new cliProgress.MultiBar(
+            {
+                stopOnComplete: true,
+                forceRedraw: true,
+                format: "{bar} {percentage}% | ETA {eta}s | Duration: {duration}s | {value}/{total}"
+            },
+            cliProgress.Presets.shades_classic);
+    }
 
     /**
      * Process an export file.

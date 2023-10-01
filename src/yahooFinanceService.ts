@@ -12,9 +12,9 @@ export class YahooFinanceService {
         // Override logging, not interested in yahooFinance2 debug logging..
         yahooFinance.setGlobalConfig({
             logger: {
-                info: (...args: any[]) => console.log(...args),
-                warn: (...args: any[]) => console.error(...args),
-                error: (...args: any[]) => console.error(...args),
+                info: (...args: any[]) => this.sink(),
+                warn: (...args: any[]) => this.sink(),
+                error: (...args: any[]) => this.sink(),
                 debug: (...args: any[]) => this.sink(),
             },
             queue: {
@@ -44,6 +44,7 @@ export class YahooFinanceService {
 
             // If a match was found, return the security.
             if (symbolMatch) {
+                this.logDebug(`Retrieved symbol ${symbol} from cache!`, progress);
                 return symbolMatch[1];
             }
         }
@@ -53,7 +54,7 @@ export class YahooFinanceService {
         // First try by ISIN.
         let symbols = await this.getSymbolsByQuery(isin, progress);
         this.logDebug(`getSecurity(): Found ${symbols.length} matches by ISIN ${isin}`, progress);
-
+        
         // If no result found by ISIN, try by symbol.
         if (symbols.length == 0 && symbol) {
             this.logDebug(`getSecurity(): Not a single symbol found for ISIN ${isin}, trying by symbol ${symbol}`, progress);
@@ -93,8 +94,6 @@ export class YahooFinanceService {
             return symbolMatch;
         }
 
-        this.logDebug(`getSymbol(): No result found for ${isin | symbol | name}..`);
-
         return null;
     }
 
@@ -120,7 +119,7 @@ export class YahooFinanceService {
 
             // Check wether the quote has a symbol. If not, just skip it..
             if (!quote.symbol) {
-                this.logDebug(`getSymbolsByQuery(): Got no useful result from Yahoo Finance for symbol ${quote.symbol}. Skipping..`, progress);
+                this.logDebug(`getSymbolsByQuery(): Quote has no symbol at Yahoo Finance ${quote.symbol}. Skipping..`, progress);
                 continue;
             }
 
@@ -128,7 +127,7 @@ export class YahooFinanceService {
             // Put in try-catch, since Yahoo Finance can return faulty data and crash..
             let quoteSummaryResult;
             try {
-                quoteSummaryResult = await yahooFinance.quoteSummary(quote.symbol);
+                quoteSummaryResult = await yahooFinance.quoteSummary(quote.symbol, { }, { validateResult: false });
             }
             catch (err) {
                 this.logDebug(`getSymbolsByQuery(): An error ocurred while retrieving summary for ${quote.symbol}. Skipping..`, progress);
@@ -136,16 +135,22 @@ export class YahooFinanceService {
             }
 
             // Check if a result was returned that has the required fields.
-            if (!quoteSummaryResult.price || !quoteSummaryResult.summaryDetail) {
+            if (!quoteSummaryResult.price) {
                 this.logDebug(`getSymbolsByQuery(): Got no useful result from Yahoo Finance for symbol ${quote.symbol}. Skipping..`, progress);
                 continue;
             }
 
+            let currency, exchange, price, symbol;
+            currency = quoteSummaryResult.price.currency;
+            exchange = quoteSummaryResult.price.exchange;
+            symbol = quoteSummaryResult.price.symbol;
+            price = quoteSummaryResult.price.regularMarketPrice;
+
             result.push({
-                currency: quoteSummaryResult.summaryDetail.currency,
-                exchange: quoteSummaryResult.price.exchange,
-                price: quoteSummaryResult.price.regularMarketPrice,
-                symbol: quoteSummaryResult.price.symbol
+                currency: currency,
+                exchange: exchange,
+                price: price,
+                symbol: symbol
             });
         }
 
@@ -154,8 +159,7 @@ export class YahooFinanceService {
 
     private logDebug(message, progress?) {
 
-        if (process.env.DEBUG_LOGGING) {
-
+        if (process.env.DEBUG_LOGGING == "true") {
             if (!progress) {
                 console.log(`\t${message}`);
             }

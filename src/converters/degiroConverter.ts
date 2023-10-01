@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
-import * as cliProgress from "cli-progress";
 import { DeGiroRecord } from "../models/degiroRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
@@ -12,13 +11,11 @@ import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 export class DeGiroConverter extends AbstractConverter {
 
   private yahooFinanceService: YahooFinanceService;
-  private progress: cliProgress.MultiBar;
 
   constructor() {
     super();
 
     this.yahooFinanceService = new YahooFinanceService();
-    this.progress = new cliProgress.MultiBar({ stopOnComplete: true, forceRedraw: true }, cliProgress.Presets.shades_classic);
   }
 
   /**

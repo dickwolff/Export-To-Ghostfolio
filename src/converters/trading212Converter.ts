@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
-import * as cliProgress from "cli-progress";
 import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
@@ -12,13 +11,11 @@ import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 export class Trading212Converter extends AbstractConverter {
 
     private yahooFinanceService: YahooFinanceService;
-    private progress: cliProgress.MultiBar;
 
     constructor() {
         super();
 
         this.yahooFinanceService = new YahooFinanceService();
-        this.progress = new cliProgress.MultiBar({ stopOnComplete: true, forceRedraw: true }, cliProgress.Presets.shades_classic);
     }
 
     /**
@@ -80,7 +77,7 @@ export class Trading212Converter extends AbstractConverter {
                 },
                 activities: []
             }
-            
+
             // Populate the progress bar.
             const bar1 = this.progress.create(records.length, 0);
 
@@ -111,7 +108,9 @@ export class Trading212Converter extends AbstractConverter {
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    throw new Error(`Could not find a match for ${record.action} action for ${record.ticker} (index ${idx}) with currency ${record.currencyPriceShare}..`);
+                    this.progress.log(`\tgetSymbol(): No result found for ${record.isin || record.ticker || record.name}! Please add this manually..\n`);
+                    bar1.increment();
+                    continue;
                 }
 
                 // Add record to export.
