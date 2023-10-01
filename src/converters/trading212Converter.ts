@@ -80,7 +80,7 @@ export class Trading212Converter extends AbstractConverter {
                 },
                 activities: []
             }
-
+            
             // Populate the progress bar.
             const bar1 = this.progress.create(records.length, 0);
 
@@ -106,7 +106,7 @@ export class Trading212Converter extends AbstractConverter {
                 }
                 catch (err) {
                     errorExport = true;
-                    break;
+                    throw err;
                 }
 
                 // Log whenever there was no match found.

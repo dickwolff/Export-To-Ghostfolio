@@ -8,7 +8,7 @@ export class YahooFinanceService {
     private symbolCache: Map<string, YahooFinanceRecord> = new Map<string, YahooFinanceRecord>();
 
     constructor() {
-        
+
         // Override logging, not interested in yahooFinance2 debug logging..
         yahooFinance.setGlobalConfig({
             logger: {
@@ -16,8 +16,11 @@ export class YahooFinanceService {
                 warn: (...args: any[]) => console.error(...args),
                 error: (...args: any[]) => console.error(...args),
                 debug: (...args: any[]) => this.sink(),
+            },
+            queue: {
+                timeout: 60000
             }
-        })
+        });
     }
 
     /**
@@ -34,26 +37,27 @@ export class YahooFinanceService {
         if (isin && this.isinSymbolCache.has(isin)) {
             symbol = this.isinSymbolCache[isin];
         }
-
         // Second, check if the requested security is known by symbol (if given).
         if (symbol) {
-                const symbolMatch = this.symbolCache.has(symbol);
+
+            const symbolMatch = this.symbolCache.has(symbol);
 
             // If a match was found, return the security.
             if (symbolMatch) {
                 return symbolMatch[1];
             }
         }
+
         // The security is not known. Try to find is.
 
         // First try by ISIN.
-        let symbols = await this.getSymbolsByQuery(isin);
-        this.logDebug(`getSecurity(): Found ${symbols.length} matches by ISIN`, progress);
+        let symbols = await this.getSymbolsByQuery(isin, progress);
+        this.logDebug(`getSecurity(): Found ${symbols.length} matches by ISIN ${isin}`, progress);
 
         // If no result found by ISIN, try by symbol.
         if (symbols.length == 0 && symbol) {
             this.logDebug(`getSecurity(): Not a single symbol found for ISIN ${isin}, trying by symbol ${symbol}`, progress);
-            symbols = await this.getSymbolsByQuery(symbol);
+            symbols = await this.getSymbolsByQuery(symbol, progress);
         }
 
         // Find a symbol that has the same currency.
@@ -62,21 +66,21 @@ export class YahooFinanceService {
         // If no currency match has been found, try to query Yahoo Finance by symbol exclusively and search again.
         if (!symbolMatch && symbol) {
             this.logDebug(`getSecurity(): No initial match found, trying by symbol ${symbol}`, progress);
-            const queryBySymbol = await this.getSymbolsByQuery(symbol);
+            const queryBySymbol = await this.getSymbolsByQuery(symbol, progress);
             symbolMatch = queryBySymbol.find(i => i.currency === expectedCurrency);
         }
 
         // If still no currency match has been found, try to query Yahoo Finance by name exclusively and search again.
         if (!symbolMatch && name) {
             this.logDebug(`getSecurity(): No match found for symbol ${symbol}, trying by name ${name}`, progress);
-            const queryBySymbol = await this.getSymbolsByQuery(name);
+            const queryBySymbol = await this.getSymbolsByQuery(name, progress);
             symbolMatch = queryBySymbol.find(i => i.currency === expectedCurrency);
         }
 
         // If a match was found, store it in cache..
         if (symbolMatch) {
 
-            this.logDebug(`getSymbol(): Match found for ${isin | symbol}`, progress);
+            this.logDebug(`getSymbol(): Match found for ${isin ?? symbol}`, progress);
 
             // If there was an isin given, place it in the isin-symbol mapping cache.
             if (isin) {
@@ -100,7 +104,7 @@ export class YahooFinanceService {
      * @param query The security identification to query by.
      * @returns The symbols that are retrieved from Yahoo Finance, if any.
      */
-    private async getSymbolsByQuery(query: string): Promise<YahooFinanceRecord[]> {
+    private async getSymbolsByQuery(query: string, progress?: any): Promise<YahooFinanceRecord[]> {
 
         // First get quotes for the query.
         const queryResult = await yahooFinance.search(query, {
@@ -114,7 +118,28 @@ export class YahooFinanceService {
         for (let idx = 0; idx < queryResult.quotes.length; idx++) {
             const quote = queryResult.quotes[idx];
 
-            const quoteSummaryResult = await yahooFinance.quoteSummary(quote.symbol);
+            // Check wether the quote has a symbol. If not, just skip it..
+            if (!quote.symbol) {
+                this.logDebug(`getSymbolsByQuery(): Got no useful result from Yahoo Finance for symbol ${quote.symbol}. Skipping..`, progress);
+                continue;
+            }
+
+            // Get quote summary details (containing currency, price, etc).
+            // Put in try-catch, since Yahoo Finance can return faulty data and crash..
+            let quoteSummaryResult;
+            try {
+                quoteSummaryResult = await yahooFinance.quoteSummary(quote.symbol);
+            }
+            catch (err) {
+                this.logDebug(`getSymbolsByQuery(): An error ocurred while retrieving summary for ${quote.symbol}. Skipping..`, progress);
+                continue;
+            }
+
+            // Check if a result was returned that has the required fields.
+            if (!quoteSummaryResult.price || !quoteSummaryResult.summaryDetail) {
+                this.logDebug(`getSymbolsByQuery(): Got no useful result from Yahoo Finance for symbol ${quote.symbol}. Skipping..`, progress);
+                continue;
+            }
 
             result.push({
                 currency: quoteSummaryResult.summaryDetail.currency,
