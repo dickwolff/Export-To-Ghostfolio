@@ -53,7 +53,7 @@ export class DeGiroConverter extends AbstractConverter {
 
       for (let idx = 0; idx < records.length; idx++) {
         const record = records[idx];
-        
+
         const description = record.description.toLocaleLowerCase();
 
         // Skip some records which contains one of the words below.
@@ -86,9 +86,11 @@ export class DeGiroConverter extends AbstractConverter {
             record.currency,
             this.progress);
         }
-        catch {
-          break;
+        catch (err) {
+          console.log(err);
+          throw err;
         }
+
 
         let orderType: GhostfolioOrderType;
         let fees, unitPrice, numberShares;
@@ -190,13 +192,13 @@ export class DeGiroConverter extends AbstractConverter {
             marker = "txfees";
           }
         } else {
-          
+
           // If ISIN is not set, the record is not relevant.
           continue;
         }
 
         const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
-    
+
         // Log whenever there was no match found.
         if (!security) {
           throw new Error(`Could not find a match for ${orderType} action for ${record.isin} (index ${idx}) with currency ${record.currency}..`);
