@@ -5,6 +5,7 @@ import { DeGiroRecord } from "../models/degiroRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
@@ -16,6 +17,8 @@ export class DeGiroConverter extends AbstractConverter {
     super();
 
     this.yahooFinanceService = new YahooFinanceService();
+
+    dayjs.extend(customParseFormat);
   }
 
   /**
