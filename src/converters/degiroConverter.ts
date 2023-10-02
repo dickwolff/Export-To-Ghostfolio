@@ -201,7 +201,7 @@ export class DeGiroConverter extends AbstractConverter {
 
         // Log whenever there was no match found.
         if (!security) {
-          throw new Error(`Could not find a match for ${orderType} action for ${record.isin} (index ${idx}) with currency ${record.currency}..`);
+          throw new Error(`Could not find a match for ${orderType} action for ${record.isin} with currency ${record.currency}..`);
         }
 
         // Add record to export.

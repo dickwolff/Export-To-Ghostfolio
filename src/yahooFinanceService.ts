@@ -77,11 +77,16 @@ export class YahooFinanceService {
             symbolMatch = queryBySymbol.find(i => i.currency === expectedCurrency);
         }
 
+        // If no name was given, take name from the first ISIN match.
+        if (!name){
+            name = symbols[0].name; 
+        }
+
         // If still no currency match has been found, try to query Yahoo Finance by name exclusively and search again.
         if (!symbolMatch && name) {
             this.logDebug(`getSecurity(): No match found for symbol ${symbol}, trying by name ${name}`, progress);
-            const queryBySymbol = await this.getSymbolsByQuery(name, progress);
-            symbolMatch = queryBySymbol.find(i => i.currency === expectedCurrency);
+            const queryByName = await this.getSymbolsByQuery(name, progress);
+            symbolMatch = queryByName.find(i => i.currency === expectedCurrency);
         }
 
         // If a match was found, store it in cache..
@@ -156,7 +161,8 @@ export class YahooFinanceService {
                 currency: currency,
                 exchange: exchange,
                 price: price,
-                symbol: symbol
+                symbol: symbol,
+                name: quote.longname
             });
         }
 
