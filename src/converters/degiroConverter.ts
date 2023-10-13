@@ -5,6 +5,7 @@ import { DeGiroRecord } from "../models/degiroRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
@@ -16,6 +17,8 @@ export class DeGiroConverter extends AbstractConverter {
     super();
 
     this.yahooFinanceService = new YahooFinanceService();
+
+    dayjs.extend(customParseFormat);
   }
 
   /**
@@ -201,7 +204,7 @@ export class DeGiroConverter extends AbstractConverter {
 
         // Log whenever there was no match found.
         if (!security) {
-          throw new Error(`Could not find a match for ${orderType} action for ${record.isin} (index ${idx}) with currency ${record.currency}..`);
+          throw new Error(`Could not find a match for ${orderType} action for ${record.isin} with currency ${record.currency}..`);
         }
 
         // Add record to export.
