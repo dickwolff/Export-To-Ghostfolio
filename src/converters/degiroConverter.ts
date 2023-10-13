@@ -66,6 +66,8 @@ export class DeGiroConverter extends AbstractConverter {
           description.indexOf("cash sweep") > -1 ||
           description.indexOf("withdrawal") > -1 ||
           description.indexOf("pass-through") > -1) {
+
+          bar1.increment();
           continue;
         }
 
@@ -74,6 +76,7 @@ export class DeGiroConverter extends AbstractConverter {
         // - The description does not contain an '@' (present on buy/sell records), and
         // - The description does not contain an '/' (present on buy/sell fee records).
         if (description.indexOf("dividend") === -1 && description.indexOf("\@") === -1 && description.indexOf("\/") === -1) {
+          bar1.increment();
           continue;
         }
 
@@ -93,7 +96,6 @@ export class DeGiroConverter extends AbstractConverter {
           console.log(err);
           throw err;
         }
-
 
         let orderType: GhostfolioOrderType;
         let fees, unitPrice, numberShares;
@@ -119,6 +121,7 @@ export class DeGiroConverter extends AbstractConverter {
             result.activities[result.activities.length - 1].currency = record.currency;
             result.activities[result.activities.length - 1].comment = "";
 
+            bar1.increment();
             continue;
           }
 
@@ -155,6 +158,7 @@ export class DeGiroConverter extends AbstractConverter {
               result.activities[result.activities.length - 1].currency = record.currency;
               result.activities[result.activities.length - 1].comment = "";
 
+              bar1.increment();
               continue;
             } else {
 
@@ -176,6 +180,7 @@ export class DeGiroConverter extends AbstractConverter {
               result.activities[result.activities.length - 1].currency = record.currency;
               result.activities[result.activities.length - 1].comment = "";
 
+              bar1.increment();
               continue;
             }
           }
@@ -183,6 +188,7 @@ export class DeGiroConverter extends AbstractConverter {
 
         // Ghostfolio validation doesn't allow empty order types.
         if (!orderType) {
+          bar1.increment();
           continue;
         }
 
@@ -197,6 +203,7 @@ export class DeGiroConverter extends AbstractConverter {
         } else {
 
           // If ISIN is not set, the record is not relevant.
+          bar1.increment();
           continue;
         }
 
