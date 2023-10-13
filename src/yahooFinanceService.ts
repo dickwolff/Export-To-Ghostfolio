@@ -7,6 +7,8 @@ export class YahooFinanceService {
     private isinSymbolCache: Map<string, string> = new Map<string, string>();
     private symbolCache: Map<string, YahooFinanceRecord> = new Map<string, YahooFinanceRecord>();
 
+    private preferedExchangePostfix: string = null;
+
     constructor() {
 
         // Override logging, not interested in yahooFinance2 debug logging..
@@ -21,6 +23,9 @@ export class YahooFinanceService {
                 timeout: 60000
             }
         });
+
+        // Retrieve prefered exchange postfix if set in .env
+        this.preferedExchangePostfix = process.env.DEGIRO_PREFERED_EXCHANGE_POSTFIX;
     }
 
     /**
@@ -62,7 +67,7 @@ export class YahooFinanceService {
         }
 
         // Find a symbol that has the same currency.
-        let symbolMatch = symbols.find(i => i.currency === expectedCurrency);
+        let symbolMatch = this.findSymbolMatch(symbols, expectedCurrency);
 
         // If no match found and no symbol given, take the symbol from the first ISIN match.
         // Split on '.', so BNS.TO becomes BNS (for more matches).
@@ -74,25 +79,25 @@ export class YahooFinanceService {
         if (!symbolMatch && symbol) {
             this.logDebug(`getSecurity(): No initial match found, trying by symbol ${symbol}`, progress);
             const queryBySymbol = await this.getSymbolsByQuery(symbol, progress);
-            symbolMatch = queryBySymbol.find(i => i.currency === expectedCurrency);
+            symbolMatch = this.findSymbolMatch(queryBySymbol, expectedCurrency);
         }
 
         // If no name was given, take name from the first ISIN match.
-        if (!name){
-            name = symbols[0].name; 
+        if (!name) {
+            name = symbols[0].name;
         }
 
         // If still no currency match has been found, try to query Yahoo Finance by name exclusively and search again.
         if (!symbolMatch && name) {
             this.logDebug(`getSecurity(): No match found for symbol ${symbol}, trying by name ${name}`, progress);
             const queryByName = await this.getSymbolsByQuery(name, progress);
-            symbolMatch = queryByName.find(i => i.currency === expectedCurrency);
+            symbolMatch = this.findSymbolMatch(queryByName, expectedCurrency);
         }
 
         // If a match was found, store it in cache..
         if (symbolMatch) {
 
-            this.logDebug(`getSymbol(): Match found for ${isin ?? symbol}`, progress);
+            this.logDebug(`getSecurity(): Match found for ${isin ?? symbol}`, progress);
 
             // If there was an isin given, place it in the isin-symbol mapping cache.
             if (isin) {
@@ -134,7 +139,7 @@ export class YahooFinanceService {
 
             // Check wether the quote has a symbol. If not, just skip it..
             if (!quote.symbol) {
-                this.logDebug(`getSymbolsByQuery(): Quote has no symbol at Yahoo Finance ${quote.symbol}. Skipping..`, progress);
+                this.logDebug(`getSymbolsByQuery(): Quote has no symbol at Yahoo Finance ${quote.symbol}. Skipping..`, progress, true);
                 continue;
             }
 
@@ -145,13 +150,13 @@ export class YahooFinanceService {
                 quoteSummaryResult = await yahooFinance.quoteSummary(quote.symbol, {}, { validateResult: false });
             }
             catch (err) {
-                this.logDebug(`getSymbolsByQuery(): An error ocurred while retrieving summary for ${quote.symbol}. Skipping..`, progress);
+                this.logDebug(`getSymbolsByQuery(): An error ocurred while retrieving summary for ${quote.symbol}. Skipping..`, progress, true);
                 continue;
             }
 
             // Check if a result was returned that has the required fields.
             if (!quoteSummaryResult.price) {
-                this.logDebug(`getSymbolsByQuery(): Got no useful result from Yahoo Finance for symbol ${quote.symbol}. Skipping..`, progress);
+                this.logDebug(`getSymbolsByQuery(): Got no useful result from Yahoo Finance for symbol ${quote.symbol}. Skipping..`, progress, true);
                 continue;
             }
 
@@ -173,14 +178,40 @@ export class YahooFinanceService {
         return result;
     }
 
-    private logDebug(message, progress?) {
+    /**
+     * Find a match by either currency and/or prefered exchange in a list of given symbols.
+     * 
+     * @param symbols The list of symbols to query
+     * @param expectedCurrency The expected currency for the symbol
+     * @returns A symbol matched by either currency and/or prefered exchange, if any found..
+     */
+    private findSymbolMatch(symbols: YahooFinanceRecord[], expectedCurrency: any) {
+
+        let symbolMatch: YahooFinanceRecord;
+
+        // If a prefered exchange was given, try find a match by both currency and prefered exchange.
+        if (this.preferedExchangePostfix != '') {
+            symbolMatch = symbols.find(i => i.currency === expectedCurrency && i.symbol.indexOf(this.preferedExchangePostfix) > -1);
+        }
+
+        // If no match by prefered exchange found, then try by currency only.
+        if (!symbolMatch) {
+            symbolMatch = symbols.find(i => i.currency === expectedCurrency);
+        }
+
+        return symbolMatch;
+    }
+
+    private logDebug(message, progress?, additionalTabs?: boolean) {
+
+        const messageToLog = (additionalTabs ? '\t' : '') + `\t${message}`
 
         if (process.env.DEBUG_LOGGING == "true") {
             if (!progress) {
-                console.log(`\t${message}`);
+                console.log(messageToLog);
             }
             else {
-                progress.log(`\t${message}\n`);
+                progress.log(`${messageToLog}\n`);
             }
         }
     }
