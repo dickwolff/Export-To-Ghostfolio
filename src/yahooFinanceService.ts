@@ -54,7 +54,7 @@ export class YahooFinanceService {
         // First try by ISIN.
         let symbols = await this.getSymbolsByQuery(isin, progress);
         this.logDebug(`getSecurity(): Found ${symbols.length} matches by ISIN ${isin}`, progress);
-        
+
         // If no result found by ISIN, try by symbol.
         if (symbols.length == 0 && symbol) {
             this.logDebug(`getSecurity(): Not a single symbol found for ISIN ${isin}, trying by symbol ${symbol}`, progress);
@@ -112,10 +112,14 @@ export class YahooFinanceService {
     private async getSymbolsByQuery(query: string, progress?: any): Promise<YahooFinanceRecord[]> {
 
         // First get quotes for the query.
-        const queryResult = await yahooFinance.search(query, {
-            newsCount: 0,
-            quotesCount: 6
-        });
+        const queryResult = await yahooFinance.search(query,
+            {
+                newsCount: 0,
+                quotesCount: 6
+            },
+            {
+                validateResult: false
+            });
 
         const result: YahooFinanceRecord[] = [];
 
@@ -133,7 +137,7 @@ export class YahooFinanceService {
             // Put in try-catch, since Yahoo Finance can return faulty data and crash..
             let quoteSummaryResult;
             try {
-                quoteSummaryResult = await yahooFinance.quoteSummary(quote.symbol, { }, { validateResult: false });
+                quoteSummaryResult = await yahooFinance.quoteSummary(quote.symbol, {}, { validateResult: false });
             }
             catch (err) {
                 this.logDebug(`getSymbolsByQuery(): An error ocurred while retrieving summary for ${quote.symbol}. Skipping..`, progress);
