@@ -221,7 +221,9 @@ export class DeGiroConverter extends AbstractConverter {
         // Log whenever there was no match found.
         // Skip this check when a marker was set, since that is an intermediate record that will be removed later.
         if (!security && !marker) {
-          throw new Error(`Could not find a match for ${orderType} action for ${record.isin} with currency ${record.currency}..`);
+          this.progress.log(`\tNo result found for ${orderType} action for ${record.isin} with currency ${record.currency}! Please add this manually..\n`);
+          bar1.increment();
+          continue;
         }
 
         // Add record to export.
