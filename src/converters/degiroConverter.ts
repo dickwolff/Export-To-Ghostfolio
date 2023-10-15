@@ -74,8 +74,14 @@ export class DeGiroConverter extends AbstractConverter {
         // Skip all remaining records where:
         // - The description does not contain the text 'dividend', and
         // - The description does not contain an '@' (present on buy/sell records), and
-        // - The description does not contain an '/' (present on buy/sell fee records).
-        if (description.indexOf("dividend") === -1 && description.indexOf("\@") === -1 && description.indexOf("\/") === -1) {
+        // - The description does not contain an '/' (present on buy/sell fee records),
+        // - The description does not contain 'zu je' (present on buy/ records in German language).
+        if (
+          description.indexOf("dividend") === -1 &&
+          description.indexOf("\@") === -1 &&
+          description.indexOf("\/") === -1 &&
+          description.indexOf("zu je") === -1) {
+
           bar1.increment();
           continue;
         }
@@ -131,8 +137,10 @@ export class DeGiroConverter extends AbstractConverter {
           unitPrice = Math.abs(parseFloat(record.amount.replace(",", ".")));
         }
 
-        // Check for a buy/sell record. This can be identified by an '@'.
-        if (description.match(/\@/)) {
+        // Check for a buy/sell record. This can be identified by:
+        // - '@' (in exports in Dutch language), or
+        // - 'zu je' (in exports in German language).
+        if (description.match(/\@|(zu je)/)) {
 
           // Get the amount of shares from the description.
           const numberSharesFromDescription = description.match(/([\d*\.?\,?\d*]+)/)[0];
@@ -186,12 +194,6 @@ export class DeGiroConverter extends AbstractConverter {
           }
         }
 
-        // Ghostfolio validation doesn't allow empty order types.
-        if (!orderType) {
-          bar1.increment();
-          continue;
-        }
-
         // When ISIN is given, check for transaction fees record.
         // For this record the "Amount" record should be retrieved. This contains the transaction fee in local currency.
         if (record.isin.length > 0) {
@@ -209,8 +211,16 @@ export class DeGiroConverter extends AbstractConverter {
 
         const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
 
+        // Ghostfolio validation doesn't allow empty order types.
+        // Skip this check when a marker was set, since that is an intermediate record that will be removed later.
+        if (!orderType && !marker) {
+          bar1.increment();
+          continue;
+        }
+
         // Log whenever there was no match found.
-        if (!security) {
+        // Skip this check when a marker was set, since that is an intermediate record that will be removed later.
+        if (!security && !marker) {
           throw new Error(`Could not find a match for ${orderType} action for ${record.isin} with currency ${record.currency}..`);
         }
 
@@ -225,7 +235,7 @@ export class DeGiroConverter extends AbstractConverter {
           currency: record.currency,
           dataSource: "YAHOO",
           date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-          symbol: security.symbol
+          symbol: security?.symbol
         });
 
         bar1.increment();
