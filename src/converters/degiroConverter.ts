@@ -9,16 +9,19 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 import { GhostfolioService } from "../ghostfolioService";
+import { YahooFinanceService2 } from "../yahoofinanceservice2";
 
 export class DeGiroConverter extends AbstractConverter {
 
   private yahooFinanceService: YahooFinanceService;
+  private yahooFinanceService2: YahooFinanceService2;
   private ghostfolioService: GhostfolioService;
 
   constructor() {
     super();
 
     this.yahooFinanceService = new YahooFinanceService();
+    this.yahooFinanceService2 = new YahooFinanceService2();
     this.ghostfolioService = new GhostfolioService();
 
     dayjs.extend(customParseFormat);
@@ -102,6 +105,7 @@ export class DeGiroConverter extends AbstractConverter {
           //   this.progress);
 
           security = await this.ghostfolioService.getTicker(record.isin, record.currency);
+          //security = await this.yahooFinanceService2.getSecurity(record.isin, record.currency);
         }
         catch (err) {
           console.log(err);
