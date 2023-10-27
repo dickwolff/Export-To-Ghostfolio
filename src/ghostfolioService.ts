@@ -3,7 +3,7 @@ export class GhostfolioService {
 
     private bearer: any = null;
 
-    public async getTicker(symbol: string, expectedCurrency: string, isRetry: boolean = false): Promise<any[]> {
+    public async getTicker(symbol: string, expectedCurrency: string, isRetry: boolean = false): Promise<any> {
 
         // Retrieve bearer token for authentication.
         if (!this.bearer) {
