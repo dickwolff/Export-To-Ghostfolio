@@ -43,7 +43,7 @@ package-lock.json
 from_*.csv
 
 # Ignore DEGIRO export files (by default name: Account.csv)
-Account.csv
+Account*.csv
 
 # Ignore export file
 ghostfolio-*.json

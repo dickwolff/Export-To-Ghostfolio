@@ -4,4 +4,5 @@ export class YahooFinanceRecord {
     exchange: string;
     price: number;
     currency: string;
+    name: string;
 }

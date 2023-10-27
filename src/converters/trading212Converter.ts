@@ -108,7 +108,7 @@ export class Trading212Converter extends AbstractConverter {
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`\tgetSymbol(): No result found for ${record.isin || record.ticker || record.name}! Please add this manually..\n`);
+                    this.progress.log(`\tNo result found for ${record.action} action for ${record.isin || record.ticker || record.name} with currency ${record.currencyPriceShare}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }
