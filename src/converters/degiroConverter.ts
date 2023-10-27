@@ -7,15 +7,18 @@ import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { GhostfolioService } from "../ghostfolioService";
 
 export class DeGiroConverter extends AbstractConverter {
 
   private yahooFinanceService: YahooFinanceService;
+  private ghostfolioService: GhostfolioService;
 
   constructor() {
     super();
 
     this.yahooFinanceService = new YahooFinanceService();
+    this.ghostfolioService = new GhostfolioService();
   }
 
   /**
@@ -79,12 +82,14 @@ export class DeGiroConverter extends AbstractConverter {
 
         let security: YahooFinanceRecord;
         try {
-          security = await this.yahooFinanceService.getSecurity(
-            record.isin,
-            null,
-            null,
-            record.currency,
-            this.progress);
+          // security = await this.yahooFinanceService.getSecurity(
+          //   record.isin,
+          //   null,
+          //   null,
+          //   record.currency,
+          //   this.progress);
+
+          await this.ghostfolioService.getTicker(record.isin, record.currency);
         }
         catch {
           break;
