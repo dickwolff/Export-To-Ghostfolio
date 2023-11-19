@@ -8,6 +8,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 
 - [Trading 212](https://trading212.com)
 - [DEGIRO](https://degiro.com)
+- [Finpension](https://finpension.ch)
 
 Is your broker not in the list? Feel free to create an [issue](https://github.com/dickwolff/Export-To-Ghostfolio/issues/new) or, even better, build it yourself and create a [pull request](https://github.com/dickwolff/Export-To-Ghostfolio/compare)!
 
@@ -48,6 +49,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | --- | --- |
 | Trading 212 | `run start trading212` |
 | DEGIRO | `run start degiro` |
+| Finpension | `run start finpension` |
   
 The export file can now be imported in Ghostfolio by going to Portfolio > Activities and pressing the 3 dots at the top right of the table. Since Ghostfolio 1.221.0, you can now preview the import and validate the data has been converted correctly. When it is to your satisfaction, press import to add the activities to your portfolio.
 
