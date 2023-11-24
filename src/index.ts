@@ -3,7 +3,8 @@ import { GhostfolioExport } from "./models/ghostfolioExport";
 import { DeGiroConverter } from "./converters/degiroConverter";
 import { AbstractConverter } from "./converters/abstractconverter";
 import { Trading212Converter } from "./converters/trading212Converter";
-import { FinpensionConverter } from "./converters/finPensionConverter";
+import { SwissquoteConverter } from "./converters/swissquoteConverter";
+import { FinpensionConverter } from "./converters/finpensionConverter";
 
 require("dotenv").config();
 
@@ -14,6 +15,7 @@ let converter: AbstractConverter;
 
 // Determine convertor type.
 switch (process.argv[2].toLocaleLowerCase()) {
+    case "t212":
     case "trading212":
         console.log("Processing file using Trading212 converter");
         converter = new Trading212Converter();
@@ -22,9 +24,15 @@ switch (process.argv[2].toLocaleLowerCase()) {
         console.log("Processing file using DeGiro converter");
         converter = new DeGiroConverter();
         break;
+    case "fp":
     case "finpension":
         console.log("Processing file using Finpension converter");
         converter = new FinpensionConverter();
+        break;
+    case "sq":
+    case "swissquote":
+        console.log("Processing file using Swissquote converter");
+        converter = new SwissquoteConverter();
         break;
     default:
         throw new Error("No converter provided (i.e. trading212, degiro)");

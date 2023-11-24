@@ -139,7 +139,7 @@ export class YahooFinanceService {
 
             // Check wether the quote has a symbol. If not, just skip it..
             if (!quote.symbol) {
-                this.logDebug(`getSymbolsByQuery(): Quote has no symbol at Yahoo Finance ${quote.symbol}. Skipping..`, progress, true);
+                this.logDebug(`getSymbolsByQuery(): Quote has no symbol at Yahoo Finance: ${query}. Skipping..`, progress, true);
                 continue;
             }
 

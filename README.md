@@ -9,6 +9,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [Trading 212](https://trading212.com)
 - [DEGIRO](https://degiro.com)
 - [Finpension](https://finpension.ch)
+- [Swissquote](https://en.swissquote.com/)
 
 Is your broker not in the list? Feel free to create an [issue](https://github.com/dickwolff/Export-To-Ghostfolio/issues/new) or, even better, build it yourself and create a [pull request](https://github.com/dickwolff/Export-To-Ghostfolio/compare)!
 
@@ -28,6 +29,14 @@ Go to DEGIRO and create an export file (via Inbox > Account Overview, see image 
 
 ![image](https://github.com/dickwolff/Export-To-Ghostfolio/assets/5620002/ff48baf9-5725-4efc-a9ec-fbbf0472a656)
 
+#### Finpension
+
+> insert export instructions here
+
+#### Swissquote
+
+> insert export instructions here
+
 ### Use the tool
 
 Next, clone the repo to your local machine and open with your editor of choice (e.g. Visual Studio Code).
@@ -45,11 +54,12 @@ The repository contains a sample `.env` file. Rename this from `.env.sample`.
 
 You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the symbols that are supported with YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN). 
 
-| Exporter | Run command |
-| --- | --- |
-| Trading 212 | `run start trading212` |
-| DEGIRO | `run start degiro` |
-| Finpension | `run start finpension` |
+| Exporter    | Run command                      |
+| ----------- | -------------------------------- |
+| Trading 212 | `run start trading212` (or `t212`)  |
+| DEGIRO      | `run start degiro`               |
+| Finpension  | `run start finpension` (or `fp`) |
+| Swissquote  | `run start swissquote` (or `sq`) |
   
 The export file can now be imported in Ghostfolio by going to Portfolio > Activities and pressing the 3 dots at the top right of the table. Since Ghostfolio 1.221.0, you can now preview the import and validate the data has been converted correctly. When it is to your satisfaction, press import to add the activities to your portfolio.
 
