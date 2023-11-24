@@ -3,6 +3,7 @@ import { GhostfolioExport } from "./models/ghostfolioExport";
 import { DeGiroConverter } from "./converters/degiroConverter";
 import { AbstractConverter } from "./converters/abstractconverter";
 import { Trading212Converter } from "./converters/trading212Converter";
+import { SchwabConverter } from "./converters/schwabConverter";
 
 require("dotenv").config();
 
@@ -21,6 +22,10 @@ switch (process.argv[2].toLocaleLowerCase()) {
         console.log("Processing file using DeGiro converter");
         converter = new DeGiroConverter();
         break;
+    case "schwab":
+        console.log("Processing file using Schwab converter");
+        converter = new SchwabConverter();
+        break;
     default:
         throw new Error("No converter provided (i.e. trading212, degiro)");
 }
@@ -33,6 +38,6 @@ converter.processFile(inputFile, (result: GhostfolioExport) => {
     // Write result to file.
     const fileContents = JSON.stringify(result);
     fs.writeFileSync(`ghostfolio-${process.argv[2].toLocaleLowerCase()}.json`, fileContents, { encoding: "utf-8" });
-    
+
     console.log(`Wrote data to 'ghostfolio-${process.argv[2].toLocaleLowerCase()}.json'!`);
 });
