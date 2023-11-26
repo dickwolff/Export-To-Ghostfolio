@@ -28,7 +28,7 @@ export class SchwabConverter extends AbstractConverter {
 
         // Parse the CSV and convert to Ghostfolio import format.
         parse(csvFile, {
-            delimiter: ";",
+            delimiter: ",",
             fromLine: 2,
             columns: this.processHeaders(csvFile),
             cast: (columnValue, context) => {
@@ -50,18 +50,21 @@ export class SchwabConverter extends AbstractConverter {
                         return "sell";
                     }
                     else if (action.indexOf("dividend") > -1 ||
-                             action.indexOf("qual") > -1 ||
-                             action.endsWith("reinvest")) {
+                        action.indexOf("qual") > -1 ||
+                        action.endsWith("reinvest")) {
                         return "dividend";
                     }
                 }
+
+                // Remove the dollar sign ($) from any field.
+                columnValue = columnValue.replace(/\$/g, "");
 
                 // Parse numbers to floats (from string).
                 if (context.column === "quantity" ||
                     context.column === "price" ||
                     context.column === "feesCommissions" ||
                     context.column === "amount") {
-                    return parseFloat(columnValue);
+                    return parseFloat(columnValue || "0");
                 }
 
                 return columnValue;
@@ -82,13 +85,14 @@ export class SchwabConverter extends AbstractConverter {
             // Populate the progress bar.
             const bar1 = this.progress.create(records.length, 0);
 
-            // Skip last line of export (contains some stats).
-            for (let idx = 0; idx < records.length; idx++) {
+            // Skip last line of export ( stats).
+            for (let idx = 0; idx < records.length - 1; idx++) {
                 const record = records[idx];
-
+                
                 // Skip administrative fee/deposit/withdraw transactions.
                 if (record.action.toLocaleLowerCase().indexOf("fee") > -1 ||
-                    record.action.toLocaleLowerCase().indexOf("credit") > -1) {
+                    record.action.toLocaleLowerCase().indexOf("credit") > -1 ||
+                    record.date.toString().toLocaleLowerCase() === "transactions total") {
                     bar1.increment();
                     continue;
                 }
