@@ -92,6 +92,7 @@ export class SchwabConverter extends AbstractConverter {
                 // Skip administrative fee/deposit/withdraw transactions.
                 if (record.action.toLocaleLowerCase().indexOf("fee") > -1 ||
                     record.action.toLocaleLowerCase().indexOf("credit") > -1 ||
+                    record.action.toLocaleLowerCase().indexOf("journaled") > -1 ||
                     record.date.toString().toLocaleLowerCase() === "transactions total") {
                     bar1.increment();
                     continue;
