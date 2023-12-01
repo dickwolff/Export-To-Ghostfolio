@@ -71,7 +71,7 @@ export class YahooFinanceService {
 
         // If no match found and no symbol given, take the symbol from the first ISIN match.
         // Split on '.', so BNS.TO becomes BNS (for more matches).
-        if (!symbol) {
+        if (!symbol && symbols.length > 0) {
             symbol = symbols[0].symbol.split(".")[0];
         }
 
@@ -83,21 +83,21 @@ export class YahooFinanceService {
         }
 
         // If no name was given, take name from the first ISIN match.
-        if (!name) {
+        if (!name && symbols.length > 0) {
             name = symbols[0].name;
         }
 
         // If still no currency match has been found, try to query Yahoo Finance by name exclusively and search again.
         if (!symbolMatch && name) {
-            this.logDebug(`getSecurity(): No match found for symbol ${symbol}, trying by name ${name}`, progress);
+            this.logDebug(`getSecurity(): No match found for symbol ${symbol || "not provided"}, trying by name ${name}`, progress);
             const queryByName = await this.getSymbolsByQuery(name, progress);
             symbolMatch = this.findSymbolMatch(queryByName, expectedCurrency);
         }
-
+        
         // If a match was found, store it in cache..
         if (symbolMatch) {
 
-            this.logDebug(`getSecurity(): Match found for ${isin ?? symbol}`, progress);
+            this.logDebug(`getSecurity(): Match found for ${isin ?? symbol ?? name}`, progress);
 
             // If there was an isin given, place it in the isin-symbol mapping cache.
             if (isin) {

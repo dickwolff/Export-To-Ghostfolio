@@ -96,7 +96,7 @@ export class DeGiroConverter extends AbstractConverter {
           security = await this.yahooFinanceService.getSecurity(
             record.isin,
             null,
-            null,
+            record.product, 
             record.currency,
             this.progress);
         }
