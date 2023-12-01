@@ -66,7 +66,8 @@ export class DeGiroConverter extends AbstractConverter {
           description.indexOf("cash sweep") > -1 ||
           description.indexOf("withdrawal") > -1 ||
           description.indexOf("pass-through") > -1 ||
-          description.indexOf("productwijziging") > -1) {
+          description.indexOf("productwijziging") > -1 ||
+          description.indexOf("währungswechsel") > -1) {
 
           bar1.increment();
           continue;
