@@ -83,7 +83,7 @@ export class SchwabConverter extends AbstractConverter {
             }
 
             // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
+            const bar1 = this.progress.create(records.length - 1, 0);
 
             // Skip last line of export ( stats).
             for (let idx = 0; idx < records.length - 1; idx++) {
@@ -122,7 +122,7 @@ export class SchwabConverter extends AbstractConverter {
                 // Make negative numbers (on sell records) absolute.
                 let numberOfShares = Math.abs(record.quantity);
                 let priceShare = Math.abs(record.price);
-                let feesCommissions = Math.abs(record.feesCommissions);
+                let feesCommissions = Math.abs(record.feesComm);
 
                 // Dividend records have a share count of 1.
                 if (record.action === "dividend") {

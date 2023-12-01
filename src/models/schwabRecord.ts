@@ -5,6 +5,6 @@ export class SchwabRecord {
     description: string
     quantity: number;
     price: number;
-    feesCommissions: number;
+    feesComm: number;
     amount: number;
 }
