@@ -21,21 +21,21 @@ Is your broker not in the list? Feel free to create an [issue](https://github.co
 
 #### Trading 212
 
-Go to Trading 212 and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
+Login to your Trading 212 account and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
 
 #### DEGIRO
 
-Go to DEGIRO and create an export file (via Inbox > Account Overview, see image below). Choose the period from which you wish to export your history and click download.
+Login to your DEGIRO account and create an export file (via Inbox > Account Overview, see image below). Choose the period from which you wish to export your history and click download.
 
 ![image](https://github.com/dickwolff/Export-To-Ghostfolio/assets/5620002/ff48baf9-5725-4efc-a9ec-fbbf0472a656)
 
 #### Finpension
 
-> insert export instructions here
+Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select “Transactions”, on the following page to the right notice “transaction report (CSV-file)” and click to email or click to download locally.
 
 #### Swissquote
 
-> insert export instructions here
+Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.#### Swissquote
 
 ### Use the tool
 
