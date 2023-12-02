@@ -134,6 +134,7 @@ export class YahooFinanceService {
         // Check if no match was found and a name was given (length > 10 so no ISIN).
         // In that case, try and find a partial match by removing a part of the name.
         if (queryResult.quotes.length === 0 && query.length > 10) {
+            this.logDebug(`getSymbolsByQuery(): No match found when searching by name for ${query}. Trying a partial name match with first 20 characters..`, progress, true);
             queryResult = await yahooFinance.search(query.substring(0, 20),
                 {
                     newsCount: 0,
