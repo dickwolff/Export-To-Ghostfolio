@@ -42,7 +42,7 @@ export class DeGiroConverter extends AbstractConverter {
       }
     }, async (_, records: DeGiroRecord[]) => {
 
-      console.log(`Read CSV file ${inputFile}. Start processing..`);
+      console.log(`[i] Read CSV file ${inputFile}. Start processing..`);
       const result: GhostfolioExport = {
         meta: {
           date: new Date(),
@@ -103,6 +103,13 @@ export class DeGiroConverter extends AbstractConverter {
         catch (err) {
           console.log(err);
           throw err;
+        }
+
+        // Log whenever there was no match found.
+        if (!security) {
+          this.progress.log(`[i] No result found for ${record.isin || record.product} with currency ${record.currency}! Please add this manually..\n`);
+          bar1.increment();
+          continue;
         }
 
         let orderType: GhostfolioOrderType;
@@ -216,14 +223,6 @@ export class DeGiroConverter extends AbstractConverter {
         // Ghostfolio validation doesn't allow empty order types.
         // Skip this check when a marker was set, since that is an intermediate record that will be removed later.
         if (!orderType && !marker) {
-          bar1.increment();
-          continue;
-        }
-
-        // Log whenever there was no match found.
-        // Skip this check when a marker was set, since that is an intermediate record that will be removed later.
-        if (!security && !marker) {
-          this.progress.log(`\tNo result found for ${orderType} action for ${record.isin} with currency ${record.currency}! Please add this manually..\n`);
           bar1.increment();
           continue;
         }

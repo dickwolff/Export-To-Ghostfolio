@@ -93,7 +93,7 @@ export class YahooFinanceService {
             const queryByName = await this.getSymbolsByQuery(name, progress);
             symbolMatch = this.findSymbolMatch(queryByName, expectedCurrency);
         }
-        
+
         // If a match was found, store it in cache..
         if (symbolMatch) {
 
@@ -122,24 +122,37 @@ export class YahooFinanceService {
     private async getSymbolsByQuery(query: string, progress?: any): Promise<YahooFinanceRecord[]> {
 
         // First get quotes for the query.
-        const queryResult = await yahooFinance.search(query,
+        let queryResult = await yahooFinance.search(query,
             {
                 newsCount: 0,
-                quotesCount: 6
+                quotesCount: 10
             },
             {
                 validateResult: false
             });
 
-        const result: YahooFinanceRecord[] = [];
+        // Check if no match was found and a name was given (length > 10 so no ISIN).
+        // In that case, try and find a partial match by removing a part of the name.
+        if (queryResult.quotes.length === 0 && query.length > 10) {
+            queryResult = await yahooFinance.search(query.substring(0, 20),
+                {
+                    newsCount: 0,
+                    quotesCount: 10
+                },
+                {
+                    validateResult: false
+                });
+        }
 
+        const result: YahooFinanceRecord[] = [];
+        
         // Loop through the resulted quotes and retrieve summary data.
         for (let idx = 0; idx < queryResult.quotes.length; idx++) {
             const quote = queryResult.quotes[idx];
 
             // Check wether the quote has a symbol. If not, just skip it..
             if (!quote.symbol) {
-                this.logDebug(`getSymbolsByQuery(): Quote has no symbol at Yahoo Finance ${quote.symbol}. Skipping..`, progress, true);
+                this.logDebug(`getSymbolsByQuery(): Quote '${query}' has no symbol at Yahoo Finance ${quote.symbol}. Skipping..`, progress, true);
                 continue;
             }
 
@@ -208,10 +221,10 @@ export class YahooFinanceService {
 
         if (process.env.DEBUG_LOGGING == "true") {
             if (!progress) {
-                console.log(messageToLog);
+                console.log(`[i] ${messageToLog}`);
             }
             else {
-                progress.log(`${messageToLog}\n`);
+                progress.log(`[d] ${messageToLog}\n`);
             }
         }
     }
