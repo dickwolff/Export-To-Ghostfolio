@@ -84,7 +84,9 @@ export class SwissquoteConverter extends AbstractConverter {
                 // Skip administrative fee/deposit/withdraw transactions.
                 if (record.transaction.toLocaleLowerCase().indexOf("credit") > -1 ||
                     record.transaction.toLocaleLowerCase().indexOf("debit") > -1 ||
-                    record.transaction.toLocaleLowerCase().indexOf("fees") > -1) {
+                    record.transaction.toLocaleLowerCase().indexOf("fees") > -1 ||
+                    record.transaction.toLocaleLowerCase().indexOf("payment") > -1 ||
+                    record.transaction.toLocaleLowerCase().indexOf("interest") > -1) {
                     bar1.increment();
                     continue;
                 }
