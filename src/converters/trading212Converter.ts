@@ -69,7 +69,7 @@ export class Trading212Converter extends AbstractConverter {
 
             let errorExport = false;
 
-            console.log(`Read CSV file ${inputFile}. Start processing..`);
+            console.log(`[i] Read CSV file ${inputFile}. Start processing..`);
             const result: GhostfolioExport = {
                 meta: {
                     date: new Date(),
@@ -108,7 +108,7 @@ export class Trading212Converter extends AbstractConverter {
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`\tNo result found for ${record.action} action for ${record.isin || record.ticker || record.name} with currency ${record.currencyPriceShare}! Please add this manually..\n`);
+                    this.progress.log(`[i] No result found for ${record.action} action for ${record.isin || record.ticker || record.name} with currency ${record.currencyPriceShare}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }
