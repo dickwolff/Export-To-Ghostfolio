@@ -82,7 +82,7 @@ export class YahooFinanceService {
 
         // If no match found and no symbol given, take the symbol from the first ISIN match.
         // Split on '.', so BNS.TO becomes BNS (for more matches).
-        if (!symbol) {
+        if (!symbol && symbols.length > 0) {
             symbol = symbols[0].symbol.split(".")[0];
         }
 
@@ -94,13 +94,13 @@ export class YahooFinanceService {
         }
 
         // If no name was given, take name from the first ISIN match.
-        if (!name) {
+        if (!name && symbols.length > 0) {
             name = symbols[0].name;
         }
 
         // If still no currency match has been found, try to query Yahoo Finance by name exclusively and search again.
         if (!symbolMatch && name) {
-            this.logDebug(`getSecurity(): No match found for symbol ${symbol}, trying by name ${name}`, progress);
+            this.logDebug(`getSecurity(): No match found for symbol ${symbol || "not provided"}, trying by name ${name}`, progress);
             const queryByName = await this.getSymbolsByQuery(name, progress);
             symbolMatch = this.findSymbolMatch(queryByName, expectedCurrency);
         }
@@ -108,7 +108,7 @@ export class YahooFinanceService {
         // If a match was found, store it in cache..
         if (symbolMatch) {
 
-            this.logDebug(`getSecurity(): Match found for ${isin ?? symbol}`, progress);
+            this.logDebug(`getSecurity(): Match found for ${isin ?? symbol ?? name}`, progress);
 
             // If there was an isin given, place it in the isin-symbol mapping cache.
             if (isin) {
@@ -133,24 +133,38 @@ export class YahooFinanceService {
     private async getSymbolsByQuery(query: string, progress?: any): Promise<YahooFinanceRecord[]> {
 
         // First get quotes for the query.
-        const queryResult = await yahooFinance.search(query,
+        let queryResult = await yahooFinance.search(query,
             {
                 newsCount: 0,
-                quotesCount: 6
+                quotesCount: 10
             },
             {
                 validateResult: false
             });
 
-        const result: YahooFinanceRecord[] = [];
+        // Check if no match was found and a name was given (length > 10 so no ISIN).
+        // In that case, try and find a partial match by removing a part of the name.
+        if (queryResult.quotes.length === 0 && query.length > 10) {
+            this.logDebug(`getSymbolsByQuery(): No match found when searching by name for ${query}. Trying a partial name match with first 20 characters..`, progress, true);
+            queryResult = await yahooFinance.search(query.substring(0, 20),
+                {
+                    newsCount: 0,
+                    quotesCount: 10
+                },
+                {
+                    validateResult: false
+                });
+        }
 
+        const result: YahooFinanceRecord[] = [];
+        
         // Loop through the resulted quotes and retrieve summary data.
         for (let idx = 0; idx < queryResult.quotes.length; idx++) {
             const quote = queryResult.quotes[idx];
 
             // Check wether the quote has a symbol. If not, just skip it..
             if (!quote.symbol) {
-                this.logDebug(`getSymbolsByQuery(): Quote has no symbol at Yahoo Finance ${quote.symbol}. Skipping..`, progress, true);
+                this.logDebug(`getSymbolsByQuery(): Quote '${query}' has no symbol at Yahoo Finance ${quote.symbol}. Skipping..`, progress, true);
                 continue;
             }
 
@@ -219,10 +233,10 @@ export class YahooFinanceService {
 
         if (process.env.DEBUG_LOGGING == "true") {
             if (!progress) {
-                console.log(messageToLog);
+                console.log(`[i] ${messageToLog}`);
             }
             else {
-                progress.log(`${messageToLog}\n`);
+                progress.log(`[d] ${messageToLog}\n`);
             }
         }
     }

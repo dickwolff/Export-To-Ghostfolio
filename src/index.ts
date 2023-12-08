@@ -15,15 +15,15 @@ let converter: AbstractConverter;
 // Determine convertor type.
 switch (process.argv[2].toLocaleLowerCase()) {
     case "trading212":
-        console.log("Processing file using Trading212 converter");
+        console.log("[i] Processing file using Trading212 converter");
         converter = new Trading212Converter();
         break;
     case "degiro":
-        console.log("Processing file using DeGiro converter");
+        console.log("[i] Processing file using DeGiro converter");
         converter = new DeGiroConverter();
         break;
     case "schwab":
-        console.log("Processing file using Schwab converter");
+        console.log("[i] Processing file using Schwab converter");
         converter = new SchwabConverter();
         break;
     default:
@@ -33,11 +33,11 @@ switch (process.argv[2].toLocaleLowerCase()) {
 // Map the file to a Ghostfolio import.
 converter.processFile(inputFile, (result: GhostfolioExport) => {
 
-    console.log("Processing complete, writing to file..")
+    console.log("[i] Processing complete, writing to file..")
 
     // Write result to file.
     const fileContents = JSON.stringify(result);
     fs.writeFileSync(`ghostfolio-${process.argv[2].toLocaleLowerCase()}.json`, fileContents, { encoding: "utf-8" });
-
-    console.log(`Wrote data to 'ghostfolio-${process.argv[2].toLocaleLowerCase()}.json'!`);
+    
+    console.log(`[i] Wrote data to 'ghostfolio-${process.argv[2].toLocaleLowerCase()}.json'!`);
 });

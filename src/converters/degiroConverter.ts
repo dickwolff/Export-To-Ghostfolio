@@ -42,7 +42,7 @@ export class DeGiroConverter extends AbstractConverter {
       }
     }, async (_, records: DeGiroRecord[]) => {
 
-      console.log(`Read CSV file ${inputFile}. Start processing..`);
+      console.log(`[i] Read CSV file ${inputFile}. Start processing..`);
       const result: GhostfolioExport = {
         meta: {
           date: new Date(),
@@ -66,7 +66,8 @@ export class DeGiroConverter extends AbstractConverter {
           description.indexOf("cash sweep") > -1 ||
           description.indexOf("withdrawal") > -1 ||
           description.indexOf("pass-through") > -1 ||
-          description.indexOf("productwijziging") > -1) {
+          description.indexOf("productwijziging") > -1 ||
+          description.indexOf("währungswechsel") > -1) {
 
           bar1.increment();
           continue;
@@ -95,13 +96,20 @@ export class DeGiroConverter extends AbstractConverter {
           security = await this.yahooFinanceService.getSecurity(
             record.isin,
             null,
-            null,
+            record.product, 
             record.currency,
             this.progress);
         }
         catch (err) {
           console.log(err);
           throw err;
+        }
+
+        // Log whenever there was no match found.
+        if (!security) {
+          this.progress.log(`[i] No result found for ${record.isin || record.product} with currency ${record.currency}! Please add this manually..\n`);
+          bar1.increment();
+          continue;
         }
 
         let orderType: GhostfolioOrderType;
@@ -215,14 +223,6 @@ export class DeGiroConverter extends AbstractConverter {
         // Ghostfolio validation doesn't allow empty order types.
         // Skip this check when a marker was set, since that is an intermediate record that will be removed later.
         if (!orderType && !marker) {
-          bar1.increment();
-          continue;
-        }
-
-        // Log whenever there was no match found.
-        // Skip this check when a marker was set, since that is an intermediate record that will be removed later.
-        if (!security && !marker) {
-          this.progress.log(`\tNo result found for ${orderType} action for ${record.isin} with currency ${record.currency}! Please add this manually..\n`);
           bar1.increment();
           continue;
         }
