@@ -26,12 +26,12 @@ switch (process.argv[2].toLocaleLowerCase()) {
         break;
     case "fp":
     case "finpension":
-        console.log("Processing file using Finpension converter");
+        console.log("[i] Processing file using Finpension converter");
         converter = new FinpensionConverter();
         break;
     case "sq":
     case "swissquote":
-        console.log("Processing file using Swissquote converter");
+        console.log("[i] Processing file using Swissquote converter");
         converter = new SwissquoteConverter();
         break;
     default:
