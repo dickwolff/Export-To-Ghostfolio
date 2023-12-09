@@ -51,12 +51,16 @@ export class SwissquoteConverter extends AbstractConverter {
                     else if (action.indexOf("dividend") > -1) {
                         return "dividend";
                     }
+                    else if (action.indexOf("custody fees") > -1) {
+                        return "fee";
+                    }
                 }
 
                 // Parse numbers to floats (from string).
                 if (context.column === "quantity" ||
                     context.column === "unitPrice" ||
-                    context.column === "costs") {
+                    context.column === "costs" ||
+                    context.column === "netAmount") {
                     return parseFloat(columnValue);
                 }
 
@@ -84,9 +88,32 @@ export class SwissquoteConverter extends AbstractConverter {
                 // Skip administrative fee/deposit/withdraw transactions.
                 if (record.transaction.toLocaleLowerCase().indexOf("credit") > -1 ||
                     record.transaction.toLocaleLowerCase().indexOf("debit") > -1 ||
-                    record.transaction.toLocaleLowerCase().indexOf("fees") > -1 ||
                     record.transaction.toLocaleLowerCase().indexOf("payment") > -1 ||
                     record.transaction.toLocaleLowerCase().indexOf("interest") > -1) {
+                    bar1.increment();
+                    continue;
+                }
+
+                // Custody fees does not have a security, so add this immediately.
+                if (record.transaction.toLocaleLowerCase() === "fee") {
+
+                    const date = dayjs(`${record.date}`, "DD-MM-YYYY HH:mm");
+                    const feeAmount = Math.abs(record.netAmount);
+
+                    // Add fees record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: "",                    
+                        fee: feeAmount,
+                        quantity: 1,
+                        type: GhostfolioOrderType[record.transaction],
+                        unitPrice: feeAmount,
+                        currency: record.currency,
+                        dataSource: "MANUAL",
+                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: "Custody Fees"
+                    });
+
                     bar1.increment();
                     continue;
                 }
@@ -113,7 +140,7 @@ export class SwissquoteConverter extends AbstractConverter {
                 }
 
                 const date = dayjs(`${record.date}`, "DD-MM-YYYY HH:mm");
-                
+
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
