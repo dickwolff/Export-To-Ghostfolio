@@ -30,7 +30,7 @@ export class SwissquoteConverter extends AbstractConverter {
         const csvFile = fs.readFileSync(inputFile, "utf-8");
 
         // Parse the CSV and convert to Ghostfolio import format.
-        parse(csvFile, {
+        const parser = parse(csvFile, {
             delimiter: ";",
             fromLine: 2,
             columns: this.processHeaders(csvFile, ";"),
@@ -68,6 +68,11 @@ export class SwissquoteConverter extends AbstractConverter {
             }
         }, async (_, records: SwissquoteRecord[]) => {
 
+            // If records is empty, parsing failed..
+            if (records === undefined) {
+                throw new Error(`An error ocurred while parsing ${inputFile}...`);
+            }
+
             let errorExport = false;
 
             console.log(`Read CSV file ${inputFile}. Start processing..`);
@@ -85,10 +90,11 @@ export class SwissquoteConverter extends AbstractConverter {
             for (let idx = 0; idx < records.length; idx++) {
                 const record = records[idx];
 
-                // Skip administrative fee/deposit/withdraw transactions.
+                // Skip administrative deposit/withdraw transactions.
                 if (record.transaction.toLocaleLowerCase().indexOf("credit") > -1 ||
                     record.transaction.toLocaleLowerCase().indexOf("debit") > -1 ||
                     record.transaction.toLocaleLowerCase().indexOf("payment") > -1 ||
+                    record.transaction.toLocaleLowerCase().indexOf("tax statement") > -1 ||
                     record.transaction.toLocaleLowerCase().indexOf("interest") > -1) {
                     bar1.increment();
                     continue;
@@ -103,7 +109,7 @@ export class SwissquoteConverter extends AbstractConverter {
                     // Add fees record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: "",                    
+                        comment: "",
                         fee: feeAmount,
                         quantity: 1,
                         type: GhostfolioOrderType[record.transaction],
@@ -134,7 +140,7 @@ export class SwissquoteConverter extends AbstractConverter {
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`\tNo result found for ${record.transaction} action for ${record.isin || record.symbol || record.name} with currency ${record.currency}! Please add this manually..\n`);
+                    this.progress.log(`[i]\tNo result found for ${record.transaction} action for ${record.isin || record.symbol || record.name} with currency ${record.currency}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }
@@ -161,6 +167,12 @@ export class SwissquoteConverter extends AbstractConverter {
             this.progress.stop()
 
             callback(result);
+        });
+
+        // Catch any error.
+        parser.on('error', function (err) {
+            console.log("[i] An error ocurred while processing the input file! See error below:")
+            console.error("[e]", err.message);
         });
     }
 }

@@ -27,7 +27,7 @@ export class FinpensionConverter extends AbstractConverter {
         const csvFile = fs.readFileSync(inputFile, "utf-8");
 
         // Parse the CSV and convert to Ghostfolio import format.
-        parse(csvFile, {
+        const parser = parse(csvFile, {
             delimiter: ";",
             fromLine: 2,
             columns: this.processHeaders(csvFile, ";"),
@@ -60,6 +60,11 @@ export class FinpensionConverter extends AbstractConverter {
                 return columnValue;
             }
         }, async (_, records: FinpensionRecord[]) => {
+
+            // If records is empty, parsing failed..
+            if (records === undefined) {
+                throw new Error(`An error ocurred while parsing ${inputFile}...`);
+            }
 
             let errorExport = false;
 
@@ -102,7 +107,7 @@ export class FinpensionConverter extends AbstractConverter {
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`\tNo result found for ${record.category} action for ${record.isin || record.assetName} with currency ${record.assetCurrency}! Please add this manually..\n`);
+                    this.progress.log(`[i]\tNo result found for ${record.category} action for ${record.isin || record.assetName} with currency ${record.assetCurrency}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }
@@ -137,6 +142,12 @@ export class FinpensionConverter extends AbstractConverter {
             this.progress.stop()
 
             callback(result);
+        });
+
+        // Catch any error.
+        parser.on('error', function (err) {
+            console.log("[i] An error ocurred while processing the input file! See error below:")
+            console.error("[e]", err.message);
         });
     }
 }
