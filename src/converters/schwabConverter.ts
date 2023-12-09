@@ -27,7 +27,7 @@ export class SchwabConverter extends AbstractConverter {
         const csvFile = fs.readFileSync(inputFile, "utf-8");
 
         // Parse the CSV and convert to Ghostfolio import format.
-        parse(csvFile, {
+        const parser = parse(csvFile, {
             delimiter: ",",
             fromLine: 2,
             columns: this.processHeaders(csvFile),
@@ -54,6 +54,9 @@ export class SchwabConverter extends AbstractConverter {
                         action.endsWith("reinvest")) {
                         return "dividend";
                     }
+                    else if (action.indexOf("advisor fee") > -1) {
+                        return "fee";
+                    }
                 }
 
                 // Remove the dollar sign ($) from any field.
@@ -71,9 +74,14 @@ export class SchwabConverter extends AbstractConverter {
             }
         }, async (_, records: SchwabRecord[]) => {
 
+            // If records is empty, parsing failed..
+            if (records === undefined) {
+                throw new Error(`An error ocurred while parsing ${inputFile}...`);
+            }
+
             let errorExport = false;
 
-            console.log(`Read CSV file ${inputFile}. Start processing..`);
+            console.log(`[i] Read CSV file ${inputFile}. Start processing..`);
             const result: GhostfolioExport = {
                 meta: {
                     date: new Date(),
@@ -88,12 +96,34 @@ export class SchwabConverter extends AbstractConverter {
             // Skip last line of export ( stats).
             for (let idx = 0; idx < records.length - 1; idx++) {
                 const record = records[idx];
-                
+
                 // Skip administrative fee/deposit/withdraw transactions.
-                if (record.action.toLocaleLowerCase().indexOf("fee") > -1 ||
-                    record.action.toLocaleLowerCase().indexOf("credit") > -1 ||
+                if (record.action.toLocaleLowerCase().indexOf("credit") > -1 ||
                     record.action.toLocaleLowerCase().indexOf("journaled") > -1 ||
                     record.date.toString().toLocaleLowerCase() === "transactions total") {
+                    bar1.increment();
+                    continue;
+                }
+
+                // Custody fees does not have a security, so add this immediately.
+                if (record.action.toLocaleLowerCase() === "fee") {
+
+                    const feeAmount = Math.abs(record.amount);
+
+                    // Add fees record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: "",
+                        fee: feeAmount,
+                        quantity: 1,
+                        type: GhostfolioOrderType[record.action],
+                        unitPrice: feeAmount,
+                        currency: "USD",
+                        dataSource: "MANUAL",
+                        date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: record.description
+                    });
+
                     bar1.increment();
                     continue;
                 }
@@ -114,7 +144,7 @@ export class SchwabConverter extends AbstractConverter {
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`\tNo result found for ${record.action} action for ${record.symbol || record.description} with currency USD! Please add this manually..\n`);
+                    this.progress.log(`[i]\tNo result found for ${record.action} action for ${record.symbol || record.description} with currency USD! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }
@@ -127,6 +157,7 @@ export class SchwabConverter extends AbstractConverter {
                 // Dividend records have a share count of 1.
                 if (record.action === "dividend") {
                     numberOfShares = 1;
+                    priceShare = record.amount;
                 }
 
                 // Add record to export.
@@ -149,6 +180,12 @@ export class SchwabConverter extends AbstractConverter {
             this.progress.stop()
 
             callback(result);
+        });
+
+        // Catch any error.
+        parser.on('error', function (err) {
+            console.log("[i] An error ocurred while processing the input file! See error below:")
+            console.error("[e]", err.message);
         });
     }
 }
