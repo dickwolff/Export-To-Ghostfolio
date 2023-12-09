@@ -60,7 +60,8 @@ export class SwissquoteConverter extends AbstractConverter {
                 if (context.column === "quantity" ||
                     context.column === "unitPrice" ||
                     context.column === "costs" ||
-                    context.column === "netAmount") {
+                    context.column === "netAmount" ||
+                    context.column === "netAmountInAccountCurrency") {
                     return parseFloat(columnValue);
                 }
 
@@ -130,7 +131,7 @@ export class SwissquoteConverter extends AbstractConverter {
                         record.isin,
                         record.symbol,
                         record.name,
-                        record.currency,
+                        record.netAmountCurrency ?? record.currency,
                         this.progress);
                 }
                 catch (err) {
@@ -155,7 +156,7 @@ export class SwissquoteConverter extends AbstractConverter {
                     quantity: record.quantity,
                     type: GhostfolioOrderType[record.transaction],
                     unitPrice: record.unitPrice,
-                    currency: record.currency,
+                    currency: record.netAmountCurrency ?? record.currency,
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol

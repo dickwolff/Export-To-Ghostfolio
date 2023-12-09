@@ -10,6 +10,8 @@ export class SwissquoteRecord {
     costs: number;
     accruedInterest: number;
     netAmount: number;
+    netAmountCurrency: string;
+    netAmountInAccountCurrency: number;
     balance: number;
     currency: string;
 }
