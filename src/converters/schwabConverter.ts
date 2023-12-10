@@ -57,6 +57,9 @@ export class SchwabConverter extends AbstractConverter {
                     else if (action.indexOf("advisor fee") > -1) {
                         return "fee";
                     }
+                    else if (action.indexOf("interest") > -1 ) {
+                        return "interest";
+                    }
                 }
 
                 // Remove the dollar sign ($) from any field.
@@ -98,15 +101,17 @@ export class SchwabConverter extends AbstractConverter {
                 const record = records[idx];
 
                 // Skip administrative fee/deposit/withdraw transactions.
-                if (record.action.toLocaleLowerCase().indexOf("credit") > -1 ||
-                    record.action.toLocaleLowerCase().indexOf("journaled") > -1 ||
+                if (record.action.toLocaleLowerCase().startsWith("wire") ||
+                    record.action.toLocaleLowerCase().indexOf("credit") > -1 ||
+                    record.action.toLocaleLowerCase().indexOf("journal") > -1 ||
                     record.date.toString().toLocaleLowerCase() === "transactions total") {
                     bar1.increment();
                     continue;
                 }
 
-                // Custody fees does not have a security, so add this immediately.
-                if (record.action.toLocaleLowerCase() === "fee") {
+                // Custody fees or interest do not have a security, so add those immediately.
+                if (record.action.toLocaleLowerCase() === "fee" ||
+                    record.action.toLocaleLowerCase() === "interest") {
 
                     const feeAmount = Math.abs(record.amount);
 
