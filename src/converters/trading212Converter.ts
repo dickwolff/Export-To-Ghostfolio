@@ -85,9 +85,7 @@ export class Trading212Converter extends AbstractConverter {
                 const record = records[idx];
 
                 // Skip deposit/withdraw transactions.
-                if (record.action.toLocaleLowerCase().indexOf("deposit") > -1 ||
-                    record.action.toLocaleLowerCase().indexOf("withdraw") > -1 ||
-                    record.action.toLocaleLowerCase().indexOf("cash") > -1) {
+                if (this.isIgnoredRecord(record)) {
                     bar1.increment();
                     continue;
                 }
@@ -103,6 +101,7 @@ export class Trading212Converter extends AbstractConverter {
                 }
                 catch (err) {
                     errorExport = true;
+                    console.log("Failed to import record:", record);
                     throw err;
                 }
 
@@ -134,5 +133,10 @@ export class Trading212Converter extends AbstractConverter {
 
             callback(result);
         });
+    }
+
+    private isIgnoredRecord(record: Trading212Record) {
+        let ignoredRecordTypes = ["deposit", "withdraw", "cash", "currency conversion", "interest on cash"];
+        return ignoredRecordTypes.indexOf(record.action.toLocaleLowerCase()) > -1;
     }
 }
