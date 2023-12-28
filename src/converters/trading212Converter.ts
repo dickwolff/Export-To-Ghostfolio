@@ -48,11 +48,16 @@ export class Trading212Converter extends AbstractConverter {
                     else if (action.indexOf("dividend") > -1) {
                         return "dividend";
                     }
+                    else if (action.indexOf("interest") > -1) {
+                        return "interest";
+                    }
                 }
 
                 // Parse numbers to floats (from string).
                 if (context.column === "noOfShares" ||
-                    context.column === "priceShare") {
+                    context.column === "priceShare" ||
+                    context.column === "result" ||
+                    context.column === "total") {
                     return parseFloat(columnValue);
                 }
 
@@ -84,6 +89,30 @@ export class Trading212Converter extends AbstractConverter {
 
                 // Skip deposit/withdraw transactions.
                 if (this.isIgnoredRecord(record)) {
+                    bar1.increment();
+                    continue;
+                }
+
+                // Interest does not have a security, so add those immediately.
+                if (record.action.toLocaleLowerCase() === "interest") {
+
+                    console.log(record)
+                    const feeAmount = Math.abs(record.total);
+
+                    // Add fees record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: "",
+                        fee: feeAmount,
+                        quantity: 1,
+                        type: GhostfolioOrderType[record.action],
+                        unitPrice: feeAmount,
+                        currency: record.currencyTotal,
+                        dataSource: "MANUAL",
+                        date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: record.notes
+                    });
+
                     bar1.increment();
                     continue;
                 }
@@ -132,7 +161,8 @@ export class Trading212Converter extends AbstractConverter {
     }
 
     private isIgnoredRecord(record: Trading212Record) {
-        let ignoredRecordTypes = ["deposit", "withdraw", "cash", "currency conversion", "interest on cash"];
+        let ignoredRecordTypes = ["deposit", "withdraw", "cash", "currency conversion"];
+
         return ignoredRecordTypes.indexOf(record.action.toLocaleLowerCase()) > -1;
     }
 }
