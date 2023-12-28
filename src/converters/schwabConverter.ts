@@ -4,6 +4,7 @@ import { parse } from "csv-parse";
 import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 import { SchwabRecord } from "../models/schwabRecord";
@@ -16,6 +17,8 @@ export class SchwabConverter extends AbstractConverter {
         super();
 
         this.yahooFinanceService = new YahooFinanceService();
+        
+        dayjs.extend(customParseFormat);
     }
 
     /**
@@ -160,6 +163,8 @@ export class SchwabConverter extends AbstractConverter {
                     priceShare = record.amount;
                 }
 
+                const date = dayjs(`${record.date}`, "MM/DD/YYYY");
+
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
@@ -170,7 +175,7 @@ export class SchwabConverter extends AbstractConverter {
                     unitPrice: priceShare,
                     currency: "USD",
                     dataSource: "YAHOO",
-                    date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
+                    date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
                 });
 
