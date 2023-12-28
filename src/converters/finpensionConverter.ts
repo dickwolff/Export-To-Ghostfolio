@@ -66,8 +66,6 @@ export class FinpensionConverter extends AbstractConverter {
                 throw new Error(`An error ocurred while parsing ${inputFile}...`);
             }
 
-            let errorExport = false;
-
             console.log(`Read CSV file ${inputFile}. Start processing..`);
             const result: GhostfolioExport = {
                 meta: {
@@ -101,7 +99,7 @@ export class FinpensionConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    errorExport = true;
+                    
                     throw err;
                 }
 

@@ -67,8 +67,6 @@ export class Trading212Converter extends AbstractConverter {
             }
         }, async (_, records: Trading212Record[]) => {
 
-            let errorExport = false;
-
             console.log(`[i] Read CSV file ${inputFile}. Start processing..`);
             const result: GhostfolioExport = {
                 meta: {
@@ -100,8 +98,6 @@ export class Trading212Converter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    errorExport = true;
-                    console.log("Failed to import record:", record);
                     throw err;
                 }
 

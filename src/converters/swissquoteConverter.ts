@@ -74,8 +74,6 @@ export class SwissquoteConverter extends AbstractConverter {
                 throw new Error(`An error ocurred while parsing ${inputFile}...`);
             }
 
-            let errorExport = false;
-
             console.log(`Read CSV file ${inputFile}. Start processing..`);
             const result: GhostfolioExport = {
                 meta: {
@@ -135,7 +133,6 @@ export class SwissquoteConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    errorExport = true;
                     throw err;
                 }
 
