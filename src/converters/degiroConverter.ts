@@ -60,15 +60,7 @@ export class DeGiroConverter extends AbstractConverter {
         const description = record.description.toLocaleLowerCase();
 
         // Skip some records which contains one of the words below.
-        if (description === "" ||
-          description.indexOf("ideal") > -1 ||
-          description.indexOf("flatex") > -1 ||
-          description.indexOf("cash sweep") > -1 ||
-          description.indexOf("withdrawal") > -1 ||
-          description.indexOf("pass-through") > -1 ||
-          description.indexOf("productwijziging") > -1 ||
-          description.indexOf("währungswechsel") > -1) {
-
+        if (this.isIgnoredRecord(record)) {
           bar1.increment();
           continue;
         }
@@ -78,12 +70,7 @@ export class DeGiroConverter extends AbstractConverter {
         // - The description does not contain an '@' (present on buy/sell records), and
         // - The description does not contain an '/' (present on buy/sell fee records),
         // - The description does not contain 'zu je' (present on buy/ records in German language).
-        if (
-          description.indexOf("dividend") === -1 &&
-          description.indexOf("\@") === -1 &&
-          description.indexOf("\/") === -1 &&
-          description.indexOf("zu je") === -1) {
-
+        if (this.isInvalidNonDividendRecord(record)) {
           bar1.increment();
           continue;
         }
@@ -96,7 +83,7 @@ export class DeGiroConverter extends AbstractConverter {
           security = await this.yahooFinanceService.getSecurity(
             record.isin,
             null,
-            record.product, 
+            record.product,
             record.currency,
             this.progress);
         }
@@ -271,5 +258,25 @@ export class DeGiroConverter extends AbstractConverter {
       "orderId"];
 
     return csvHeaders;
+  }
+
+  private isIgnoredRecord(record: DeGiroRecord) {
+
+    if (record.description === "") {
+      return true;
+    }
+
+    const ignoredRecordTypes = ["ideal", "flatex", "cash sweep", "withdrawal", "pass-through", "productwijziging", "währungswechsel"];
+
+    return ignoredRecordTypes.some(t => record.description.toLocaleLowerCase().indexOf(t) > -1)
+  }
+
+  private isInvalidNonDividendRecord(record: DeGiroRecord) {
+    const description = record.description;
+
+    return description.indexOf("dividend") === -1 &&
+      description.indexOf("\@") === -1 &&
+      description.indexOf("\/") === -1 &&
+      description.indexOf("zu je") === -1;
   }
 }

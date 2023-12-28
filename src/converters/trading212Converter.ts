@@ -163,6 +163,6 @@ export class Trading212Converter extends AbstractConverter {
     private isIgnoredRecord(record: Trading212Record) {
         let ignoredRecordTypes = ["deposit", "withdraw", "cash", "currency conversion"];
 
-        return ignoredRecordTypes.indexOf(record.action.toLocaleLowerCase()) > -1;
+        return ignoredRecordTypes.some(t => record.action.toLocaleLowerCase().indexOf(t) > -1)
     }
 }
