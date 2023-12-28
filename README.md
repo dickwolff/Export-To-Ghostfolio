@@ -8,6 +8,8 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 
 - [Trading 212](https://trading212.com)
 - [DEGIRO](https://degiro.com)
+- [Finpension](https://finpension.ch)
+- [Swissquote](https://en.swissquote.com/)
 
 Is your broker not in the list? Feel free to create an [issue](https://github.com/dickwolff/Export-To-Ghostfolio/issues/new) or, even better, build it yourself and create a [pull request](https://github.com/dickwolff/Export-To-Ghostfolio/compare)!
 
@@ -19,13 +21,21 @@ Is your broker not in the list? Feel free to create an [issue](https://github.co
 
 #### Trading 212
 
-Go to Trading 212 and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
+Login to your Trading 212 account and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
 
 #### DEGIRO
 
-Go to DEGIRO and create an export file (via Inbox > Account Overview, see image below). Choose the period from which you wish to export your history and click download.
+Login to your DEGIRO account and create an export file (via Inbox > Account Overview, see image below). Choose the period from which you wish to export your history and click download.
 
 ![image](https://github.com/dickwolff/Export-To-Ghostfolio/assets/5620002/ff48baf9-5725-4efc-a9ec-fbbf0472a656)
+
+#### Finpension
+
+Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select “Transactions”, on the following page to the right notice “transaction report (CSV-file)” and click to email or click to download locally.
+
+#### Swissquote
+
+Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.#### Swissquote
 
 ### Use the tool
 
@@ -44,10 +54,12 @@ The repository contains a sample `.env` file. Rename this from `.env.sample`.
 
 You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the symbols that are supported with YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN). 
 
-| Exporter | Run command |
-| --- | --- |
-| Trading 212 | `run start trading212` |
-| DEGIRO | `run start degiro` |
+| Exporter    | Run command                      |
+| ----------- | -------------------------------- |
+| Trading 212 | `run start trading212` (or `t212`)  |
+| DEGIRO      | `run start degiro`               |
+| Finpension  | `run start finpension` (or `fp`) |
+| Swissquote  | `run start swissquote` (or `sq`) |
   
 The export file can now be imported in Ghostfolio by going to Portfolio > Activities and pressing the 3 dots at the top right of the table. Since Ghostfolio 1.221.0, you can now preview the import and validate the data has been converted correctly. When it is to your satisfaction, press import to add the activities to your portfolio.
 

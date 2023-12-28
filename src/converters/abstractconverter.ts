@@ -26,15 +26,16 @@ export abstract class AbstractConverter {
      * Retrieve headers from the input file.
      * 
      * @param csvFile The file to extract headers from.
+     * @param splitChar The character to split on. Defaults to "," (optional).
      * @returns The header to use for processing.
      */
-    protected processHeaders(csvFile: string): string[] {
+    protected processHeaders(csvFile: string, splitChar = ","): string[] {
 
         const csvHeaders = [];
 
         // Get header line and split in columns.
         const firstLine = csvFile.split('\n')[0];
-        const colsInFile = firstLine.split(',');
+        const colsInFile = firstLine.split(splitChar);
 
         for (let idx = 0; idx <= colsInFile.length; idx++) {
 
@@ -50,6 +51,8 @@ export abstract class AbstractConverter {
                 col = col.toLocaleLowerCase();
             } else if (col.endsWith("EUR")) {
                 col = col.slice(0, -3) + "Eur";
+            } else if (col.endsWith("CHF")) {
+                col = col.slice(0, -3) + "Chf";
             }
 
             csvHeaders.push(col);

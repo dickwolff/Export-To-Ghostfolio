@@ -58,7 +58,7 @@ export class YahooFinanceService {
 
         // First try by ISIN.
         let symbols = await this.getSymbolsByQuery(isin, progress);
-        this.logDebug(`getSecurity(): Found ${symbols.length} matches by ISIN ${isin}`, progress);
+        this.logDebug(`getSecurity(): Found ${symbols.length} match${symbols.length === 1 ? "" : "es"} by ISIN ${isin}`, progress);
 
         // If no result found by ISIN, try by symbol.
         if (symbols.length == 0 && symbol) {
