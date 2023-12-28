@@ -3,4 +3,5 @@ export enum GhostfolioOrderType {
     sell = "SELL",
     dividend = "DIVIDEND",
     fee = "FEE",
+    interest = "INTEREST"
 }
