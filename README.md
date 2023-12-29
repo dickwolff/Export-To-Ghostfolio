@@ -13,8 +13,6 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 
 Is your broker not in the list? Feel free to create an [issue](https://github.com/dickwolff/Export-To-Ghostfolio/issues/new) or, even better, build it yourself and create a [pull request](https://github.com/dickwolff/Export-To-Ghostfolio/compare)!
 
-**NOTICE: It is recommended to only use this when you have a local instance of Ghostfolio, so you don't spam the online service hosted by Ghostfolio!**
-
 ## How to use
 
 ### Download transaction export
