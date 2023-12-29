@@ -8,7 +8,10 @@ export class Trading212Record {
     priceShare: number;
     currencyPriceShare: string;
     exchangeRate: number;
-    totalPrice: number;
+    result: number;
+    currenyResult: string;
+    total: number;
+    currencyTotal: string;
     withholdingTax: number;
     currencyWithholdingTax: number;
     chargeAmountEur: number;

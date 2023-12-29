@@ -48,11 +48,16 @@ export class Trading212Converter extends AbstractConverter {
                     else if (action.indexOf("dividend") > -1) {
                         return "dividend";
                     }
+                    else if (action.indexOf("interest") > -1) {
+                        return "interest";
+                    }
                 }
 
                 // Parse numbers to floats (from string).
                 if (context.column === "noOfShares" ||
-                    context.column === "priceShare") {
+                    context.column === "priceShare" ||
+                    context.column === "result" ||
+                    context.column === "total") {
                     return parseFloat(columnValue);
                 }
 
@@ -66,8 +71,6 @@ export class Trading212Converter extends AbstractConverter {
                 return columnValue;
             }
         }, async (_, records: Trading212Record[]) => {
-
-            let errorExport = false;
 
             console.log(`[i] Read CSV file ${inputFile}. Start processing..`);
             const result: GhostfolioExport = {
@@ -84,8 +87,31 @@ export class Trading212Converter extends AbstractConverter {
             for (let idx = 0; idx < records.length; idx++) {
                 const record = records[idx];
 
-                // Skip deposit/withdraw transactions.
+                // Check if the record should be ignored.
                 if (this.isIgnoredRecord(record)) {
+                    bar1.increment();
+                    continue;
+                }
+
+                // Interest does not have a security, so add those immediately.
+                if (record.action.toLocaleLowerCase() === "interest") {
+
+                    const feeAmount = Math.abs(record.total);
+
+                    // Add fees record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: "",
+                        fee: feeAmount,
+                        quantity: 1,
+                        type: GhostfolioOrderType[record.action],
+                        unitPrice: feeAmount,
+                        currency: record.currencyTotal,
+                        dataSource: "MANUAL",
+                        date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: record.notes
+                    });
+
                     bar1.increment();
                     continue;
                 }
@@ -100,8 +126,6 @@ export class Trading212Converter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    errorExport = true;
-                    console.log("Failed to import record:", record);
                     throw err;
                 }
 
@@ -135,8 +159,12 @@ export class Trading212Converter extends AbstractConverter {
         });
     }
 
-    private isIgnoredRecord(record: Trading212Record) {
-        let ignoredRecordTypes = ["deposit", "withdraw", "cash", "currency conversion", "interest on cash"];
-        return ignoredRecordTypes.indexOf(record.action.toLocaleLowerCase()) > -1;
+    /**
+     * @inheritdoc
+     */
+    public isIgnoredRecord(record: Trading212Record): boolean {
+        let ignoredRecordTypes = ["deposit", "withdraw", "cash", "currency conversion"];
+
+        return ignoredRecordTypes.some(t => record.action.toLocaleLowerCase().indexOf(t) > -1)
     }
 }
