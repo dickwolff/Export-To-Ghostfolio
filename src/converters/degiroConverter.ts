@@ -6,9 +6,9 @@ import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import { GhostfolioActivity } from "../models/ghostfolioActivity";
 import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
-import { GhostfolioActivity } from "../models/ghostfolioActivity";
 
 export class DeGiroConverter extends AbstractConverter {
   private yahooFinanceService: YahooFinanceService;
@@ -38,16 +38,6 @@ export class DeGiroConverter extends AbstractConverter {
 
           // Custom mapping below.
 
-          if (context.column === "description") {
-            const action = columnValue.toLocaleLowerCase();
-
-            if (action.indexOf("dividend") > -1 || 
-                action.indexOf("adr/gdr") > -1) {
-              
-              return "dividend";
-            }
-          }
-
           return columnValue;
         }
       }, async (_, records: DeGiroRecord[]) => {
@@ -67,27 +57,39 @@ export class DeGiroConverter extends AbstractConverter {
         for (let idx = 0; idx < records.length; idx++) {
           const record = records[idx];
 
-          const description = record.description.toLocaleLowerCase();
-
-          // Check if the record should be ignored.
+          // Check if the record should be ignored. 
           if (this.isIgnoredRecord(record)) {
             bar1.increment();
             continue;
           }
 
-          // Skip all remaining records where:
-          // - The description does not contain the text 'dividend', and
-          // - The description does not contain an '@' (present on buy/sell records), and
-          // - The description does not contain an '/' (present on buy/sell fee records),
-          // - The description does not contain 'zu je' (present on buy/ records in German language).
-          // if (this.isInvalidNonDividendRecord(record)) {
-          //   bar1.increment();
-          //   continue;
-          // }
-
           // TODO: Is is possible to add currency? So VWRL.AS is retrieved for IE00B3RBWM25 instead of VWRL.L.
           // Maybe add yahoo-finance2 library that Ghostfolio uses, so I dont need to call Ghostfolio for this.
+            
+          // Platform fees do not have a security, add those immediately.
+          if (this.isPlatformFees(record)) {
+          
+            const feeAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
+            const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");            
 
+            result.activities.push({
+              accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+              comment: "",
+              fee: feeAmount,
+              quantity: 1,
+              type: GhostfolioOrderType.fee,
+              unitPrice: feeAmount,
+              currency: record.currency,
+              dataSource: "MANUAL",
+              date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+              symbol: record.description
+            });
+
+            bar1.increment(1);
+            continue;
+          }
+
+          // Look for the security for the current record.
           let security: YahooFinanceRecord;
           try {
             security = await this.yahooFinanceService.getSecurity(
@@ -109,122 +111,35 @@ export class DeGiroConverter extends AbstractConverter {
             continue;
           }
 
-          let orderType: GhostfolioOrderType;
-          let fees, unitPrice, numberShares;
-          fees = unitPrice = numberShares = 0;
-          let marker = "";
-
-          // Look ahead if the next record is about the same
-          if (this.lookaheadIsSameProduct(records, record, idx)) {
+          // Look ahead to the next record if it's about the same symbol as the current record.
+          // If it's not, check wether the current record is a buy/sell/dividend record (without TxFees).
+          if (this.lookaheadIsSameProduct(records, record, idx) || this.isBuyOrSellRecord(record) || this.isDividendRecord(record)) {
             const combinedRecord = this.combineRecords(record, records[idx + 1], security);
 
+            // If the records were succesfully processed, add it to result.
             if (combinedRecord) {
-              console.log("combined", combinedRecord);
-              result.activities.push(combinedRecord);
-              idx++;
-              bar1.increment(2);
+              
+              // Add the combined record to the final result.
+              result.activities.push(combinedRecord[0]);
+
+              bar1.increment(combinedRecord[1]);
+
+              // If more then 1 record needs to be skipped, do so.
+              if (combinedRecord[1] > 1) {
+                idx++;
+              }
+              
               continue;
             }
-          }
+          } 
+          else if (this.isTransactionFeeRecord(record)) {
 
-          // Check for a buy/sell record. This can be identified by:
-          // - '@' (in exports in Dutch language), or
-          // - 'zu je' (in exports in German language).
-          if (description.match(/\@|(zu je)/)) {
-
-            // Get the amount of shares from the description.
-            const numberSharesFromDescription = description.match(/([\d*\.?\,?\d*]+)/)[0];
-            numberShares = parseFloat(numberSharesFromDescription);
-
-            // For buy/sale records, only the total amount is recorded. So the unit price needs to be calculated.
-            const totalAmount = parseFloat(record.amount.replace(",", "."));
-            unitPrice = parseFloat((Math.abs(totalAmount) / numberShares).toFixed(3));
-
-            // If amount is negative, so money has been removed, thus it's a buy record.
-            if (totalAmount < 0) {
-
-              orderType = GhostfolioOrderType.buy;
-
-              // For a Buy record, the preceding record should be "txfees". This means the buy had a transaction fee associated.
-              if (result.activities[result.activities.length - 1].comment === "txfees") {
-                
-                // Set the buy transaction data.
-                result.activities[result.activities.length - 1].type = orderType;
-                result.activities[result.activities.length - 1].symbol = security.symbol;
-                result.activities[result.activities.length - 1].quantity = numberShares;
-                result.activities[result.activities.length - 1].unitPrice = unitPrice;
-                result.activities[result.activities.length - 1].currency = record.currency;
-                result.activities[result.activities.length - 1].comment = "";
-
-                bar1.increment();
-                continue;
-              } else {
-
-                // It is a buy transaction without fees (e.g. within Kernselectie).
-                // This is only for support of older transactions before June 1st 2023, since the Kernselectie is no longer without fees.
-                marker = "";
-              }
-            } else {
-
-              // Amount is positive, so money is received, thus it's a sell record.
-              orderType = GhostfolioOrderType.sell;
-
-              // For a Sale record, the preceding record should be "txfees". This means the sale had a transaction fee associated.
-              if (result.activities[result.activities.length - 1].comment === "txfees") {
-                result.activities[result.activities.length - 1].type = orderType;
-                result.activities[result.activities.length - 1].symbol = security.symbol;
-                result.activities[result.activities.length - 1].quantity = numberShares;
-                result.activities[result.activities.length - 1].unitPrice = unitPrice;
-                result.activities[result.activities.length - 1].currency = record.currency;
-                result.activities[result.activities.length - 1].comment = "";
-
-                bar1.increment();
-                continue;
-              }
-            }
-          }
-
-          // When ISIN is given, check for transaction fees record.
-          // For this record the "Amount" record should be retrieved. This contains the transaction fee in local currency.
-          if (record.isin.length > 0) {
-            const creditMatch = description.match(/(en\/of)|(and\/or)|(und\/oder)|(e\/o)/);
-            if (creditMatch) {
-              fees = Math.abs(parseFloat(record.amount.replace(",", ".")));
-              marker = "txfees";
-            }
-          } else {
-
-            // If ISIN is not set, the record is not relevant.
-            bar1.increment();
+            // If it was a transaction record without any other transaction connected, skip it.
+            bar1.increment(1);
             continue;
           }
-
-          const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
-
-          // Ghostfolio validation doesn't allow empty order types.
-          // Skip this check when a marker was set, since that is an intermediate record that will be removed later.
-          if (!orderType && !marker) {
-            bar1.increment();
-            continue;
-          }
-
-          // Add record to export.
-          result.activities.push({
-            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-            comment: marker,
-            fee: fees,
-            quantity: numberShares,
-            type: orderType,
-            unitPrice: unitPrice,
-            currency: record.currency,
-            dataSource: "YAHOO",
-            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-            symbol: security?.symbol
-          });
-
-          bar1.increment();
-        }
-
+        } 
+          
         this.progress.stop();
 
         callback(result);
@@ -258,16 +173,18 @@ export class DeGiroConverter extends AbstractConverter {
    * @inheritdoc
    */
   public isIgnoredRecord(record: DeGiroRecord): boolean {
+    
     if (record.description === "") {
       return true;
     }
 
-    const ignoredRecordTypes = ["ideal", "flatex", "cash sweep", "withdrawal", "pass-through", "productwijziging", "währungswechsel", "trasferisci", "deposito", "credito", "prelievo",];
+    const ignoredRecordTypes = ["ideal", "flatex", "cash sweep", "withdrawal", "productwijziging", "währungswechsel", "trasferisci", "deposito", "credito", "prelievo", "creditering", "debitering"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
-
+  
   private lookaheadIsSameProduct(records: DeGiroRecord[], currentRecord: DeGiroRecord, currentIndex: number): boolean {
+    
     // Check if there are no records at all.
     if (records.length === 0) {
       return false;
@@ -279,53 +196,162 @@ export class DeGiroConverter extends AbstractConverter {
     }
 
     const nextRecord = records[currentIndex + 1];
-
+    
     // Return wether both records are about the same product.
     return currentRecord.product === nextRecord.product;
   }
 
-  private combineRecords(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord, security: YahooFinanceRecord): GhostfolioActivity {
+  private combineRecords(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord, security: YahooFinanceRecord): [GhostfolioActivity, number] {
    
-    const currentRecordDescription = currentRecord.description.toLocaleLowerCase();
-    const nextRecordDescription = nextRecord.description.toLocaleLowerCase();
+    if (this.isBuyOrSellRecordSet(currentRecord, nextRecord)) {
 
-    // Check wether it's a dividend record.
-    if (currentRecordDescription === "dividend" && nextRecordDescription === "dividend") {
+      // Set the default values for the records.
+      let actionRecord = currentRecord;
+      let txFeeRecord: DeGiroRecord | null = nextRecord;
+
+      // Determine which of the two records is the action record (e.g. buy/sell) and which contains the transaction fees.
+      // Firstly, check if the current record is the TxFee record.
+      if (this.isTransactionFeeRecord(currentRecord)) {
+        actionRecord = nextRecord;
+        txFeeRecord = currentRecord;
+      } 
+      // Next, check wether the next record is NOT a TxFee record. In this case, the transaction has no fees.
+      else if (!this.isTransactionFeeRecord(nextRecord)) {
+        txFeeRecord = null;
+      }
+
+      let numberShares, unitPrice, feeAmount = 0;
+      let orderType;
+
+      // Get the amount of shares from the description.
+      const numberSharesFromDescription = actionRecord.description.match(/([\d*\.?\,?\d*]+)/)[0];
+      numberShares = parseFloat(numberSharesFromDescription);
+
+      // For buy/sale records, only the total amount is recorded. So the unit price needs to be calculated.
+      const totalAmount = parseFloat(actionRecord.amount.replace(",", "."));
+      unitPrice = parseFloat((Math.abs(totalAmount) / numberShares).toFixed(3));
+
+      // If amount is negative, so money has been removed, thus it's a buy record.
+      if (totalAmount < 0) {
+        orderType = GhostfolioOrderType.buy;
+      } else {
+        orderType = GhostfolioOrderType.sell;
+      }
     
-      // Retrieve relevant data for a dividend record.
-      const currentRecordAmount = parseFloat(currentRecord.amount.replace(",", "."));
-      const nextRecordAmount = parseFloat(nextRecord.amount.replace(",", "."));
-
-      let fees,
-        unitPrice = 0;
-
-        // If currentAmount is negative, this is the tax record. Retrieve the right values.
-      if (currentRecordAmount < 0) {
-        unitPrice = nextRecordAmount;
-        fees = Math.abs(currentRecordAmount);
+      // If a TxFee record was set, parse the fee amount.
+      if (txFeeRecord) {
+        feeAmount = Math.abs(parseFloat(txFeeRecord.amount.replace(",", ".")));
       }
-
-      // If the nextAmount is negative, that is the  tax record. Retrieve the right values.
-      if (nextRecordAmount < 0) {
-        unitPrice = currentRecordAmount;
-        fees = Math.abs(nextRecordAmount);
-      }
-
+      
       const date = dayjs(`${currentRecord.date} ${currentRecord.time}:00`, "DD-MM-YYYY HH:mm");
 
       // Create the record.
-      return {
-        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-        comment: "",
-        fee: fees,
-        quantity: 1,
-        type: GhostfolioOrderType.dividend,
-        unitPrice: unitPrice,
-        currency: currentRecord.currency,
-        dataSource: "YAHOO",
-        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-        symbol: security.symbol,
-      };
-    }
+      return [
+        {
+          accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+          comment: "",
+          fee: feeAmount,
+          quantity: numberShares,
+          type: orderType,
+          unitPrice: unitPrice,
+          currency: actionRecord.currency,
+          dataSource: "YAHOO",
+          date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+          symbol: security.symbol,
+        }, 
+        txFeeRecord ? 2 : 1 // Skip 1 record if action record had no TxFee.
+      ];
+    } 
+    else if (this.isDividendRecordSet(currentRecord, nextRecord)) {
+    
+      // Set the default values for the records.
+      let dividendRecord = currentRecord;
+      let txFeeRecord: DeGiroRecord | null = nextRecord;
+      
+      // Determine which of the two records is the dividend record and which contains the transaction fees.
+      // Firstly, check if the current record is the TxFee record.
+      if (this.isTransactionFeeRecord(currentRecord)) {
+        dividendRecord = nextRecord;
+        txFeeRecord = currentRecord;
+      } 
+      // Next, check wether the next record is NOT a TxFee record. In this case, the dividend has no fees.
+      else if (!this.isTransactionFeeRecord(nextRecord)) {
+        txFeeRecord = null;
+      }
+
+      let unitPrice = Math.abs(parseFloat(dividendRecord.amount.replace(",", ".")));
+      let fees = 0;
+      if (txFeeRecord) {
+        fees = Math.abs(parseFloat(txFeeRecord.amount.replace(",", ".")));      
+      }
+
+      const date = dayjs(`${dividendRecord.date} ${dividendRecord.time}:00`, "DD-MM-YYYY HH:mm");
+
+      // Create the record.
+      return [
+        {
+          accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+          comment: "",
+          fee: fees,
+          quantity: 1,
+          type: GhostfolioOrderType.dividend,
+          unitPrice: unitPrice,
+          currency: dividendRecord.currency,
+          dataSource: "YAHOO",
+          date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+          symbol: security.symbol,
+        },
+        2
+      ];
+    }    
+  }
+
+  private isBuyOrSellRecordSet(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord): boolean {
+
+    // Check wether the records are a buy/sell record set. This consists of:
+    // - Buy/Sell + TxFee records, or
+    // - TxFee + Buy/Sell records, or
+    // - Buy/Sell record without TxFee.
+    return (
+      (this.isBuyOrSellRecord(currentRecord) && this.isTransactionFeeRecord(nextRecord)) ||
+      (this.isTransactionFeeRecord(currentRecord) && this.isBuyOrSellRecord(nextRecord) ||
+      (this.isBuyOrSellRecord(currentRecord) && !this.isTransactionFeeRecord(nextRecord))));
+  }
+
+  private isDividendRecordSet(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord): boolean {
+
+    // Check wether the records are a dividend record set. This consists of:
+    // - Dividend + TxFee record, or
+    // - TxFee + Dividend record, or
+    // - Dividend record without TxFee.
+    return (
+      (this.isDividendRecord(currentRecord) && this.isTransactionFeeRecord(nextRecord)) ||
+      (this.isTransactionFeeRecord(currentRecord) && this.isDividendRecord(nextRecord)) ||
+      (this.isDividendRecord(currentRecord) && !this.isTransactionFeeRecord(nextRecord)));
+  }
+
+  private isBuyOrSellRecord(record: DeGiroRecord): boolean {
+        
+    const dividendRecordType = ["\@", "zu je"];
+
+    return dividendRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
+  }
+    
+  private isDividendRecord(record: DeGiroRecord): boolean {    
+    return record.description.toLocaleLowerCase().indexOf("dividend") > -1;
+  }
+
+  private isTransactionFeeRecord(record: DeGiroRecord): boolean {
+    
+    const transactionFeeRecordType = ["en\/of", "and\/or", "und\/oder", "e\/o", "adr\/gdr", "ritenuta"];
+
+    return transactionFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
+  }
+
+  private isPlatformFees(record: DeGiroRecord): boolean {
+
+    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten"]; 
+    
+    return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
 }
