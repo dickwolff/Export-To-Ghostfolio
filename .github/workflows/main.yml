@@ -11,3 +11,6 @@ jobs:
           node-version: '20'
       - run: npm install
       - run: npm run test
+      - uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage/*.xml
