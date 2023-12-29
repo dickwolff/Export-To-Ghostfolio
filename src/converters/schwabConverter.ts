@@ -107,10 +107,7 @@ export class SchwabConverter extends AbstractConverter {
                 const record = records[idx];
 
                 // Skip administrative fee/deposit/withdraw transactions.
-                if (record.action.toLocaleLowerCase().startsWith("wire") ||
-                    record.action.toLocaleLowerCase().indexOf("credit") > -1 ||
-                    record.action.toLocaleLowerCase().indexOf("journal") > -1 ||
-                    record.date.toString().toLocaleLowerCase() === "transactions total") {
+                if (this.isIgnoredRecord(record)) {
                     bar1.increment();
                     continue;
                 }
@@ -201,5 +198,25 @@ export class SchwabConverter extends AbstractConverter {
             console.log("[i] An error ocurred while processing the input file! See error below:")
             console.error("[e]", err.message);
         });
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public isIgnoredRecord(record: SchwabRecord): boolean {
+
+      if (record.description === "" || record.description.toLocaleLowerCase().startsWith("wire")) {
+        return true;
+      }
+
+      const ignoredRecordTypes = ["credit", "journal"];
+
+      let ignore = ignoredRecordTypes.some(t => record.description.toLocaleLowerCase().indexOf(t) > -1);
+
+      if (!ignore) {
+        ignore = record.date.toString().toLocaleLowerCase() === "transactions total";
+      } 
+
+      return ignore;
     }
 }
