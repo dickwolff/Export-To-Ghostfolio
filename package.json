@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon",
-    "test": "jest --coverage --collectCoverageFrom='src/**/*.ts' --coverageReporters='text,cobertura'"
+    "test": "jest --coverage"
   },
   "author": "Dick Wolff",
   "repository": {
