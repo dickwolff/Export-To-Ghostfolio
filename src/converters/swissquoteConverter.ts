@@ -4,11 +4,12 @@ import { parse } from "csv-parse";
 import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
-import { Trading212Record } from "../models/trading212Record";
 import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { SwissquoteRecord } from "../models/swissquoteRecord";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 
-export class Trading212Converter extends AbstractConverter {
+export class SwissquoteConverter extends AbstractConverter {
 
     private yahooFinanceService: YahooFinanceService;
 
@@ -16,6 +17,8 @@ export class Trading212Converter extends AbstractConverter {
         super();
 
         this.yahooFinanceService = new YahooFinanceService();
+
+        dayjs.extend(customParseFormat);
     }
 
     /**
@@ -27,16 +30,16 @@ export class Trading212Converter extends AbstractConverter {
         const csvFile = fs.readFileSync(inputFile, "utf-8");
 
         // Parse the CSV and convert to Ghostfolio import format.
-        parse(csvFile, {
-            delimiter: ",",
+        const parser = parse(csvFile, {
+            delimiter: ";",
             fromLine: 2,
-            columns: this.processHeaders(csvFile),
+            columns: this.processHeaders(csvFile, ";"),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
 
-                // Convert actions to Ghostfolio type.
-                if (context.column === "action") {
+                // Convert categories to Ghostfolio type.
+                if (context.column === "transaction") {
                     const action = columnValue.toLocaleLowerCase();
 
                     if (action.indexOf("buy") > -1) {
@@ -48,31 +51,33 @@ export class Trading212Converter extends AbstractConverter {
                     else if (action.indexOf("dividend") > -1) {
                         return "dividend";
                     }
+                    else if (action.indexOf("custody fees") > -1) {
+                        return "fee";
+                    }
                     else if (action.indexOf("interest") > -1) {
                         return "interest";
                     }
                 }
 
                 // Parse numbers to floats (from string).
-                if (context.column === "noOfShares" ||
-                    context.column === "priceShare" ||
-                    context.column === "result" ||
-                    context.column === "total") {
+                if (context.column === "quantity" ||
+                    context.column === "unitPrice" ||
+                    context.column === "costs" ||
+                    context.column === "netAmount" ||
+                    context.column === "netAmountInAccountCurrency") {
                     return parseFloat(columnValue);
-                }
-
-                // Patch GBX currency (should be GBp).
-                if (context.column === "currencyPriceShare") {
-                    if (columnValue == "GBX") {
-                        return "GBp";
-                    }
                 }
 
                 return columnValue;
             }
-        }, async (_, records: Trading212Record[]) => {
+        }, async (_, records: SwissquoteRecord[]) => {
 
-            console.log(`[i] Read CSV file ${inputFile}. Start processing..`);
+            // If records is empty, parsing failed..
+            if (records === undefined) {
+                throw new Error(`An error ocurred while parsing ${inputFile}...`);
+            }
+
+            console.log(`Read CSV file ${inputFile}. Start processing..`);
             const result: GhostfolioExport = {
                 meta: {
                     date: new Date(),
@@ -93,10 +98,12 @@ export class Trading212Converter extends AbstractConverter {
                     continue;
                 }
 
-                // Interest does not have a security, so add those immediately.
-                if (record.action.toLocaleLowerCase() === "interest") {
+                // Fee/interest do not have a security, so add those immediately.
+                if (record.transaction.toLocaleLowerCase() === "fee" ||
+                    record.transaction.toLocaleLowerCase() === "interest") {
 
-                    const feeAmount = Math.abs(record.total);
+                    const date = dayjs(`${record.date}`, "DD-MM-YYYY HH:mm");
+                    const feeAmount = Math.abs(record.netAmount);
 
                     // Add fees record to export.
                     result.activities.push({
@@ -104,12 +111,12 @@ export class Trading212Converter extends AbstractConverter {
                         comment: "",
                         fee: feeAmount,
                         quantity: 1,
-                        type: GhostfolioOrderType[record.action],
+                        type: GhostfolioOrderType[record.transaction],
                         unitPrice: feeAmount,
-                        currency: record.currencyTotal,
+                        currency: record.currency,
                         dataSource: "MANUAL",
-                        date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: record.notes
+                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: "Custody Fees"
                     });
 
                     bar1.increment();
@@ -120,9 +127,9 @@ export class Trading212Converter extends AbstractConverter {
                 try {
                     security = await this.yahooFinanceService.getSecurity(
                         record.isin,
-                        record.ticker,
+                        record.symbol,
                         record.name,
-                        record.currencyPriceShare,
+                        record.netAmountCurrency ?? record.currency,
                         this.progress);
                 }
                 catch (err) {
@@ -131,22 +138,24 @@ export class Trading212Converter extends AbstractConverter {
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`[i] No result found for ${record.action} action for ${record.isin || record.ticker || record.name} with currency ${record.currencyPriceShare}! Please add this manually..\n`);
+                    this.progress.log(`[i]\tNo result found for ${record.transaction} action for ${record.isin || record.symbol || record.name} with currency ${record.currency}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }
+
+                const date = dayjs(`${record.date}`, "DD-MM-YYYY HH:mm");
 
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: "",
-                    fee: 0,
-                    quantity: record.noOfShares,
-                    type: GhostfolioOrderType[record.action],
-                    unitPrice: record.priceShare,
-                    currency: record.currencyPriceShare,
+                    fee: record.costs,
+                    quantity: record.quantity,
+                    type: GhostfolioOrderType[record.transaction],
+                    unitPrice: record.unitPrice,
+                    currency: record.netAmountCurrency ?? record.currency,
                     dataSource: "YAHOO",
-                    date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
+                    date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
                 });
 
@@ -157,14 +166,20 @@ export class Trading212Converter extends AbstractConverter {
 
             callback(result);
         });
+
+        // Catch any error.
+        parser.on('error', function (err) {
+            console.log("[i] An error ocurred while processing the input file! See error below:")
+            console.error("[e]", err.message);
+        });
     }
 
     /**
      * @inheritdoc
      */
-    public isIgnoredRecord(record: Trading212Record): boolean {
-        let ignoredRecordTypes = ["deposit", "withdraw", "cash", "currency conversion"];
+    public isIgnoredRecord(record: SwissquoteRecord): boolean {
+        let ignoredRecordTypes = ["credit", "debit", "payment", "tax statement"];
 
-        return ignoredRecordTypes.some(t => record.action.toLocaleLowerCase().indexOf(t) > -1)
+        return ignoredRecordTypes.some(t => record.transaction.toLocaleLowerCase().indexOf(t) > -1)
     }
 }

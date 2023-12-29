@@ -1,7 +1,9 @@
-Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Total (EUR),Withholding tax,Currency (Withholding tax),Charge amount (EUR),Notes,ID
-Deposit,2022-03-26 06:50:14,,,,,,,,34.00,,,34.00,"Transaction ID: W12391891273HJUHIHIA",c565c568-8e14-4bb6-810a-e642e0d3e65c
-Market buy,2022-03-28 10:27:15,NL0010273215,ASML,"ASML Holding",0.0021880000,621.50,EUR,1.00000,1.36,,,,,EOF1234567890
-Market buy,2022-03-28 13:30:11,US11135F1012,AVGO,"Broadcom",0.0017848000,626.00,USD,1.09541,1.02,,,,,EOF1234567890
-Market buy,2022-03-28 13:30:12,US22160K1051,COST,"Costco",0.0020059000,557.00,USD,1.09541,1.02,,,,,EOF1234567890
-Dividend (Ordinary),2022-05-16 09:37:52,NL0010273215,ASML,"ASML Holding",0.0021880000,3.15,EUR,Not available,0.01,0.00,EUR,,,
-Dividend (Ordinary),2022-05-17 12:30:55,US00287Y1091,ABBV,"AbbVie",0.0069388000,1.20,USD,Not available,0.01,0.00,USD,,,
+Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)
+Deposit,2023-12-18 11:45:06.326,,,,,,,,,,31.00,"EUR",,,"Transaction ID: PB6XHFHSNDT97F32",30c841b3-068d-44f0-9809-e75638e211cd,,
+Market buy,2023-12-18 14:30:03.613,US17275R1023,CSCO,"Cisco Systems",0.0290530000,49.96,USD,1.09303,,"EUR",1.33,"EUR",,,,EOF7504196256,,
+Market buy,2023-12-18 14:30:06.892,US9256521090,VICI,"VICI Properties",0.0410140000,31.93,USD,1.09303,,"EUR",1.20,"EUR",,,,EOF7504199130,,
+Market buy,2023-12-18 14:30:07.812,US00217D1000,ASTS,"AST SpaceMobile",0.2976400000,5.39,USD,1.09304,,"EUR",1.47,"EUR",,,,EOF7504199794,,
+Market sell,2023-12-26 14:30:05.104,US04634X2027,ASTR,"Astra Space",0.6125400000,1.26,USD,1.10231,-3.08,"EUR",0.70,"EUR",,,,EOF7802023054,,
+Dividend (Dividend),2023-12-27 12:05:25,US56035L1044,MAIN,"Main Street Capital",0.1543340000,0.23,USD,Not available,,,0.03,"EUR",0.01,USD,,,,
+Dividend (Dividend),2023-12-28 09:32:51,US9078181081,UNP,"Union Pacific",0.0280492000,1.11,USD,Not available,,,0.03,"EUR",0.01,USD,,,,
+Interest on cash,2023-11-06 22:06:41.36,,,,,,,,,,0.01,"EUR",,,"Interest on cash",8ffba791-cfc3-4002-b65d-bd63cf483d9d,,

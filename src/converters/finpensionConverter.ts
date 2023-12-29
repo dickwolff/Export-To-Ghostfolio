@@ -4,11 +4,11 @@ import { parse } from "csv-parse";
 import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
-import { Trading212Record } from "../models/trading212Record";
 import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { FinpensionRecord } from "../models/finpensionRecord";
 
-export class Trading212Converter extends AbstractConverter {
+export class FinpensionConverter extends AbstractConverter {
 
     private yahooFinanceService: YahooFinanceService;
 
@@ -27,16 +27,16 @@ export class Trading212Converter extends AbstractConverter {
         const csvFile = fs.readFileSync(inputFile, "utf-8");
 
         // Parse the CSV and convert to Ghostfolio import format.
-        parse(csvFile, {
-            delimiter: ",",
+        const parser = parse(csvFile, {
+            delimiter: ";",
             fromLine: 2,
-            columns: this.processHeaders(csvFile),
+            columns: this.processHeaders(csvFile, ";"),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
 
-                // Convert actions to Ghostfolio type.
-                if (context.column === "action") {
+                // Convert categories to Ghostfolio type.
+                if (context.column === "category") {
                     const action = columnValue.toLocaleLowerCase();
 
                     if (action.indexOf("buy") > -1) {
@@ -48,31 +48,28 @@ export class Trading212Converter extends AbstractConverter {
                     else if (action.indexOf("dividend") > -1) {
                         return "dividend";
                     }
-                    else if (action.indexOf("interest") > -1) {
-                        return "interest";
+                    else if (action.indexOf("fee") > -1) {
+                        return "fee";
                     }
                 }
 
                 // Parse numbers to floats (from string).
-                if (context.column === "noOfShares" ||
-                    context.column === "priceShare" ||
-                    context.column === "result" ||
-                    context.column === "total") {
+                if (context.column === "numberOfShares" ||
+                    context.column === "assetPriceInChf" ||
+                    context.column === "cashflow") {
                     return parseFloat(columnValue);
-                }
-
-                // Patch GBX currency (should be GBp).
-                if (context.column === "currencyPriceShare") {
-                    if (columnValue == "GBX") {
-                        return "GBp";
-                    }
                 }
 
                 return columnValue;
             }
-        }, async (_, records: Trading212Record[]) => {
+        }, async (_, records: FinpensionRecord[]) => {
 
-            console.log(`[i] Read CSV file ${inputFile}. Start processing..`);
+            // If records is empty, parsing failed..
+            if (records === undefined) {
+                throw new Error(`An error ocurred while parsing ${inputFile}...`);
+            }
+
+            console.log(`Read CSV file ${inputFile}. Start processing..`);
             const result: GhostfolioExport = {
                 meta: {
                     date: new Date(),
@@ -93,10 +90,10 @@ export class Trading212Converter extends AbstractConverter {
                     continue;
                 }
 
-                // Interest does not have a security, so add those immediately.
-                if (record.action.toLocaleLowerCase() === "interest") {
+                // Fees do not have a security, so add those immediately.
+                if (record.category.toLocaleLowerCase() === "fee") {
 
-                    const feeAmount = Math.abs(record.total);
+                    const feeAmount = Math.abs(record.cashFlow);
 
                     // Add fees record to export.
                     result.activities.push({
@@ -104,12 +101,12 @@ export class Trading212Converter extends AbstractConverter {
                         comment: "",
                         fee: feeAmount,
                         quantity: 1,
-                        type: GhostfolioOrderType[record.action],
+                        type: GhostfolioOrderType[record.category],
                         unitPrice: feeAmount,
-                        currency: record.currencyTotal,
+                        currency: record.assetCurrency,
                         dataSource: "MANUAL",
-                        date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: record.notes
+                        date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: record.category
                     });
 
                     bar1.increment();
@@ -120,20 +117,31 @@ export class Trading212Converter extends AbstractConverter {
                 try {
                     security = await this.yahooFinanceService.getSecurity(
                         record.isin,
-                        record.ticker,
-                        record.name,
-                        record.currencyPriceShare,
+                        null,
+                        record.assetName,
+                        record.assetCurrency,
                         this.progress);
                 }
                 catch (err) {
+
                     throw err;
                 }
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`[i] No result found for ${record.action} action for ${record.isin || record.ticker || record.name} with currency ${record.currencyPriceShare}! Please add this manually..\n`);
+                    this.progress.log(`[i]\tNo result found for ${record.category} action for ${record.isin || record.assetName} with currency ${record.assetCurrency}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
+                }
+
+                // Make negative numbers (on sell records) absolute.
+                let numberOfShares = Math.abs(record.numberOfShares);
+                let assetPriceInChf = Math.abs(record.assetPriceInChf);
+
+                // Dividend record values are retrieved from cashflow.
+                if (record.category === "dividend") {
+                    numberOfShares = 1;
+                    assetPriceInChf = Math.abs(record.cashFlow);
                 }
 
                 // Add record to export.
@@ -141,12 +149,12 @@ export class Trading212Converter extends AbstractConverter {
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: "",
                     fee: 0,
-                    quantity: record.noOfShares,
-                    type: GhostfolioOrderType[record.action],
-                    unitPrice: record.priceShare,
-                    currency: record.currencyPriceShare,
+                    quantity: numberOfShares,
+                    type: GhostfolioOrderType[record.category],
+                    unitPrice: assetPriceInChf,
+                    currency: record.assetCurrency,
                     dataSource: "YAHOO",
-                    date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
+                    date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
                 });
 
@@ -157,14 +165,20 @@ export class Trading212Converter extends AbstractConverter {
 
             callback(result);
         });
+
+        // Catch any error.
+        parser.on('error', function (err) {
+            console.log("[i] An error ocurred while processing the input file! See error below:")
+            console.error("[e]", err.message);
+        });
     }
 
     /**
      * @inheritdoc
      */
-    public isIgnoredRecord(record: Trading212Record): boolean {
-        let ignoredRecordTypes = ["deposit", "withdraw", "cash", "currency conversion"];
+    public isIgnoredRecord(record: FinpensionRecord): boolean {
+        let ignoredRecordTypes = ["deposit", "withdraw"];
 
-        return ignoredRecordTypes.some(t => record.action.toLocaleLowerCase().indexOf(t) > -1)
+        return ignoredRecordTypes.some(t => record.category.toLocaleLowerCase().indexOf(t) > -1)
     }
 }
