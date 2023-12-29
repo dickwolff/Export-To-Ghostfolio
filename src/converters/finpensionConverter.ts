@@ -48,6 +48,9 @@ export class FinpensionConverter extends AbstractConverter {
                     else if (action.indexOf("dividend") > -1) {
                         return "dividend";
                     }
+                    else if (action.indexOf("fee") > -1) {
+                        return "fee";
+                    }
                 }
 
                 // Parse numbers to floats (from string).
@@ -81,10 +84,31 @@ export class FinpensionConverter extends AbstractConverter {
             for (let idx = 0; idx < records.length; idx++) {
                 const record = records[idx];
 
-                // Skip administrative fee/deposit/withdraw transactions.
-                if (record.category.toLocaleLowerCase().indexOf("administrative") > -1 ||
-                    record.category.toLocaleLowerCase().indexOf("deposit") > -1 ||
-                    record.category.toLocaleLowerCase().indexOf("withdraw") > -1) {
+                // Skip deposit/withdraw transactions.
+                if (this.isIgnoredRecord(record)) {
+                    bar1.increment();
+                    continue;
+                }
+
+                // Fees do not have a security, so add those immediately.
+                if (record.category.toLocaleLowerCase() === "fee") {
+
+                    const feeAmount = Math.abs(record.cashFlow);
+
+                    // Add fees record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: "",
+                        fee: feeAmount,
+                        quantity: 1,
+                        type: GhostfolioOrderType[record.category],
+                        unitPrice: feeAmount,
+                        currency: record.assetCurrency,
+                        dataSource: "MANUAL",
+                        date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: record.category
+                    });
+
                     bar1.increment();
                     continue;
                 }
@@ -147,5 +171,11 @@ export class FinpensionConverter extends AbstractConverter {
             console.log("[i] An error ocurred while processing the input file! See error below:")
             console.error("[e]", err.message);
         });
+    }
+
+    private isIgnoredRecord(record: FinpensionRecord) {
+        let ignoredRecordTypes = ["deposit", "withdraw"];
+
+        return ignoredRecordTypes.some(t => record.category.toLocaleLowerCase().indexOf(t) > -1)
     }
 }
