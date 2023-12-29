@@ -21,7 +21,7 @@ jobs:
           filename: coverage/*.xml
           badge: true
           format: 'markdown'
-          output: 'both'
+          output: 'file'
 
       - name: Add code coverage PR comment
         uses: marocchino/sticky-pull-request-comment@v2
