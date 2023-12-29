@@ -6,6 +6,7 @@ const config: Config.InitialOptions = {
   transform: {
     '^.+\\.tsx?$': 'ts-jest'
   },
+  coverageDirectory: 'coverage',
   collectCoverageFrom: ['src/**/*.ts'],
   coverageReporters: ['text', 'cobertura']
 };
