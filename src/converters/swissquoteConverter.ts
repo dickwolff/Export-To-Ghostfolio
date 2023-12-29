@@ -54,6 +54,9 @@ export class SwissquoteConverter extends AbstractConverter {
                     else if (action.indexOf("custody fees") > -1) {
                         return "fee";
                     }
+                    else if (action.indexOf("interest") > -1) {
+                        return "interest";
+                    }
                 }
 
                 // Parse numbers to floats (from string).
@@ -88,19 +91,16 @@ export class SwissquoteConverter extends AbstractConverter {
 
             for (let idx = 0; idx < records.length; idx++) {
                 const record = records[idx];
-
+                                
                 // Skip administrative deposit/withdraw transactions.
-                if (record.transaction.toLocaleLowerCase().indexOf("credit") > -1 ||
-                    record.transaction.toLocaleLowerCase().indexOf("debit") > -1 ||
-                    record.transaction.toLocaleLowerCase().indexOf("payment") > -1 ||
-                    record.transaction.toLocaleLowerCase().indexOf("tax statement") > -1 ||
-                    record.transaction.toLocaleLowerCase().indexOf("interest") > -1) {
+                if (this.isIgnoredRecord(record)) {
                     bar1.increment();
                     continue;
                 }
-
-                // Custody fees does not have a security, so add this immediately.
-                if (record.transaction.toLocaleLowerCase() === "fee") {
+                
+                // Fee/interest do not have a security, so add those immediately.
+                if (record.transaction.toLocaleLowerCase() === "fee" ||
+                    record.transaction.toLocaleLowerCase() === "interest") {
 
                     const date = dayjs(`${record.date}`, "DD-MM-YYYY HH:mm");
                     const feeAmount = Math.abs(record.netAmount);
@@ -172,5 +172,11 @@ export class SwissquoteConverter extends AbstractConverter {
             console.log("[i] An error ocurred while processing the input file! See error below:")
             console.error("[e]", err.message);
         });
+    }
+    
+    private isIgnoredRecord(record: SwissquoteRecord) {
+        let ignoredRecordTypes = ["credit", "debit", "payment", "tax statement"];
+
+        return ignoredRecordTypes.some(t => record.transaction.toLocaleLowerCase().indexOf(t) > -1)
     }
 }
