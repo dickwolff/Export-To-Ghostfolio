@@ -120,6 +120,7 @@ export class SchwabConverter extends AbstractConverter {
                     record.action.toLocaleLowerCase() === "interest") {
 
                     const feeAmount = Math.abs(record.amount);
+                    const date = dayjs(`${record.date}`, "MM/DD/YYYY");
 
                     // Add fees record to export.
                     result.activities.push({
@@ -131,7 +132,7 @@ export class SchwabConverter extends AbstractConverter {
                         unitPrice: feeAmount,
                         currency: "USD",
                         dataSource: "MANUAL",
-                        date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                         symbol: record.description
                     });
 
