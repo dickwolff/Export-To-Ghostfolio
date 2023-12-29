@@ -10,6 +10,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [DEGIRO](https://degiro.com)
 - [Finpension](https://finpension.ch)
 - [Swissquote](https://en.swissquote.com/)
+- [Schwab]()
 
 Is your broker not in the list? Feel free to create an [issue](https://github.com/dickwolff/Export-To-Ghostfolio/issues/new) or, even better, build it yourself and create a [pull request](https://github.com/dickwolff/Export-To-Ghostfolio/compare)!
 
@@ -27,7 +28,7 @@ Login to your Trading 212 account and create an export file (via History > Downl
 
 Login to your DEGIRO account and create an export file (via Inbox > Account Overview, see image below). Choose the period from which you wish to export your history and click download.
 
-![image](https://github.com/dickwolff/Export-To-Ghostfolio/assets/5620002/ff48baf9-5725-4efc-a9ec-fbbf0472a656)
+![Export instructions for DEGIRO](./assets/export-degiro.jpg)
 
 #### Finpension
 
@@ -36,6 +37,11 @@ Login to your Finpension account. Select your portfolio from the landing page. T
 #### Swissquote
 
 Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.#### Swissquote
+
+#### Schwab
+Login to your Schwab account. Go to “Accounts” then “History”. Select the account you want to download details from. Select the “Date Range” and select “Export” (csv). Save the file.
+
+![Export instructions for Schwab](./assets/export-schwab.jpg)
 
 ### Use the tool
 
