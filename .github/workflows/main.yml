@@ -6,11 +6,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+  
       - uses: actions/setup-node@v3
         with:
           node-version: '20'
+  
       - run: npm install
+
       - run: npm run test
-      - uses: irongut/CodeCoverageSummary@v1.3.0
+  
+      - name: Convert code coverage results
+        uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: coverage/*.xml
+          badge: true
+          format: 'markdown'
+          output: 'both'
+
+      - name: Add code coverage PR comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: coverage/results.md
+
+      - name: Write to job summary
+        run: cat coverage/results.md >> $GITHUB_STEP_SUMMARY
