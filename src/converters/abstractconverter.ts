@@ -15,6 +15,14 @@ export abstract class AbstractConverter {
     }
 
     /**
+     * Check if a record should be ignored from processing.
+     * 
+     * @param record The record to check
+     * @returns true if the record should be skipped, false otherwise.
+     */
+    abstract isIgnoredRecord(record: any): boolean;
+
+    /**
      * Process an export file.
      * 
      * @param inputFile The file to convert.

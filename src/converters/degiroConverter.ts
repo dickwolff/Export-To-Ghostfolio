@@ -59,7 +59,7 @@ export class DeGiroConverter extends AbstractConverter {
 
         const description = record.description.toLocaleLowerCase();
 
-        // Skip some records which contains one of the words below.
+        // Check if the record should be ignored.
         if (this.isIgnoredRecord(record)) {
           bar1.increment();
           continue;
@@ -260,7 +260,10 @@ export class DeGiroConverter extends AbstractConverter {
     return csvHeaders;
   }
 
-  private isIgnoredRecord(record: DeGiroRecord) {
+  /**
+   * @inheritdoc
+   */
+  public isIgnoredRecord(record: DeGiroRecord): boolean {
 
     if (record.description === "") {
       return true;
@@ -271,7 +274,7 @@ export class DeGiroConverter extends AbstractConverter {
     return ignoredRecordTypes.some(t => record.description.toLocaleLowerCase().indexOf(t) > -1)
   }
 
-  private isInvalidNonDividendRecord(record: DeGiroRecord) {
+  private isInvalidNonDividendRecord(record: DeGiroRecord): boolean {
     const description = record.description;
 
     return description.indexOf("dividend") === -1 &&

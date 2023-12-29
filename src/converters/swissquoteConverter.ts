@@ -91,13 +91,13 @@ export class SwissquoteConverter extends AbstractConverter {
 
             for (let idx = 0; idx < records.length; idx++) {
                 const record = records[idx];
-                                
-                // Skip administrative deposit/withdraw transactions.
+
+                // Check if the record should be ignored.
                 if (this.isIgnoredRecord(record)) {
                     bar1.increment();
                     continue;
                 }
-                
+
                 // Fee/interest do not have a security, so add those immediately.
                 if (record.transaction.toLocaleLowerCase() === "fee" ||
                     record.transaction.toLocaleLowerCase() === "interest") {
@@ -173,8 +173,11 @@ export class SwissquoteConverter extends AbstractConverter {
             console.error("[e]", err.message);
         });
     }
-    
-    private isIgnoredRecord(record: SwissquoteRecord) {
+
+    /**
+     * @inheritdoc
+     */
+    public isIgnoredRecord(record: SwissquoteRecord): boolean {
         let ignoredRecordTypes = ["credit", "debit", "payment", "tax statement"];
 
         return ignoredRecordTypes.some(t => record.transaction.toLocaleLowerCase().indexOf(t) > -1)

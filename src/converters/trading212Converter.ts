@@ -87,7 +87,7 @@ export class Trading212Converter extends AbstractConverter {
             for (let idx = 0; idx < records.length; idx++) {
                 const record = records[idx];
 
-                // Skip deposit/withdraw transactions.
+                // Check if the record should be ignored.
                 if (this.isIgnoredRecord(record)) {
                     bar1.increment();
                     continue;
@@ -159,7 +159,10 @@ export class Trading212Converter extends AbstractConverter {
         });
     }
 
-    private isIgnoredRecord(record: Trading212Record) {
+    /**
+     * @inheritdoc
+     */
+    public isIgnoredRecord(record: Trading212Record): boolean {
         let ignoredRecordTypes = ["deposit", "withdraw", "cash", "currency conversion"];
 
         return ignoredRecordTypes.some(t => record.action.toLocaleLowerCase().indexOf(t) > -1)

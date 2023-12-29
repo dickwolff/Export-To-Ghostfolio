@@ -84,7 +84,7 @@ export class FinpensionConverter extends AbstractConverter {
             for (let idx = 0; idx < records.length; idx++) {
                 const record = records[idx];
 
-                // Skip deposit/withdraw transactions.
+                // Check if the record should be ignored.
                 if (this.isIgnoredRecord(record)) {
                     bar1.increment();
                     continue;
@@ -123,7 +123,7 @@ export class FinpensionConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    
+
                     throw err;
                 }
 
@@ -173,7 +173,10 @@ export class FinpensionConverter extends AbstractConverter {
         });
     }
 
-    private isIgnoredRecord(record: FinpensionRecord) {
+    /**
+     * @inheritdoc
+     */
+    public isIgnoredRecord(record: FinpensionRecord): boolean {
         let ignoredRecordTypes = ["deposit", "withdraw"];
 
         return ignoredRecordTypes.some(t => record.category.toLocaleLowerCase().indexOf(t) > -1)
