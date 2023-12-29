@@ -269,7 +269,7 @@ export class DeGiroConverter extends AbstractConverter {
       return true;
     }
 
-    const ignoredRecordTypes = ["ideal", "flatex", "cash sweep", "withdrawal", "pass-through", "productwijziging", "währungswechsel"];
+    const ignoredRecordTypes = ["ideal", "flatex", "cash sweep", "withdrawal", "pass-through", "productwijziging", "währungswechsel", "trasferisci", "credito", "prelievo"];
 
     return ignoredRecordTypes.some(t => record.description.toLocaleLowerCase().indexOf(t) > -1)
   }
