@@ -97,4 +97,5 @@ Date,Action,Symbol,Description,Quantity,Price,Fees & Comm,Amount
 01/23/2023,Advisor Fee,,TO ADVISOR,,,,-$6.10
 01/03/2023,Reinvest Shares,NMFC,NEW MOUNTAIN FIN CO,10.9694,$12.45,,-$136.56
 01/03/2023,Reinvest Shares,TCPC,BLACKROCK TCP CAPITAL CO,10.0443,$13.17,,-$132.25
+"09/08/2023","Sell","SNAXX","SCHWAB VALUE ADVANTAGE MONEY ULTRA","500,135","$1.00","","$500135.00"
 Transactions Total,,,,,,,"-$26,582.91"

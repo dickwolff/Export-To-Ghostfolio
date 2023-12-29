@@ -17,7 +17,7 @@ export class SchwabConverter extends AbstractConverter {
         super();
 
         this.yahooFinanceService = new YahooFinanceService();
-        
+
         dayjs.extend(customParseFormat);
     }
 
@@ -60,7 +60,7 @@ export class SchwabConverter extends AbstractConverter {
                     else if (action.indexOf("advisor fee") > -1) {
                         return "fee";
                     }
-                    else if (action.indexOf("interest") > -1 ) {
+                    else if (action.indexOf("interest") > -1) {
                         return "interest";
                     }
                 }
@@ -73,6 +73,9 @@ export class SchwabConverter extends AbstractConverter {
                     context.column === "price" ||
                     context.column === "feesCommissions" ||
                     context.column === "amount") {
+
+                    // Change position of ',' and '.', since those are inverted in US numbers.
+                    columnValue = columnValue.replace(/\./g, "").replace(/\,/g, ".")
                     return parseFloat(columnValue || "0");
                 }
 
