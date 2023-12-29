@@ -96,7 +96,6 @@ export class Trading212Converter extends AbstractConverter {
                 // Interest does not have a security, so add those immediately.
                 if (record.action.toLocaleLowerCase() === "interest") {
 
-                    console.log(record)
                     const feeAmount = Math.abs(record.total);
 
                     // Add fees record to export.
