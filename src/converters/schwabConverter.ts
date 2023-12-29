@@ -205,13 +205,13 @@ export class SchwabConverter extends AbstractConverter {
      */
     public isIgnoredRecord(record: SchwabRecord): boolean {
 
-      if (record.description === "" || record.description.toLocaleLowerCase().startsWith("wire")) {
+      if (record.description === "" || record.action.toLocaleLowerCase().startsWith("wire")) {
         return true;
       }
 
       const ignoredRecordTypes = ["credit", "journal"];
 
-      let ignore = ignoredRecordTypes.some(t => record.description.toLocaleLowerCase().indexOf(t) > -1);
+      let ignore = ignoredRecordTypes.some(t => record.action.toLocaleLowerCase().indexOf(t) > -1);
 
       if (!ignore) {
         ignore = record.date.toString().toLocaleLowerCase() === "transactions total";
