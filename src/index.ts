@@ -38,8 +38,9 @@ switch (process.argv[2].toLocaleLowerCase()) {
     case "schwab":
         console.log("[i] Processing file using Schwab converter");
         converter = new SchwabConverter();
-    default:
-        throw new Error("No converter provided (i.e. trading212, degiro)");
+        break;
+    default:    
+        throw new Error(`Unknown converter '${process.argv[2].toLocaleLowerCase()}' provided`);
 }
 
 // Map the file to a Ghostfolio import.
