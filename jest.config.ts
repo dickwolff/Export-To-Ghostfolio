@@ -1,9 +1,14 @@
-import type {Config} from '@jest/types';
+import type { Config } from '@jest/types';
+
 // Sync object
 const config: Config.InitialOptions = {
   verbose: true,
   transform: {
-  '^.+\\.tsx?$': 'ts-jest'
-  }
+    '^.+\\.tsx?$': 'ts-jest'
+  },
+  coverageDirectory: 'coverage',
+  collectCoverageFrom: ['src/**/*.ts'],
+  coverageReporters: ['text', 'cobertura']
 };
+
 export default config;
