@@ -74,6 +74,7 @@ export class SchwabConverter extends AbstractConverter {
                     context.column === "feesCommissions" ||
                     context.column === "amount") {
 
+                    columnValue = columnValue.replace(/\,/g, "");
                     return parseFloat(columnValue || "0");
                 }
 
