@@ -74,8 +74,6 @@ export class SchwabConverter extends AbstractConverter {
                     context.column === "feesCommissions" ||
                     context.column === "amount") {
 
-                    // Change position of ',' and '.', since those are inverted in US numbers.
-                    columnValue = columnValue.replace(/\./g, "").replace(/\,/g, ".")
                     return parseFloat(columnValue || "0");
                 }
 
@@ -87,8 +85,6 @@ export class SchwabConverter extends AbstractConverter {
             if (records === undefined) {
                 throw new Error(`An error ocurred while parsing ${inputFile}...`);
             }
-
-            let errorExport = false;
 
             console.log(`[i] Read CSV file ${inputFile}. Start processing..`);
             const result: GhostfolioExport = {
@@ -147,7 +143,6 @@ export class SchwabConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    errorExport = true;
                     throw err;
                 }
 
@@ -166,7 +161,7 @@ export class SchwabConverter extends AbstractConverter {
                 // Dividend records have a share count of 1.
                 if (record.action === "dividend") {
                     numberOfShares = 1;
-                    priceShare = record.amount;
+                    priceShare = Math.abs(record.amount);
                 }
 
                 const date = dayjs(`${record.date}`, "MM/DD/YYYY");

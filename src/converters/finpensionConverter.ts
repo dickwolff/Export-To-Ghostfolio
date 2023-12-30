@@ -123,7 +123,6 @@ export class FinpensionConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-
                     throw err;
                 }
 
