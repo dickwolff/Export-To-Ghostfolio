@@ -31,7 +31,7 @@ export class YahooFinanceService {
         this.preferedExchangePostfix = process.env.DEGIRO_PREFERED_EXCHANGE_POSTFIX;
 
         // Preload the cache from disk.
-        this.preloadCache().then(() => console.log("[i] Restored symbols from cache.."))
+        this.preloadCache().then(() => console.log("\n[i] Restored symbols from cache.."))
     }
 
     /**
