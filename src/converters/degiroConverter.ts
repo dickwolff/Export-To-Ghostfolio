@@ -88,7 +88,7 @@ export class DeGiroConverter extends AbstractConverter {
             bar1.increment(1);
             continue;
           }
-
+        
           // Look for the security for the current record.
           let security: YahooFinanceRecord;
           try {
@@ -99,8 +99,9 @@ export class DeGiroConverter extends AbstractConverter {
               record.currency, 
               this.progress);
           } 
-          catch (err) {
-            console.log(err);
+          catch (err) {                    
+            this.progress.log(`[e] An error ocurred while trying to retrieve security ${record.isin || record.product}!\n`);    
+            this.progress.stop();
             throw err;
           }
 
@@ -178,7 +179,7 @@ export class DeGiroConverter extends AbstractConverter {
       return true;
     }
 
-    const ignoredRecordTypes = ["ideal", "flatex", "cash sweep", "withdrawal", "productwijziging", "währungswechsel", "trasferisci", "deposito", "credito", "prelievo", "creditering", "debitering"];
+    const ignoredRecordTypes = ["ideal", "flatex", "cash sweep", "withdrawal", "productwijziging", "währungswechsel", "trasferisci", "deposito", "credito", "prelievo", "creditering", "debitering", "rente", "ag", "verrekening promotie"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
@@ -272,11 +273,11 @@ export class DeGiroConverter extends AbstractConverter {
       // Firstly, check if the current record is the TxFee record.
       if (this.isTransactionFeeRecord(currentRecord)) {
         dividendRecord = nextRecord;
-        txFeeRecord = currentRecord;
+        txFeeRecord = currentRecord;        
       } 
       // Next, check wether the next record is NOT a TxFee record. In this case, the dividend has no fees.
       else if (!this.isTransactionFeeRecord(nextRecord)) {
-        txFeeRecord = null;
+        txFeeRecord = null;        
       }
 
       let unitPrice = Math.abs(parseFloat(dividendRecord.amount.replace(",", ".")));
@@ -300,8 +301,8 @@ export class DeGiroConverter extends AbstractConverter {
           dataSource: "YAHOO",
           date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
           symbol: security.symbol,
-        },
-        2
+        },        
+        txFeeRecord ? 2 : 1 // Skip 1 record if action record had no TxFee.
       ];
     }    
   }
@@ -343,7 +344,7 @@ export class DeGiroConverter extends AbstractConverter {
 
   private isTransactionFeeRecord(record: DeGiroRecord): boolean {
     
-    const transactionFeeRecordType = ["en\/of", "and\/or", "und\/oder", "e\/o", "adr\/gdr", "ritenuta"];
+    const transactionFeeRecordType = ["en\/of", "and\/or", "und\/oder", "e\/o", "adr\/gdr", "ritenuta", "belasting"];
 
     return transactionFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
