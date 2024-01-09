@@ -344,7 +344,7 @@ export class DeGiroConverter extends AbstractConverter {
 
   private isTransactionFeeRecord(record: DeGiroRecord): boolean {
     
-    const transactionFeeRecordType = ["en\/of", "and\/or", "und\/oder", "e\/o", "adr\/gdr", "ritenuta", "belasting"];
+    const transactionFeeRecordType = ["en\/of", "and\/or", "und\/oder", "e\/o", "adr\/gdr", "ritenuta", "belasting", "daň z dividendy"];
 
     return transactionFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
