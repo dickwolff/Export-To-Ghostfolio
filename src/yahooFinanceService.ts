@@ -1,5 +1,8 @@
+import * as cacache from "cacache";
 import yahooFinance from 'yahoo-finance2';
 import { YahooFinanceRecord } from './models/yahooFinanceRecord';
+
+const cachePath = "tmp/e2g-cache";
 
 export class YahooFinanceService {
 
@@ -26,6 +29,9 @@ export class YahooFinanceService {
 
         // Retrieve prefered exchange postfix if set in .env
         this.preferedExchangePostfix = process.env.DEGIRO_PREFERED_EXCHANGE_POSTFIX;
+
+        // Preload the cache from disk.
+        this.preloadCache().then(() => console.log("[i] Restored symbols from cache.."))
     }
 
     /**
@@ -99,13 +105,15 @@ export class YahooFinanceService {
 
             this.logDebug(`getSecurity(): Match found for ${isin ?? symbol ?? name}`, progress);
 
-            // If there was an isin given, place it in the isin-symbol mapping cache.
-            if (isin) {
-                this.isinSymbolCache[isin] = symbolMatch.symbol;
+            // If there was an isin given, place it in the isin-symbol mapping cache (if it wasn't there before).
+            if (isin && !this.isinSymbolCache.has(isin)) {
+                await this.saveInCache(isin, null, symbolMatch.symbol);                
             }
 
-            // Store the record in cache by symbol.
-            this.symbolCache[symbolMatch.symbol] = symbolMatch;
+            // Store the record in cache by symbol (if it wasn't there before).
+            if (!this.symbolCache.has(symbolMatch.symbol)) {
+                await this.saveInCache(null, symbolMatch.symbol, symbolMatch);
+            }
 
             return symbolMatch;
         }
@@ -214,6 +222,46 @@ export class YahooFinanceService {
         }
 
         return symbolMatch;
+    }
+
+    private async preloadCache() {
+
+        // Verify if there is data in the ISIN-Symbol cache. If so, restore to the local variable.
+        const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");
+        if (isinSymbolCacheExist) {
+            const cache = await cacache.get(cachePath, "isinSymbolCache");                        
+            const cacheAsJson = JSON.parse(Buffer.from(cache.data).toString());
+            
+            for (let key in cacheAsJson) {
+                this.isinSymbolCache.set(key, cacheAsJson[key]);
+            }            
+        }        
+
+        // Verify if there is data in the Symbol cache. If so, restore to the local variable.
+        const symbolCacheExists = await cacache.get.info(cachePath, "symbolCache");        
+        if (symbolCacheExists) {
+            const cache = await cacache.get(cachePath, "symbolCache");
+            const cacheAsJson = JSON.parse(Buffer.from(cache.data).toString());
+            
+            for (let key in cacheAsJson) {
+                this.symbolCache.set(key, cacheAsJson[key]);
+            }   
+        }        
+    }
+
+    private async saveInCache(isin?: string, symbol?: string, value?: any) {
+
+        // Save ISIN-value combination to cache if given.
+        if (isin && value) {
+            this.isinSymbolCache.set(isin, value);
+            await cacache.put(cachePath, "isinSymbolCache", JSON.stringify(this.isinSymbolCache));
+        }
+        
+        // Save symbol-value combination to cache if given.
+        if (symbol && value) {
+            this.symbolCache.set(symbol, value);
+            await cacache.put(cachePath, "symbolCache", JSON.stringify(this.symbolCache));
+        }
     }
 
     private logDebug(message, progress?, additionalTabs?: boolean) {

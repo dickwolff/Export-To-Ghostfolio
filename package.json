@@ -12,6 +12,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@types/cacache": "^17.0.2",
     "@types/node": "^20.10.4",
     "nodemon": "^3.0.2",
     "ts-node": "^10.9.1",
@@ -19,6 +20,7 @@
   },
   "dependencies": {
     "@types/cli-progress": "^3.11.5",
+    "cacache": "^18.0.2",
     "cli-progress": "^3.12.0",
     "cross-fetch": "^4.0.0",
     "csv-parse": "^5.5.2",
