@@ -35,7 +35,7 @@ Login to your Finpension account. Select your portfolio from the landing page. T
 
 #### Swissquote
 
-Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.#### Swissquote
+Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.
 
 ### Use the tool
 
@@ -62,6 +62,8 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | Swissquote  | `run start swissquote` (or `sq`) |
   
 The export file can now be imported in Ghostfolio by going to Portfolio > Activities and pressing the 3 dots at the top right of the table. Since Ghostfolio 1.221.0, you can now preview the import and validate the data has been converted correctly. When it is to your satisfaction, press import to add the activities to your portfolio.
+
+The tool uses `cacache` to store data retrieved from Yahoo Finance on your disk. The data is stored in `tmp/e2g-cache`. If you feel you need to invalidate your cache, feel free to remove the folder and the tool will recreate the cache when it runs the next time.
 
 ![image](https://user-images.githubusercontent.com/5620002/203356387-1f42ca31-7cff-44a5-8f6c-84045cf7101e.png)
 
