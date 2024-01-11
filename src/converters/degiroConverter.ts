@@ -24,7 +24,7 @@ export class DeGiroConverter extends AbstractConverter {
   /**
    * @inheritdoc
    */
-  public processFile(inputFile: string, callback: any): void {
+  public processFile(inputFile: string, successCallback: any, errorCallback: any): void {
 
     // Read file contents of the CSV export.
     const csvFile = fs.readFileSync(inputFile, "utf-8");
@@ -233,7 +233,7 @@ export class DeGiroConverter extends AbstractConverter {
 
       this.progress.stop()
 
-      callback(result);
+      successCallback(result);
     });
   }
 

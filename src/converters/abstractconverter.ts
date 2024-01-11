@@ -26,9 +26,10 @@ export abstract class AbstractConverter {
      * Process an export file.
      * 
      * @param inputFile The file to convert.
-     * @param callback A callback to execute after processing has succeeded.
+     * @param successCallback A callback to execute after processing has succeeded.
+     * @param errorCallback A callback to execute after processing has failed.
      */
-    abstract processFile(inputFile: string, callback: any): void;
+    abstract processFile(inputFile: string, successCallback: any, errorCallback: any): void;
 
     /**
      * Retrieve headers from the input file.

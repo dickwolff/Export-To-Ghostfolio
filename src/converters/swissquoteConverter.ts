@@ -24,154 +24,154 @@ export class SwissquoteConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    public processFile(inputFile: string, callback: any): void {
+    public processFile(inputFile: string, successCallback: any, errorCallback: any): void {
 
-        // Read file contents of the CSV export.
-        const csvFile = fs.readFileSync(inputFile, "utf-8");
+        try {
+                            
+            // Read file contents of the CSV export.
+            const csvFile = fs.readFileSync(inputFile, "utf-8");
 
-        // Parse the CSV and convert to Ghostfolio import format.
-        const parser = parse(csvFile, {
-            delimiter: ";",
-            fromLine: 2,
-            columns: this.processHeaders(csvFile, ";"),
-            cast: (columnValue, context) => {
+            // Parse the CSV and convert to Ghostfolio import format.
+            const parser = parse(csvFile, {
+                delimiter: ";",
+                fromLine: 2,
+                columns: this.processHeaders(csvFile, ";"),
+                cast: (columnValue, context) => {
 
-                // Custom mapping below.
+                    // Custom mapping below.
 
-                // Convert categories to Ghostfolio type.
-                if (context.column === "transaction") {
-                    const action = columnValue.toLocaleLowerCase();
+                    // Convert categories to Ghostfolio type.
+                    if (context.column === "transaction") {
+                        const action = columnValue.toLocaleLowerCase();
 
-                    if (action.indexOf("buy") > -1) {
-                        return "buy";
+                        if (action.indexOf("buy") > -1) {
+                            return "buy";
+                        }
+                        else if (action.indexOf("sell") > -1) {
+                            return "sell";
+                        }
+                        else if (action.indexOf("dividend") > -1) {
+                            return "dividend";
+                        }
+                        else if (action.indexOf("custody fees") > -1) {
+                            return "fee";
+                        }
+                        else if (action.indexOf("interest") > -1) {
+                            return "interest";
+                        }
                     }
-                    else if (action.indexOf("sell") > -1) {
-                        return "sell";
+
+                    // Parse numbers to floats (from string).
+                    if (context.column === "quantity" ||
+                        context.column === "unitPrice" ||
+                        context.column === "costs" ||
+                        context.column === "netAmount" ||
+                        context.column === "netAmountInAccountCurrency") {
+                        return parseFloat(columnValue);
                     }
-                    else if (action.indexOf("dividend") > -1) {
-                        return "dividend";
-                    }
-                    else if (action.indexOf("custody fees") > -1) {
-                        return "fee";
-                    }
-                    else if (action.indexOf("interest") > -1) {
-                        return "interest";
-                    }
+
+                    return columnValue;
+                }
+            }, async (_, records: SwissquoteRecord[]) => {
+
+                // If records is empty, parsing failed..
+                if (records === undefined || records.length === 0) {                    
+                    return errorCallback(new Error(`An error ocurred while parsing ${inputFile}...`));
+                }
+                
+                console.log(`Read CSV file ${inputFile}. Start processing..`);
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
                 }
 
-                // Parse numbers to floats (from string).
-                if (context.column === "quantity" ||
-                    context.column === "unitPrice" ||
-                    context.column === "costs" ||
-                    context.column === "netAmount" ||
-                    context.column === "netAmountInAccountCurrency") {
-                    return parseFloat(columnValue);
-                }
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
+                
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
+                
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
+                        bar1.increment();
+                        continue;
+                    }
 
-                return columnValue;
-            }
-        }, async (_, records: SwissquoteRecord[]) => {
+                    // Fee/interest do not have a security, so add those immediately.
+                    if (record.transaction.toLocaleLowerCase() === "fee" ||
+                        record.transaction.toLocaleLowerCase() === "interest") {
 
-            // If records is empty, parsing failed..
-            if (records === undefined) {
-                throw new Error(`An error ocurred while parsing ${inputFile}...`);
-            }
+                        const date = dayjs(`${record.date}`, "DD-MM-YYYY HH:mm");
+                        const feeAmount = Math.abs(record.netAmount);
 
-            console.log(`Read CSV file ${inputFile}. Start processing..`);
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
+                        // Add fees record to export.
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: "",
+                            fee: feeAmount,
+                            quantity: 1,
+                            type: GhostfolioOrderType[record.transaction],
+                            unitPrice: feeAmount,
+                            currency: record.currency,
+                            dataSource: "MANUAL",
+                            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: "Custody Fees"
+                        });
 
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
+                        bar1.increment();
+                        continue;
+                    }
 
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
+                    let security: YahooFinanceRecord;
+                    try {
+                        security = await this.yahooFinanceService.getSecurity(
+                            record.isin,
+                            record.symbol,
+                            record.name,
+                            record.netAmountCurrency ?? record.currency,
+                            this.progress);
+                    }
+                    catch (err) {                                        
+                        return errorCallback(err);
+                    }
 
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
-                    bar1.increment();
-                    continue;
-                }
-
-                // Fee/interest do not have a security, so add those immediately.
-                if (record.transaction.toLocaleLowerCase() === "fee" ||
-                    record.transaction.toLocaleLowerCase() === "interest") {
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i]\tNo result found for ${record.transaction} action for ${record.isin || record.symbol || record.name} with currency ${record.currency}! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
 
                     const date = dayjs(`${record.date}`, "DD-MM-YYYY HH:mm");
-                    const feeAmount = Math.abs(record.netAmount);
 
-                    // Add fees record to export.
+                    // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                         comment: "",
-                        fee: feeAmount,
-                        quantity: 1,
+                        fee: record.costs,
+                        quantity: record.quantity,
                         type: GhostfolioOrderType[record.transaction],
-                        unitPrice: feeAmount,
-                        currency: record.currency,
-                        dataSource: "MANUAL",
+                        unitPrice: record.unitPrice,
+                        currency: record.netAmountCurrency ?? record.currency,
+                        dataSource: "YAHOO",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: "Custody Fees"
+                        symbol: security.symbol
                     });
 
                     bar1.increment();
-                    continue;
                 }
 
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.yahooFinanceService.getSecurity(
-                        record.isin,
-                        record.symbol,
-                        record.name,
-                        record.netAmountCurrency ?? record.currency,
-                        this.progress);
-                }
-                catch (err) {
-                    throw err;
-                }
+                this.progress.stop()
 
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i]\tNo result found for ${record.transaction} action for ${record.isin || record.symbol || record.name} with currency ${record.currency}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                const date = dayjs(`${record.date}`, "DD-MM-YYYY HH:mm");
-
-                // Add record to export.
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: "",
-                    fee: record.costs,
-                    quantity: record.quantity,
-                    type: GhostfolioOrderType[record.transaction],
-                    unitPrice: record.unitPrice,
-                    currency: record.netAmountCurrency ?? record.currency,
-                    dataSource: "YAHOO",
-                    date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
-                });
-
-                bar1.increment();
-            }
-
-            this.progress.stop()
-
-            callback(result);
-        });
-
-        // Catch any error.
-        parser.on('error', function (err) {
-            console.log("[i] An error ocurred while processing the input file! See error below:")
-            console.error("[e]", err.message);
-        });
+                successCallback(result);
+            });
+        }    
+        catch(err) {
+            return errorCallback(err);
+        }
     }
 
     /**

@@ -1,7 +1,7 @@
 {
-  "name": "trading212-to-ghostfolio",
+  "name": "export-to-ghostfolio",
   "version": "1.0.0",
-  "description": "Convert Trading 212 export to Ghostfolio import",
+  "description": "Convert multiple broker exports to Ghostfolio import",
   "main": "index.js",
   "scripts": {
     "start": "nodemon",

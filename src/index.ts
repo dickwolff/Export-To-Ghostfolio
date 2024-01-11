@@ -48,4 +48,4 @@ converter.processFile(inputFile, (result: GhostfolioExport) => {
     fs.writeFileSync(`ghostfolio-${process.argv[2].toLocaleLowerCase()}.json`, fileContents, { encoding: "utf-8" });
     
     console.log(`[i] Wrote data to 'ghostfolio-${process.argv[2].toLocaleLowerCase()}.json'!`);
-});
+}, () => {});
