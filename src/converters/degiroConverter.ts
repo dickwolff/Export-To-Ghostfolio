@@ -99,9 +99,8 @@ export class DeGiroConverter extends AbstractConverter {
               record.currency, 
               this.progress);
           } 
-          catch (err) {                    
-            this.progress.log(`[e] An error ocurred while trying to retrieve security ${record.isin || record.product}!\n`);    
-            this.progress.stop();
+          catch (err) {    
+            this.logQueryError(record.isin || record.product, idx);            
             throw err;
           }
 
@@ -179,10 +178,10 @@ export class DeGiroConverter extends AbstractConverter {
       return true;
     }
 
-    // Record without date/time/product/isin should also be ignored.
-    if (!record.date && !record.time && !record.product && !record.isin) {      
-      return true;
-    }
+    // // Record without date/time/product/isin should also be ignored.
+    // if (!record.date && !record.time && !record.product && !record.isin) {      
+    //   return true;
+    // }
     
     const ignoredRecordTypes = ["ideal", "flatex", "cash sweep", "withdrawal", "productwijziging", "währungswechsel", "trasferisci", "deposito", "credito", "prelievo", "creditering", "debitering", "rente", "interesse", "ag", "verrekening promotie"];
 
