@@ -44,12 +44,12 @@ export class YahooFinanceService {
      */
     public async getSecurity(isin?, symbol?, name?, expectedCurrency?, progress?): Promise<YahooFinanceRecord> {
 
-        console.log(this.isinSymbolCache)
         // When isin was given, check wether there is a symbol conversion cached. Then change map. 
         if (isin && this.isinSymbolCache.has(isin)) {
             console.log("has isin", isin)
             symbol = this.isinSymbolCache[isin];
         }
+
         // Second, check if the requested security is known by symbol (if given).
         if (symbol) {
 
@@ -109,7 +109,7 @@ export class YahooFinanceService {
 
             // If there was an isin given, place it in the isin-symbol mapping cache (if it wasn't there before).
             if (isin && !this.isinSymbolCache.has(isin)) {
-                await this.saveInCache(isin, null, symbolMatch.symbol);                
+                await this.saveInCache(isin, null, symbolMatch.symbol);                  
             }
 
             // Store the record in cache by symbol (if it wasn't there before).
@@ -234,7 +234,7 @@ export class YahooFinanceService {
         const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");        
         if (isinSymbolCacheExist) {
             const cache = await cacache.get(cachePath, "isinSymbolCache");                        
-            const cacheAsJson = JSON.parse(cache.data.toString(), this.reviver);    
+            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);    
             this.isinSymbolCache = cacheAsJson;                     
         }        
 
@@ -242,7 +242,7 @@ export class YahooFinanceService {
         const symbolCacheExists = await cacache.get.info(cachePath, "symbolCache");        
         if (symbolCacheExists) {
             const cache = await cacache.get(cachePath, "symbolCache");
-            const cacheAsJson = JSON.parse(cache.data.toString(), this.reviver);            
+            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);            
             this.symbolCache = cacheAsJson;
         }        
     }
@@ -252,13 +252,13 @@ export class YahooFinanceService {
         // Save ISIN-value combination to cache if given.
         if (isin && value) {
             this.isinSymbolCache.set(isin, value);                                    
-            await cacache.put(cachePath, "isinSymbolCache", JSON.stringify(this.isinSymbolCache, this.replacer));            
+            await cacache.put(cachePath, "isinSymbolCache", JSON.stringify(this.isinSymbolCache, this.mapReplacer));            
         }
         
         // Save symbol-value combination to cache if given.
         if (symbol && value) {
             this.symbolCache.set(symbol, value);
-            await cacache.put(cachePath, "symbolCache", JSON.stringify(this.symbolCache, this.replacer));
+            await cacache.put(cachePath, "symbolCache", JSON.stringify(this.symbolCache, this.mapReplacer));
         }
     }
 
@@ -278,8 +278,8 @@ export class YahooFinanceService {
 
     private sink() { }
 
-    private replacer(key, value) {
-        if(value instanceof Map) {
+    private mapReplacer(_, value) {
+        if (value instanceof Map) {
             return {
                 dataType: 'Map',
                 value: Array.from(value.entries()), // or with spread: value: [...value]
@@ -289,12 +289,13 @@ export class YahooFinanceService {
         }
     }
       
-    private reviver(key, value) {
-        if(typeof value === 'object' && value !== null) {
+    private mapReviver(_, value) {
+        if (typeof value === 'object' && value !== null) {
           if (value.dataType === 'Map') {
             return new Map(value.value);
           }
         }
+
         return value;
     }
 }
