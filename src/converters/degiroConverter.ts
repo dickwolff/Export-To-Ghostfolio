@@ -178,10 +178,10 @@ export class DeGiroConverter extends AbstractConverter {
       return true;
     }
 
-    // // Record without date/time/product/isin should also be ignored.
-    // if (!record.date && !record.time && !record.product && !record.isin) {      
-    //   return true;
-    // }
+    // Record without date/time/product/isin should also be ignored.
+    if (!record.date && !record.time && !record.product && !record.isin) {      
+      return true;
+    }
     
     const ignoredRecordTypes = ["ideal", "flatex", "cash sweep", "withdrawal", "productwijziging", "währungswechsel", "trasferisci", "deposito", "credito", "prelievo", "creditering", "debitering", "rente", "interesse", "ag", "verrekening promotie"];
 
