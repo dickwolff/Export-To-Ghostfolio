@@ -121,7 +121,7 @@ export class DeGiroConverter extends AbstractConverter {
               
               // Add the combined record to the final result.
               result.activities.push(combinedRecord[0]);
-
+              
               bar1.increment(combinedRecord[1]);
 
               // If more then 1 record needs to be skipped, do so.
@@ -135,9 +135,12 @@ export class DeGiroConverter extends AbstractConverter {
           else if (this.isTransactionFeeRecord(record)) {
 
             // If it was a transaction record without any other transaction connected, skip it.
-            bar1.increment(1);
+            bar1.increment();
             continue;
           }
+          
+          bar1.increment();
+          this.progress.log(`[i] Record ${record.isin || record.product} with currency ${record.currency} was skipped because it could not be matches to a valid transaction! Please add this manually..\n`);
         } 
           
         this.progress.stop();
@@ -337,7 +340,7 @@ export class DeGiroConverter extends AbstractConverter {
 
   private isBuyOrSellRecord(record: DeGiroRecord): boolean {
         
-    const dividendRecordType = ["\@", "zu je"];
+    const dividendRecordType = ["\@", "zu je"]//, "acquisto"];
 
     return dividendRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
