@@ -56,9 +56,9 @@ export class DeGiroConverter extends AbstractConverter {
 
         for (let idx = 0; idx < records.length; idx++) {
           const record = records[idx];
-
+          
           // Check if the record should be ignored. 
-          if (this.isIgnoredRecord(record)) {
+          if (this.isIgnoredRecord(record)) {            
             bar1.increment();
             continue;
           }
@@ -179,7 +179,12 @@ export class DeGiroConverter extends AbstractConverter {
       return true;
     }
 
-    const ignoredRecordTypes = ["ideal", "flatex", "cash sweep", "withdrawal", "productwijziging", "währungswechsel", "trasferisci", "deposito", "credito", "prelievo", "creditering", "debitering", "rente", "ag", "verrekening promotie"];
+    // Record without date/time/product/isin should also be ignored.
+    if (!record.date && !record.time && !record.product && !record.isin) {      
+      return true;
+    }
+    
+    const ignoredRecordTypes = ["ideal", "flatex", "cash sweep", "withdrawal", "productwijziging", "währungswechsel", "trasferisci", "deposito", "credito", "prelievo", "creditering", "debitering", "rente", "interesse", "ag", "verrekening promotie"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
@@ -271,7 +276,7 @@ export class DeGiroConverter extends AbstractConverter {
       
       // Determine which of the two records is the dividend record and which contains the transaction fees.
       // Firstly, check if the current record is the TxFee record.
-      if (this.isTransactionFeeRecord(currentRecord)) {
+      if (this.isTransactionFeeRecord(currentRecord)) {      
         dividendRecord = nextRecord;
         txFeeRecord = currentRecord;        
       } 
@@ -279,7 +284,7 @@ export class DeGiroConverter extends AbstractConverter {
       else if (!this.isTransactionFeeRecord(nextRecord)) {
         txFeeRecord = null;        
       }
-
+      
       let unitPrice = Math.abs(parseFloat(dividendRecord.amount.replace(",", ".")));
       let fees = 0;
       if (txFeeRecord) {
@@ -339,7 +344,7 @@ export class DeGiroConverter extends AbstractConverter {
   }
     
   private isDividendRecord(record: DeGiroRecord): boolean {    
-    return record.description.toLocaleLowerCase().indexOf("dividend") > -1;
+    return record.description.toLocaleLowerCase().indexOf("dividend") > -1 || record.description.toLocaleLowerCase().indexOf("capital return") > -1;
   }
 
   private isTransactionFeeRecord(record: DeGiroRecord): boolean {
