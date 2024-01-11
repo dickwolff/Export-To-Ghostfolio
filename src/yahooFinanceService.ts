@@ -46,7 +46,6 @@ export class YahooFinanceService {
 
         // When isin was given, check wether there is a symbol conversion cached. Then change map. 
         if (isin && this.isinSymbolCache.has(isin)) {
-            console.log("has isin", isin)
             symbol = this.isinSymbolCache[isin];
         }
 
@@ -130,9 +129,7 @@ export class YahooFinanceService {
      * @returns The symbols that are retrieved from Yahoo Finance, if any.
      */
     private async getSymbolsByQuery(query: string, progress?: any): Promise<YahooFinanceRecord[]> {
-
-        
-        console.log("ping yahoo finance!", query)
+    
         // First get quotes for the query.
         let queryResult = await yahooFinance.search(query,
             {
