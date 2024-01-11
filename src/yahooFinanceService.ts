@@ -44,8 +44,10 @@ export class YahooFinanceService {
      */
     public async getSecurity(isin?, symbol?, name?, expectedCurrency?, progress?): Promise<YahooFinanceRecord> {
 
+        console.log(this.isinSymbolCache)
         // When isin was given, check wether there is a symbol conversion cached. Then change map. 
         if (isin && this.isinSymbolCache.has(isin)) {
+            console.log("has isin", isin)
             symbol = this.isinSymbolCache[isin];
         }
         // Second, check if the requested security is known by symbol (if given).
@@ -129,6 +131,8 @@ export class YahooFinanceService {
      */
     private async getSymbolsByQuery(query: string, progress?: any): Promise<YahooFinanceRecord[]> {
 
+        
+        console.log("ping yahoo finance!", query)
         // First get quotes for the query.
         let queryResult = await yahooFinance.search(query,
             {
@@ -227,25 +231,19 @@ export class YahooFinanceService {
     private async preloadCache() {
 
         // Verify if there is data in the ISIN-Symbol cache. If so, restore to the local variable.
-        const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");
+        const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");        
         if (isinSymbolCacheExist) {
             const cache = await cacache.get(cachePath, "isinSymbolCache");                        
-            const cacheAsJson = JSON.parse(Buffer.from(cache.data).toString());
-            
-            for (let key in cacheAsJson) {
-                this.isinSymbolCache.set(key, cacheAsJson[key]);
-            }            
+            const cacheAsJson = JSON.parse(cache.data.toString(), this.reviver);    
+            this.isinSymbolCache = cacheAsJson;                     
         }        
 
         // Verify if there is data in the Symbol cache. If so, restore to the local variable.
         const symbolCacheExists = await cacache.get.info(cachePath, "symbolCache");        
         if (symbolCacheExists) {
             const cache = await cacache.get(cachePath, "symbolCache");
-            const cacheAsJson = JSON.parse(Buffer.from(cache.data).toString());
-            
-            for (let key in cacheAsJson) {
-                this.symbolCache.set(key, cacheAsJson[key]);
-            }   
+            const cacheAsJson = JSON.parse(cache.data.toString(), this.reviver);            
+            this.symbolCache = cacheAsJson;
         }        
     }
 
@@ -253,14 +251,14 @@ export class YahooFinanceService {
 
         // Save ISIN-value combination to cache if given.
         if (isin && value) {
-            this.isinSymbolCache.set(isin, value);
-            await cacache.put(cachePath, "isinSymbolCache", JSON.stringify(this.isinSymbolCache));
+            this.isinSymbolCache.set(isin, value);                                    
+            await cacache.put(cachePath, "isinSymbolCache", JSON.stringify(this.isinSymbolCache, this.replacer));            
         }
         
         // Save symbol-value combination to cache if given.
         if (symbol && value) {
             this.symbolCache.set(symbol, value);
-            await cacache.put(cachePath, "symbolCache", JSON.stringify(this.symbolCache));
+            await cacache.put(cachePath, "symbolCache", JSON.stringify(this.symbolCache, this.replacer));
         }
     }
 
@@ -279,4 +277,24 @@ export class YahooFinanceService {
     }
 
     private sink() { }
+
+    private replacer(key, value) {
+        if(value instanceof Map) {
+            return {
+                dataType: 'Map',
+                value: Array.from(value.entries()), // or with spread: value: [...value]
+            };
+        } else {
+            return value;
+        }
+    }
+      
+    private reviver(key, value) {
+        if(typeof value === 'object' && value !== null) {
+          if (value.dataType === 'Map') {
+            return new Map(value.value);
+          }
+        }
+        return value;
+    }
 }
