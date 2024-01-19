@@ -144,6 +144,7 @@ export class SchwabConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
+                    this.logQueryError(record.symbol || record.description, idx + 2);    
                     throw err;
                 }
 
