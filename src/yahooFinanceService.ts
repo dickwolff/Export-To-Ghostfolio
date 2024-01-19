@@ -57,7 +57,7 @@ export class YahooFinanceService {
 
         // The security is not known. Try to find is.
 
-        // First try by ISIN.
+        // First try by ISIN.    
         let symbols = await this.getSymbolsByQuery(isin, progress);
         this.logDebug(`getSecurity(): Found ${symbols.length} match${symbols.length === 1 ? "" : "es"} by ISIN ${isin}`, progress);
 

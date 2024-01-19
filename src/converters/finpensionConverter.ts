@@ -122,7 +122,8 @@ export class FinpensionConverter extends AbstractConverter {
                         record.assetCurrency,
                         this.progress);
                 }
-                catch (err) {
+                catch (err) {                    
+                    this.logQueryError(record.isin || record.assetName, idx + 2);        
                     throw err;
                 }
 

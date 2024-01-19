@@ -133,6 +133,7 @@ export class SwissquoteConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
+                    this.logQueryError(record.isin || record.symbol || record.name, idx + 2);                            
                     throw err;
                 }
 

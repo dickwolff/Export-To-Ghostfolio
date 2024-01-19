@@ -38,7 +38,7 @@ Login to your Finpension account. Select your portfolio from the landing page. T
 
 #### Swissquote
 
-Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.#### Swissquote
+Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.
 
 #### Schwab
 Login to your Schwab account. Go to “Accounts” then “History”. Select the account you want to download details from. Select the “Date Range” and select “Export” (csv). Save the file.
