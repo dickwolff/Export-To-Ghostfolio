@@ -88,7 +88,6 @@ export class DeGiroConverter extends AbstractConverter {
             this.progress);
         }
         catch (err) {
-          console.log(err);
           throw err;
         }
 

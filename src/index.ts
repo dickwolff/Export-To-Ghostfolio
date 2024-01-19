@@ -4,6 +4,7 @@ import { DeGiroConverter } from "./converters/degiroConverter";
 import { DeGiroConverterV2 } from "./converters/degiroConverterV2";
 import { AbstractConverter } from "./converters/abstractconverter";
 import { Trading212Converter } from "./converters/trading212Converter";
+import { SchwabConverter } from "./converters/schwabConverter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
 
@@ -44,8 +45,12 @@ switch (process.argv[2].toLocaleLowerCase()) {
         console.log("[i] Processing file using Swissquote converter");
         converter = new SwissquoteConverter();
         break;
-    default:
-        throw new Error("No converter provided (i.e. trading212, degiro)");
+    case "schwab":
+        console.log("[i] Processing file using Schwab converter");
+        converter = new SchwabConverter();
+        break;
+    default:    
+        throw new Error(`Unknown converter '${process.argv[2].toLocaleLowerCase()}' provided`);
 }
 
 // Map the file to a Ghostfolio import.
@@ -56,6 +61,6 @@ converter.processFile(inputFile, (result: GhostfolioExport) => {
     // Write result to file.
     const fileContents = JSON.stringify(result);
     fs.writeFileSync(`ghostfolio-${process.argv[2].toLocaleLowerCase()}.json`, fileContents, { encoding: "utf-8" });
-    
+
     console.log(`[i] Wrote data to 'ghostfolio-${process.argv[2].toLocaleLowerCase()}.json'!`);
 });
