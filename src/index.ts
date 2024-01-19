@@ -25,7 +25,7 @@ switch (process.argv[2].toLocaleLowerCase()) {
         console.log("[i] Processing file using DeGiro converter");
         console.log("[i] NOTE: There is a new version available of the DeGiro converter.");
         console.log("[i] This is currently in beta and we're looking for feedback!");
-        console.log("[i] You can run the beta converter with 'npm run start degiro-v2'.")
+        console.log("[i] You can run the beta converter with the command 'npm run start degiro-v2'.");
         converter = new DeGiroConverter();
         break;
     case "degiro-v2":
