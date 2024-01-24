@@ -68,6 +68,25 @@ export abstract class AbstractConverter {
 
         return csvHeaders;
     }
+
+    /**
+     * Log a query error.
+     * 
+     * @param query The query that was looked for.
+     * @param index The index of the line in the input file.
+     */
+    protected logQueryError(query: string, index: number) {
+        
+        let message = `\n[e] An error ocurred while trying to retrieve {query} (line ${index + 2})!\n`;
+        
+        if (query) {
+            message = message.replace("{query}", `symbol ${query}`);
+        } else {
+            message = message.replace("{query}", `an empty symbol`);
+        }
+
+        console.log(message);    
+    }
     
     private camelize(str): string {
         return str.replace(/[^a-zA-Z ]/g, "").replace(/(?:^\w|[A-Z]|\b\w)/g, function (word, index) {

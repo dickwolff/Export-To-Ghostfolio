@@ -4,12 +4,12 @@ import { parse } from "csv-parse";
 import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
-import { SwissquoteRecord } from "../models/swissquoteRecord";
-import customParseFormat from "dayjs/plugin/customParseFormat";
+import { SchwabRecord } from "../models/schwabRecord";
 
-export class SwissquoteConverter extends AbstractConverter {
+export class SchwabConverter extends AbstractConverter {
 
     private yahooFinanceService: YahooFinanceService;
 
@@ -31,27 +31,33 @@ export class SwissquoteConverter extends AbstractConverter {
 
         // Parse the CSV and convert to Ghostfolio import format.
         const parser = parse(csvFile, {
-            delimiter: ";",
+            delimiter: ",",
             fromLine: 2,
-            columns: this.processHeaders(csvFile, ";"),
+            columns: this.processHeaders(csvFile),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
 
                 // Convert categories to Ghostfolio type.
-                if (context.column === "transaction") {
+                if (context.column === "action") {
                     const action = columnValue.toLocaleLowerCase();
 
-                    if (action.indexOf("buy") > -1) {
+                    // Schwab supports dividend reinvest. 
+                    // These transactions are exported as separate transactions.
+                    // "Reinvest shares" actions should be interpreted as "buy".
+                    if (action.indexOf("buy") > -1 ||
+                        action.indexOf("reinvest shares") > -1) {
                         return "buy";
                     }
                     else if (action.indexOf("sell") > -1) {
                         return "sell";
                     }
-                    else if (action.indexOf("dividend") > -1) {
+                    else if (action.indexOf("dividend") > -1 ||
+                        action.indexOf("qual") > -1 ||
+                        action.endsWith("reinvest")) {
                         return "dividend";
                     }
-                    else if (action.indexOf("custody fees") > -1) {
+                    else if (action.indexOf("advisor fee") > -1) {
                         return "fee";
                     }
                     else if (action.indexOf("interest") > -1) {
@@ -59,25 +65,29 @@ export class SwissquoteConverter extends AbstractConverter {
                     }
                 }
 
+                // Remove the dollar sign ($) from any field.
+                columnValue = columnValue.replace(/\$/g, "");
+
                 // Parse numbers to floats (from string).
                 if (context.column === "quantity" ||
-                    context.column === "unitPrice" ||
-                    context.column === "costs" ||
-                    context.column === "netAmount" ||
-                    context.column === "netAmountInAccountCurrency") {
-                    return parseFloat(columnValue);
+                    context.column === "price" ||
+                    context.column === "feesCommissions" ||
+                    context.column === "amount") {
+
+                    columnValue = columnValue.replace(/\,/g, "");
+                    return parseFloat(columnValue || "0");
                 }
 
                 return columnValue;
             }
-        }, async (_, records: SwissquoteRecord[]) => {
+        }, async (_, records: SchwabRecord[]) => {
 
             // If records is empty, parsing failed..
             if (records === undefined) {
                 throw new Error(`An error ocurred while parsing ${inputFile}...`);
             }
 
-            console.log(`Read CSV file ${inputFile}. Start processing..`);
+            console.log(`[i] Read CSV file ${inputFile}. Start processing..`);
             const result: GhostfolioExport = {
                 meta: {
                     date: new Date(),
@@ -87,23 +97,24 @@ export class SwissquoteConverter extends AbstractConverter {
             }
 
             // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
+            const bar1 = this.progress.create(records.length - 1, 0);
 
-            for (let idx = 0; idx < records.length; idx++) {
+            // Skip last line of export ( stats).
+            for (let idx = 0; idx < records.length - 1; idx++) {
                 const record = records[idx];
 
-                // Check if the record should be ignored.
+                // Skip administrative fee/deposit/withdraw transactions.
                 if (this.isIgnoredRecord(record)) {
                     bar1.increment();
                     continue;
                 }
 
-                // Fee/interest do not have a security, so add those immediately.
-                if (record.transaction.toLocaleLowerCase() === "fee" ||
-                    record.transaction.toLocaleLowerCase() === "interest") {
+                // Custody fees or interest do not have a security, so add those immediately.
+                if (record.action.toLocaleLowerCase() === "fee" ||
+                    record.action.toLocaleLowerCase() === "interest") {
 
-                    const date = dayjs(`${record.date}`, "DD-MM-YYYY HH:mm");
-                    const feeAmount = Math.abs(record.netAmount);
+                    const feeAmount = Math.abs(record.amount);
+                    const date = dayjs(`${record.date}`, "MM/DD/YYYY");
 
                     // Add fees record to export.
                     result.activities.push({
@@ -111,12 +122,12 @@ export class SwissquoteConverter extends AbstractConverter {
                         comment: "",
                         fee: feeAmount,
                         quantity: 1,
-                        type: GhostfolioOrderType[record.transaction],
+                        type: GhostfolioOrderType[record.action],
                         unitPrice: feeAmount,
-                        currency: record.currency,
+                        currency: "USD",
                         dataSource: "MANUAL",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: "Custody Fees"
+                        symbol: record.description
                     });
 
                     bar1.increment();
@@ -126,35 +137,46 @@ export class SwissquoteConverter extends AbstractConverter {
                 let security: YahooFinanceRecord;
                 try {
                     security = await this.yahooFinanceService.getSecurity(
-                        record.isin,
+                        null,
                         record.symbol,
-                        record.name,
-                        record.netAmountCurrency ?? record.currency,
+                        record.description,
+                        "USD",
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.isin || record.symbol || record.name, idx + 2);                            
+                    this.logQueryError(record.symbol || record.description, idx + 2);    
                     throw err;
                 }
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`[i]\tNo result found for ${record.transaction} action for ${record.isin || record.symbol || record.name} with currency ${record.currency}! Please add this manually..\n`);
+                    this.progress.log(`[i]\tNo result found for ${record.action} action for ${record.symbol || record.description} with currency USD! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }
 
-                const date = dayjs(`${record.date}`, "DD-MM-YYYY HH:mm");
+                // Make negative numbers (on sell records) absolute.
+                let numberOfShares = Math.abs(record.quantity);
+                let priceShare = Math.abs(record.price);
+                let feesCommissions = Math.abs(record.feesComm);
+
+                // Dividend records have a share count of 1.
+                if (record.action === "dividend") {
+                    numberOfShares = 1;
+                    priceShare = Math.abs(record.amount);
+                }
+
+                const date = dayjs(`${record.date}`, "MM/DD/YYYY");
 
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: "",
-                    fee: record.costs,
-                    quantity: record.quantity,
-                    type: GhostfolioOrderType[record.transaction],
-                    unitPrice: record.unitPrice,
-                    currency: record.netAmountCurrency ?? record.currency,
+                    fee: feesCommissions,
+                    quantity: numberOfShares,
+                    type: GhostfolioOrderType[record.action],
+                    unitPrice: priceShare,
+                    currency: "USD",
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
@@ -178,9 +200,20 @@ export class SwissquoteConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    public isIgnoredRecord(record: SwissquoteRecord): boolean {
-        let ignoredRecordTypes = ["credit", "debit", "payment", "tax statement"];
+    public isIgnoredRecord(record: SchwabRecord): boolean {
 
-        return ignoredRecordTypes.some(t => record.transaction.toLocaleLowerCase().indexOf(t) > -1)
+      if (record.description === "" || record.action.toLocaleLowerCase().startsWith("wire")) {
+        return true;
+      }
+
+      const ignoredRecordTypes = ["credit", "journal"];
+
+      let ignore = ignoredRecordTypes.some(t => record.action.toLocaleLowerCase().indexOf(t) > -1);
+
+      if (!ignore) {
+        ignore = record.date.toString().toLocaleLowerCase() === "transactions total";
+      } 
+
+      return ignore;
     }
 }

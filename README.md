@@ -10,10 +10,13 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [DEGIRO](https://degiro.com)
 - [Finpension](https://finpension.ch)
 - [Swissquote](https://en.swissquote.com/)
+- [Schwab]()
 
 Is your broker not in the list? Feel free to create an [issue](https://github.com/dickwolff/Export-To-Ghostfolio/issues/new) or, even better, build it yourself and create a [pull request](https://github.com/dickwolff/Export-To-Ghostfolio/compare)!
 
-**NOTICE: It is recommended to only use this when you have a local instance of Ghostfolio, so you don't spam the online service hosted by Ghostfolio!**
+## System requirements
+
+The tool requires you to install the latest LTS version of Node, which you can download [here](https://nodejs.org/en/download/). The tool can run on any OS on which you can install Node.
 
 ## How to use
 
@@ -27,7 +30,7 @@ Login to your Trading 212 account and create an export file (via History > Downl
 
 Login to your DEGIRO account and create an export file (via Inbox > Account Overview, see image below). Choose the period from which you wish to export your history and click download.
 
-![image](https://github.com/dickwolff/Export-To-Ghostfolio/assets/5620002/ff48baf9-5725-4efc-a9ec-fbbf0472a656)
+![Export instructions for DEGIRO](./assets/export-degiro.jpg)
 
 #### Finpension
 
@@ -36,6 +39,11 @@ Login to your Finpension account. Select your portfolio from the landing page. T
 #### Swissquote
 
 Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.
+
+#### Schwab
+Login to your Schwab account. Go to “Accounts” then “History”. Select the account you want to download details from. Select the “Date Range” and select “Export” (csv). Save the file.
+
+![Export instructions for Schwab](./assets/export-schwab.jpg)
 
 ### Use the tool
 
@@ -54,26 +62,16 @@ The repository contains a sample `.env` file. Rename this from `.env.sample`.
 
 You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the symbols that are supported with YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN). 
 
-| Exporter    | Run command                      |
-| ----------- | -------------------------------- |
+| Exporter    | Run command                         |
+| ----------- | ----------------------------------- |
 | Trading 212 | `run start trading212` (or `t212`)  |
-| DEGIRO      | `run start degiro`               |
-| Finpension  | `run start finpension` (or `fp`) |
-| Swissquote  | `run start swissquote` (or `sq`) |
+| DEGIRO      | `run start degiro`                  |
+| Finpension  | `run start finpension` (or `fp`)    |
+| Swissquote  | `run start swissquote` (or `sq`)    |
+| Schwab      | `run start schwab`                  |
   
 The export file can now be imported in Ghostfolio by going to Portfolio > Activities and pressing the 3 dots at the top right of the table. Since Ghostfolio 1.221.0, you can now preview the import and validate the data has been converted correctly. When it is to your satisfaction, press import to add the activities to your portfolio.
 
 The tool uses `cacache` to store data retrieved from Yahoo Finance on your disk. The data is stored in `tmp/e2g-cache`. If you feel you need to invalidate your cache, feel free to remove the folder and the tool will recreate the cache when it runs the next time.
 
 ![image](https://user-images.githubusercontent.com/5620002/203356387-1f42ca31-7cff-44a5-8f6c-84045cf7101e.png)
-
--------
-
-## Potential future development
-
-The list below contains some plans of how this project could be improved. Options are to be validated on their feasibility.
-
-- [x] More robust header checking
-- [ ] More user friendly import (not via command line)
-- [ ] Connect directly to Trading 212 API (removing the manual export step)
-- [ ] Import directly into Ghostfolio via the API (removing the manual import step)
