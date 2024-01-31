@@ -6,8 +6,8 @@ COPY . .
 
 RUN npm install
 
-RUN mkdir /var/input
-RUN mkdir /var/output
+RUN mkdir /var/e2g-input
+RUN mkdir /var/e2g-output
 
 ENTRYPOINT [ "npm" ]
 CMD ["run", "watch"]

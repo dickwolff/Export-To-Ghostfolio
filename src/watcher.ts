@@ -4,8 +4,8 @@ import * as matcher from "closest-match";
 import { createAndRunConverter } from "./converter";
 
 // Define input and output.
-const inputFolder = process.env.E2G_INPUT_FOLDER || "/var/input";
-const outputFolder = process.env.E2G_OUTPUT_FOLDER || "/var/output";
+const inputFolder = process.env.E2G_INPUT_FOLDER || "/var/e2g-input";
+const outputFolder = process.env.E2G_OUTPUT_FOLDER || "/var/e2g-output";
 
 console.log(`[i] Watching ${inputFolder}..\n`);
 
