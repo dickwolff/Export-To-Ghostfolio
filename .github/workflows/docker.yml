@@ -27,3 +27,4 @@ jobs:
           context: "{{defaultContext}}:src"
           push: true
           tags: dickwolff/export-to-ghostfolio:latest
+          file: "src/Dockerfile"
