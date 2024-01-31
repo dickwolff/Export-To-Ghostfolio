@@ -24,7 +24,5 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: "{{defaultContext}}:src"
           push: true
           tags: dickwolff/export-to-ghostfolio:latest
-          file: "src/Dockerfile"
