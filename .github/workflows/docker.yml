@@ -13,7 +13,10 @@ jobs:
         uses: gittools/actions/gitversion/setup@v0.10.2 
         with:
           versionSpec: '5.x'
-
+      
+      - name: print
+        run: ls
+        
       - name: Run GitVersion 
         uses: gittools/actions/gitversion/execute@v0.10.2 
         with: 
