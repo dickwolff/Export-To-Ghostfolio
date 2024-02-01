@@ -17,19 +17,12 @@ jobs:
       - name: Install GitVersion 
         uses: gittools/actions/gitversion/setup@v0.10.2 
         with:
-          versionSpec: '5.x'
-      
-      - name: print
-        run: |
-          echo "aa"
-          ls
-          echo "bb"
+          versionSpec: '5.x'      
         
       - name: Run GitVersion 
         uses: gittools/actions/gitversion/execute@v0.10.2 
         with: 
           useConfigFile: true 
-          #configFilePath: './GitVersion.yml'
           
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -47,4 +40,4 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: dickwolff/export-to-ghostfolio:latest ${{ env.GitVersion_FullSemVer }}
+          tags: dickwolff/export-to-ghostfolio:latest ${{ env.GitVersion_MajorMinorPatch }}
