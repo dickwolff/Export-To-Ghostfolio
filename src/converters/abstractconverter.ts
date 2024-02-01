@@ -23,7 +23,12 @@ export abstract class AbstractConverter {
      * @param errorCallback A callback to execute after processing has failed.
      */
     public readAndProcessFile(inputFile: string, successCallback: CallableFunction, errorCallback: CallableFunction) {
-        
+
+        // If the file does not exist, throw error.
+        if (!fs.existsSync(inputFile)) {
+            return errorCallback();
+        }
+
         const contents = fs.readFileSync(inputFile, "utf-8");
 
         this.processFileContents(contents,successCallback, errorCallback);
