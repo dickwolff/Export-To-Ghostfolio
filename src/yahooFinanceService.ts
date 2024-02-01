@@ -42,6 +42,7 @@ export class YahooFinanceService {
         if (isin && this.isinSymbolCache.has(isin)) {
             symbol = this.isinSymbolCache[isin];
         }
+        
         // Second, check if the requested security is known by symbol (if given).
         if (symbol) {
 
@@ -56,14 +57,26 @@ export class YahooFinanceService {
 
         // The security is not known. Try to find is.
 
-        // First try by ISIN.
+        // First try by ISIN.    
         let symbols = await this.getSymbolsByQuery(isin, progress);
         this.logDebug(`getSecurity(): Found ${symbols.length} match${symbols.length === 1 ? "" : "es"} by ISIN ${isin}`, progress);
 
-        // If no result found by ISIN, try by symbol.
-        if (symbols.length == 0 && symbol) {
-            this.logDebug(`getSecurity(): Not a single symbol found for ISIN ${isin}, trying by symbol ${symbol}`, progress);
+        // First try by ISIN.
+        // If no ISIN was given as a parameter, just skip this part.
+        if (isin) {
+            symbols = await this.getSymbolsByQuery(isin, progress);
+            this.logDebug(`getSecurity(): Found ${symbols.length} matches by ISIN ${isin}`, progress);
+
+            // If no result found by ISIN, try by symbol.
+            if (symbols.length == 0 && symbol) {
+                this.logDebug(`getSecurity(): Not a single symbol found for ISIN ${isin}, trying by symbol ${symbol}`, progress);
+                symbols = await this.getSymbolsByQuery(symbol, progress);
+            }
+        } else {
+
+            // If no ISIN was given, try by symbol directly.
             symbols = await this.getSymbolsByQuery(symbol, progress);
+            this.logDebug(`getSecurity(): Found ${symbols.length} matches by symbol ${symbol}`, progress);
         }
 
         // Find a symbol that has the same currency.

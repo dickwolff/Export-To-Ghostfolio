@@ -128,7 +128,8 @@ export class SwissquoteConverter extends AbstractConverter {
                         record.netAmountCurrency ?? record.currency,
                         this.progress);
                 }
-                catch (err) {                                        
+                catch (err) {
+                    this.logQueryError(record.isin || record.symbol || record.name, idx + 2);                                                                   
                     return errorCallback(err);
                 }
 
