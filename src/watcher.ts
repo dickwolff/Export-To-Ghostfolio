@@ -1,3 +1,4 @@
+import path from "path";
 import * as fs from "fs";
 import chokidar from "chokidar";
 import * as matcher from "closest-match";
@@ -9,11 +10,11 @@ const outputFolder = process.env.E2G_OUTPUT_FOLDER || "/var/e2g-output";
 
 console.log(`[i] Watching ${inputFolder}..\n`);
 
-chokidar.watch(inputFolder, { usePolling: true }).on("add", path => {
+chokidar.watch(inputFolder, { usePolling: true }).on("add", filePath => {
 
-    console.log(`[i] Found ${path}!`);
+    console.log(`[i] Found ${filePath}!`);
 
-    const fileContents = fs.readFileSync(path, "utf-8");
+    const fileContents = fs.readFileSync(filePath, "utf-8");
 
     const closestMatch = matcher.closestMatch(fileContents.split("\n")[0], [...headers.keys()]);
 
@@ -28,13 +29,21 @@ chokidar.watch(inputFolder, { usePolling: true }).on("add", path => {
     console.log(`[i] Determined the file type to be of kind '${converter}'.`);
 
     // Determine convertor type and run conversion.
-    createAndRunConverter(converter, path, outputFolder, () => {
+    createAndRunConverter(converter, filePath, outputFolder, 
+        () => {
 
-        // After conversion was succesful, remove input file.
-        console.log(`[i] Finished converting ${path}, removing file..\n\n`);
-        fs.rmSync(path);
-    }, () => { });
+            // After conversion was succesful, remove input file.
+            console.log(`[i] Finished converting ${path}, removing file..\n\n`);
+            fs.rmSync(filePath);
+            
+        }, (err) => {
 
+            console.log("[e] An error ocurred while processing. Moving file to output");
+            console.log(`[e] Error details: ${err}`);
+
+            const errorFilePath = path.join(outputFolder, filePath);            
+            fs.renameSync(filePath, errorFilePath);
+        });
 });
 
 // Prep header set.
