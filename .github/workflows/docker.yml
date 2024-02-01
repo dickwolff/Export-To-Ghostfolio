@@ -15,7 +15,9 @@ jobs:
           versionSpec: '5.x'
       
       - name: print
-        run: ls
+        run: |
+          echo "aa"
+          ls
         
       - name: Run GitVersion 
         uses: gittools/actions/gitversion/execute@v0.10.2 
