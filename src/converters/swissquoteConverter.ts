@@ -23,7 +23,7 @@ export class SwissquoteConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    public processFile(input: string, successCallback: any, errorCallback: any): void {
+    public processFileContents(input: string, successCallback: any, errorCallback: any): void {
 
         // Parse the CSV and convert to Ghostfolio import format.
         const parser = parse(input, {

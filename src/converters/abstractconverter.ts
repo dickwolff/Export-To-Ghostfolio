@@ -26,7 +26,7 @@ export abstract class AbstractConverter {
         
         const contents = fs.readFileSync(inputFile, "utf-8");
 
-        this.processFile(contents,successCallback, errorCallback);
+        this.processFileContents(contents,successCallback, errorCallback);
     }
 
     /**
@@ -38,13 +38,13 @@ export abstract class AbstractConverter {
     abstract isIgnoredRecord(record: any): boolean;    
 
     /**
-     * Process an export file.
+     * Process export file contents.
      * 
      * @param input The file contents to convert.
      * @param successCallback A callback to execute after processing has succeeded.
      * @param errorCallback A callback to execute after processing has failed.
      */
-    abstract processFile(input: string, successCallback: CallableFunction, errorCallback: CallableFunction): void;
+    abstract processFileContents(input: string, successCallback: CallableFunction, errorCallback: CallableFunction): void;
 
     /**
      * Retrieve headers from the input file.
