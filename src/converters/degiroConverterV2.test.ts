@@ -1,6 +1,6 @@
 import { DeGiroConverterV2 } from "./degiroConverterV2";
 
-describe("degiroConverter", () => {
+describe("degiroConverterV2", () => {
 
     it("should construct", () => {
 
