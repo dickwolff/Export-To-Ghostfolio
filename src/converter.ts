@@ -9,7 +9,7 @@ import { Trading212Converter } from "./converters/trading212Converter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
 
-export function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath, completionCallback: CallableFunction, errorCallback: CallableFunction) {
+export function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
     const converterTypeLc = converterType.toLocaleLowerCase();
 
@@ -17,7 +17,7 @@ export function createAndRunConverter(converterType: string, inputFilePath: stri
     const converter = createConverter(converterTypeLc);
 
     // Map the file to a Ghostfolio import.
-    converter.processFile(inputFilePath, (result: GhostfolioExport) => {
+    converter.readAndProcessFile(inputFilePath, (result: GhostfolioExport) => {
 
         console.log("[i] Processing complete, writing to file..")
 
@@ -29,7 +29,7 @@ export function createAndRunConverter(converterType: string, inputFilePath: stri
         console.log(`[i] Wrote data to '${outputFileName}.json'!`);
 
         completionCallback();
-    });
+    }, (error) => errorCallback(error));
 }
 
 function createConverter(converterType: string): AbstractConverter {
@@ -71,7 +71,7 @@ function createConverter(converterType: string): AbstractConverter {
             converter = new SchwabConverter();
             break;
         default:
-            throw new Error(`Unknown converter '${process.argv[2].toLocaleLowerCase()}' provided`);
+            throw new Error(`Unknown converter '${converterType}' provided`);
     }
 
     return converter;
