@@ -36,10 +36,22 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
+      - name: Set GitVersion tag if main mranch
+        run: |
+          echo "DOCKER_TAG=dickwolff/export-to-ghostfolio:${{ env.GitVersion_MajorMinorPatch }}" >> $GITHUB_ENV
+        if:  ${{ github.event_name != 'pull_request' }}
+
+      - name: Set GitVersion tag if feature branch
+        run: |
+          echo "DOCKER_TAG=dickwolff/export-to-ghostfolio:${{ env.GitVersion_MajorMinorPatch }}-beta" >> $GITHUB_ENV
+        if:  ${{ github.event_name == 'pull_request' }}
+
       - name: Build and push
         uses: docker/build-push-action@v5
+        env:
+          GITVERSION_TAG: ${{ github.event_name != 'pull_request' }}
         with:          
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             dickwolff/export-to-ghostfolio:latest 
-            dickwolff/export-to-ghostfolio:${{ env.GitVersion_MajorMinorPatch }}
+            ${{ env.DOCKER_TAG }}
