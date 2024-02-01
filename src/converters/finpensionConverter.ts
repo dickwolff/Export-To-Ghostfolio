@@ -120,7 +120,7 @@ export class FinpensionConverter extends AbstractConverter {
                 }
                 catch (err) {                    
                     this.logQueryError(record.isin || record.assetName, idx + 2);        
-                    throw err;
+                    return errorCallback(err);
                 }
 
                 // Log whenever there was no match found.

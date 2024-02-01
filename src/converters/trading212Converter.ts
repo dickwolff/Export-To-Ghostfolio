@@ -128,7 +128,7 @@ export class Trading212Converter extends AbstractConverter {
                 }
                 catch (err) {
                     this.logQueryError(record.isin || record.ticker || record.name, idx + 2);        
-                    throw err;
+                    return errorCallback(err);
                 }
 
                 // Log whenever there was no match found.

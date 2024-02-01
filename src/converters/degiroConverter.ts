@@ -89,7 +89,8 @@ export class DeGiroConverter extends AbstractConverter {
             this.progress);
         }
         catch (err) {
-          throw err;
+          this.logQueryError(record.isin || record.product, idx);  
+          return errorCallback(err);
         }
 
         // Log whenever there was no match found.
