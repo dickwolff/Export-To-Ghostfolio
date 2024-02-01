@@ -17,6 +17,7 @@ jobs:
       - name: print
         run: |
           echo "aa"
+          cd ../
           ls
         
       - name: Run GitVersion 
