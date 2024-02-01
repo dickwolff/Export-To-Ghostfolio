@@ -3,7 +3,7 @@ name: ci
 on:
   push:
     branches:
-      - 'feature/Dockerize-With-File-Watch'
+      - 'main'
 
 jobs:
   docker:
@@ -36,22 +36,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
-      - name: Set GitVersion tag if main mranch
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: |
-          echo "DOCKER_TAG=dickwolff/export-to-ghostfolio:${{ env.GitVersion_MajorMinorPatch }}" >> $GITHUB_ENV
-        
-      - name: Set GitVersion tag if feature branch
-        if: ${{ github.ref != 'refs/heads/main' }}
-        run: |
-          echo "DOCKER_TAG=dickwolff/export-to-ghostfolio:${{ env.GitVersion_MajorMinorPatch }}-beta" >> $GITHUB_ENV        
-
       - name: Build and push
         uses: docker/build-push-action@v5
-        env:
-          GITVERSION_TAG: ${{ github.event_name != 'pull_request' }}
         with:          
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             dickwolff/export-to-ghostfolio:latest 
-            ${{ env.DOCKER_TAG }}
+            dickwolff/export-to-ghostfolio:${{ env.GitVersion_MajorMinorPatch }}
