@@ -16,9 +16,9 @@ jobs:
 
       - name: Run GitVersion 
         uses: gittools/actions/gitversion/execute@v0.10.2 
-        #with: 
-          #useConfigFile: true 
-          #configFilePath: GitVersion.yml
+        with: 
+          useConfigFile: true 
+          configFilePath: GitVersion.yml
           
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
