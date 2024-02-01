@@ -26,7 +26,7 @@ export abstract class AbstractConverter {
 
         // If the file does not exist, throw error.
         if (!fs.existsSync(inputFile)) {
-            return errorCallback();
+            return errorCallback(new Error(`File ${inputFile} does not exist!`));
         }
 
         const contents = fs.readFileSync(inputFile, "utf-8");

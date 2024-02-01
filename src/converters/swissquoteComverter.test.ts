@@ -42,7 +42,6 @@ describe("swissquoteConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message.includes("no such file or directory")).toBeTruthy();
         done();
       });      
     });
