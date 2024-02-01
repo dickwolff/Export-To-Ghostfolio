@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { AbstractConverter } from "./abstractconverter";
@@ -21,16 +20,13 @@ export class Trading212Converter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    public processFile(inputFile: string, successCallback: any, errorCallback: any): void {
-
-        // Read file contents of the CSV export.
-        const csvFile = fs.readFileSync(inputFile, "utf-8");
+    public processFile(input: string, successCallback: any, errorCallback: any): void {
 
         // Parse the CSV and convert to Ghostfolio import format.
-        parse(csvFile, {
+        parse(input, {
             delimiter: ",",
             fromLine: 2,
-            columns: this.processHeaders(csvFile),
+            columns: this.processHeaders(input),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
@@ -72,7 +68,12 @@ export class Trading212Converter extends AbstractConverter {
             }
         }, async (_, records: Trading212Record[]) => {
 
-            console.log(`[i] Read CSV file ${inputFile}. Start processing..`);
+            // If records is empty, parsing failed..
+            if (records === undefined) {
+                return errorCallback(new Error("An error ocurred while parsing!"));
+            }
+
+            console.log("[i] Read CSV file. Start processing..");
             const result: GhostfolioExport = {
                 meta: {
                     date: new Date(),

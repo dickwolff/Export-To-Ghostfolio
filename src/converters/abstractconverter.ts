@@ -1,3 +1,4 @@
+import * as fs from "fs";
 import * as cliProgress from "cli-progress";
 
 export abstract class AbstractConverter {
@@ -15,21 +16,35 @@ export abstract class AbstractConverter {
     }
 
     /**
-     * Check if a record should be ignored from processing.
-     * 
-     * @param record The record to check
-     * @returns true if the record should be skipped, false otherwise.
-     */
-    abstract isIgnoredRecord(record: any): boolean;
-
-    /**
-     * Process an export file.
+     * Read and process the file.
      * 
      * @param inputFile The file to convert.
      * @param successCallback A callback to execute after processing has succeeded.
      * @param errorCallback A callback to execute after processing has failed.
      */
-    abstract processFile(inputFile: string, successCallback: any, errorCallback: any): void;
+    public readAndProcessFile(inputFile: string, successCallback: CallableFunction, errorCallback: CallableFunction) {
+        
+        const contents = fs.readFileSync(inputFile, "utf-8");
+
+        this.processFile(contents,successCallback, errorCallback);
+    }
+
+    /**
+     * Check if a record should be ignored from processing.
+     * 
+     * @param record The record to check
+     * @returns true if the record should be skipped, false otherwise.
+     */
+    abstract isIgnoredRecord(record: any): boolean;    
+
+    /**
+     * Process an export file.
+     * 
+     * @param input The file contents to convert.
+     * @param successCallback A callback to execute after processing has succeeded.
+     * @param errorCallback A callback to execute after processing has failed.
+     */
+    abstract processFile(input: string, successCallback: CallableFunction, errorCallback: CallableFunction): void;
 
     /**
      * Retrieve headers from the input file.

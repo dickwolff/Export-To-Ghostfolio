@@ -39,7 +39,7 @@ switch (process.argv[2].toLocaleLowerCase()) {
 }
 
 // Map the file to a Ghostfolio import.
-converter.processFile(inputFile, (result: GhostfolioExport) => {
+converter.readAndProcessFile(inputFile, (result: GhostfolioExport) => {
 
     console.log("[i] Processing complete, writing to file..")
 
