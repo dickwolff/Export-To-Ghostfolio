@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { AbstractConverter } from "./abstractconverter";
@@ -24,16 +23,13 @@ export class SwissquoteConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    public processFile(inputFile: string, callback: any): void {
-
-        // Read file contents of the CSV export.
-        const csvFile = fs.readFileSync(inputFile, "utf-8");
+    public processFileContents(input: string, successCallback: any, errorCallback: any): void {
 
         // Parse the CSV and convert to Ghostfolio import format.
-        const parser = parse(csvFile, {
+        const parser = parse(input, {
             delimiter: ";",
             fromLine: 2,
-            columns: this.processHeaders(csvFile, ";"),
+            columns: this.processHeaders(input, ";"),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
@@ -73,11 +69,11 @@ export class SwissquoteConverter extends AbstractConverter {
         }, async (_, records: SwissquoteRecord[]) => {
 
             // If records is empty, parsing failed..
-            if (records === undefined) {
-                throw new Error(`An error ocurred while parsing ${inputFile}...`);
+            if (records === undefined || records.length === 0) {                    
+                return errorCallback(new Error("An error ocurred while parsing!"));
             }
-
-            console.log(`Read CSV file ${inputFile}. Start processing..`);
+            
+            console.log("Read CSV file. Start processing..");
             const result: GhostfolioExport = {
                 meta: {
                     date: new Date(),
@@ -88,10 +84,10 @@ export class SwissquoteConverter extends AbstractConverter {
 
             // Populate the progress bar.
             const bar1 = this.progress.create(records.length, 0);
-
+            
             for (let idx = 0; idx < records.length; idx++) {
                 const record = records[idx];
-
+            
                 // Check if the record should be ignored.
                 if (this.isIgnoredRecord(record)) {
                     bar1.increment();
@@ -133,8 +129,8 @@ export class SwissquoteConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.isin || record.symbol || record.name, idx + 2);                            
-                    throw err;
+                    this.logQueryError(record.isin || record.symbol || record.name, idx + 2);                                                                   
+                    return errorCallback(err);
                 }
 
                 // Log whenever there was no match found.
@@ -165,14 +161,8 @@ export class SwissquoteConverter extends AbstractConverter {
 
             this.progress.stop()
 
-            callback(result);
-        });
-
-        // Catch any error.
-        parser.on('error', function (err) {
-            console.log("[i] An error ocurred while processing the input file! See error below:")
-            console.error("[e]", err.message);
-        });
+            successCallback(result);
+        });      
     }
 
     /**

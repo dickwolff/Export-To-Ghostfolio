@@ -1,3 +1,4 @@
+import * as fs from "fs";
 import * as cliProgress from "cli-progress";
 
 export abstract class AbstractConverter {
@@ -15,20 +16,40 @@ export abstract class AbstractConverter {
     }
 
     /**
+     * Read and process the file.
+     * 
+     * @param inputFile The file to convert.
+     * @param successCallback A callback to execute after processing has succeeded.
+     * @param errorCallback A callback to execute after processing has failed.
+     */
+    public readAndProcessFile(inputFile: string, successCallback: CallableFunction, errorCallback: CallableFunction) {
+
+        // If the file does not exist, throw error.
+        if (!fs.existsSync(inputFile)) {
+            return errorCallback(new Error(`File ${inputFile} does not exist!`));
+        }
+
+        const contents = fs.readFileSync(inputFile, "utf-8");
+
+        this.processFileContents(contents,successCallback, errorCallback);
+    }
+
+    /**
      * Check if a record should be ignored from processing.
      * 
      * @param record The record to check
      * @returns true if the record should be skipped, false otherwise.
      */
-    abstract isIgnoredRecord(record: any): boolean;
+    abstract isIgnoredRecord(record: any): boolean;    
 
     /**
-     * Process an export file.
+     * Process export file contents.
      * 
-     * @param inputFile The file to convert.
-     * @param callback A callback to execute after processing has succeeded.
+     * @param input The file contents to convert.
+     * @param successCallback A callback to execute after processing has succeeded.
+     * @param errorCallback A callback to execute after processing has failed.
      */
-    abstract processFile(inputFile: string, callback: any): void;
+    abstract processFileContents(input: string, successCallback: CallableFunction, errorCallback: CallableFunction): void;
 
     /**
      * Retrieve headers from the input file.

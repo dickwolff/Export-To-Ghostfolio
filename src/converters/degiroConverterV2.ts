@@ -24,7 +24,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
   /**
    * @inheritdoc
    */
-  public processFile(inputFile: string, callback: any): void {
+  public processFileContents(inputFile: string, successCallback: any, errorCallback: any): void {
 
     // Read file contents of the CSV export.
     const csvFile = fs.readFileSync(inputFile, "utf-8");
@@ -101,7 +101,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
           } 
           catch (err) {    
             this.logQueryError(record.isin || record.product, idx);            
-            throw err;
+            return errorCallback(err);
           }
 
           // Log whenever there was no match found.
@@ -145,7 +145,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
           
         this.progress.stop();
 
-        callback(result);
+        successCallback(result);
       });
   }
 
