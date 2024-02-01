@@ -38,6 +38,8 @@ jobs:
       
       - name: Build and push
         uses: docker/build-push-action@v5
-        with:
-          push: true
-          tags: dickwolff/export-to-ghostfolio:latest ${{ env.GitVersion_MajorMinorPatch }}
+        with:          
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            dickwolff/export-to-ghostfolio:latest 
+            dickwolff/export-to-ghostfolio:${{ env.GitVersion_MajorMinorPatch }}
