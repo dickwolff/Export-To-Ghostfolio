@@ -1,4 +1,5 @@
 name: docker
+run-name: Build Docker Container v{{ env.GitVersion_MajorMinorPatch }}
 
 on:
   push:
