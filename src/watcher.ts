@@ -19,7 +19,7 @@ chokidar
 
         isProcessing = true;
 
-        console.log(`[i] Found ${filePath}!`);
+        console.log(`[i] Found ${path.basename(filePath)}!`);
 
         const fileContents = fs.readFileSync(filePath, "utf-8");
 
@@ -40,26 +40,31 @@ chokidar
             () => {
 
                 // After conversion was succesful, remove input file.
-                console.log(`[i] Finished converting ${path}, removing file..\n\n`);
+                console.log(`[i] Finished converting ${path.basename(filePath)}, removing file..`);
                 fs.rmSync(filePath);
 
                 isProcessing = false;
 
                 if (!usePolling) {
+                    console.log("[i] Stop container as usePolling is set to false..");
                     process.exit(0);
                 }
 
             }, (err) => {
 
-                console.log("[e] An error ocurred while processing. Moving file to output");
+                console.log("[e] An error ocurred while processing.");
                 console.log(`[e] Error details: ${err}`);
 
-                const errorFilePath = path.join(outputFolder, filePath);
-                fs.renameSync(filePath, errorFilePath);
+                // Move file with errors to output folder so it can be fixed manually.
+                console.log("[e] Moving file to output..");
+                const errorFilePath = path.join(outputFolder, path.basename(filePath));
+                fs.copyFileSync(filePath, errorFilePath);
+                fs.rmSync(filePath);
 
                 isProcessing = false;
 
                 if (!usePolling) {
+                    console.log("[i] Stop container as usePolling is set to false..");
                     process.exit(0);
                 }
             });

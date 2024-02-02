@@ -11,6 +11,11 @@ import { FinpensionConverter } from "./converters/finpensionConverter";
 
 export function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
+    // Verify if Ghostolio account ID is set (because without it there can be no valid output).
+    if (!process.env.GHOSTFOLIO_ACCOUNT_ID) {
+        return errorCallback(new Error("Environment variable GHOSTFOLIO_ACCOUNT_ID not set!"));
+    }
+
     const converterTypeLc = converterType.toLocaleLowerCase();
 
     // Determine convertor type.
@@ -29,6 +34,7 @@ export function createAndRunConverter(converterType: string, inputFilePath: stri
         console.log(`[i] Wrote data to '${outputFileName}.json'!`);
 
         completionCallback();
+
     }, (error) => errorCallback(error));
 }
 
