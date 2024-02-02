@@ -20,12 +20,18 @@ You can run the tool on your local machine by cloning this repository. You can a
 
 ## Docker
 
+![Docker Pulls](https://img.shields.io/docker/pulls/dickwolff/export-to-ghostfolio?style=for-the-badge)
+
 <details>
 <summary>View instructions</summary>
 
 ### System requirements
 
-To run the Docker container you need to have [Docker](https://docs.docker.com/get-docker/) installed on your machine. The image is publishe to [Docker Hub](https://hub.docker.com/r/dickwolff/export-to-ghostfolio). Contrary to the locally run version of the tool, the containerized version tries to determine which file type to process by looking to the header line inside the file. So there is no need to specify which converter to use.
+To run the Docker container you need to have [Docker](https://docs.docker.com/get-docker/) installed on your machine. The image is published to [Docker Hub](https://hub.docker.com/r/dickwolff/export-to-ghostfolio). 
+
+### How to use
+
+Contrary to the locally run version of the tool, the containerized version tries to determine which file type to process by looking to the header line inside the file. So there is no need to specify which converter to use.
 
  You can then run the image like:
 
