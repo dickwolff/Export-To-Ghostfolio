@@ -24,7 +24,7 @@ export class SchwabConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    public processFile(inputFile: string, callback: any): void {
+    public processFileContents(inputFile: string, successCallback: any, errorCallback: any): void {
 
         // Read file contents of the CSV export.
         const csvFile = fs.readFileSync(inputFile, "utf-8");
@@ -145,7 +145,7 @@ export class SchwabConverter extends AbstractConverter {
                 }
                 catch (err) {
                     this.logQueryError(record.symbol || record.description, idx + 2);    
-                    throw err;
+                    return errorCallback(err);
                 }
 
                 // Log whenever there was no match found.
@@ -187,7 +187,7 @@ export class SchwabConverter extends AbstractConverter {
 
             this.progress.stop()
 
-            callback(result);
+            successCallback(result);
         });
 
         // Catch any error.

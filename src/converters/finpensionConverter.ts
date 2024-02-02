@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { AbstractConverter } from "./abstractconverter";
@@ -21,16 +20,13 @@ export class FinpensionConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    public processFile(inputFile: string, callback: any): void {
-
-        // Read file contents of the CSV export.
-        const csvFile = fs.readFileSync(inputFile, "utf-8");
+    public processFileContents(input: string, successCallback: any, errorCallback: any): void {
 
         // Parse the CSV and convert to Ghostfolio import format.
-        const parser = parse(csvFile, {
+        const parser = parse(input, {
             delimiter: ";",
             fromLine: 2,
-            columns: this.processHeaders(csvFile, ";"),
+            columns: this.processHeaders(input, ";"),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
@@ -66,10 +62,10 @@ export class FinpensionConverter extends AbstractConverter {
 
             // If records is empty, parsing failed..
             if (records === undefined) {
-                throw new Error(`An error ocurred while parsing ${inputFile}...`);
+                return errorCallback(new Error("An error ocurred while parsing!"));
             }
-
-            console.log(`Read CSV file ${inputFile}. Start processing..`);
+        
+            console.log("[i] Read CSV file. Start processing..");
             const result: GhostfolioExport = {
                 meta: {
                     date: new Date(),
@@ -124,7 +120,7 @@ export class FinpensionConverter extends AbstractConverter {
                 }
                 catch (err) {                    
                     this.logQueryError(record.isin || record.assetName, idx + 2);        
-                    throw err;
+                    return errorCallback(err);
                 }
 
                 // Log whenever there was no match found.
@@ -163,7 +159,7 @@ export class FinpensionConverter extends AbstractConverter {
 
             this.progress.stop()
 
-            callback(result);
+            successCallback(result);
         });
 
         // Catch any error.

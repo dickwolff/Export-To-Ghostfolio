@@ -1,0 +1,15 @@
+next-version: 0.3.0
+assembly-informational-format: "{NuGetVersion}"
+mode: ContinuousDeployment
+branches:
+  master:
+    regex: main
+    mode: ContinuousDelivery
+    tag: ""
+    increment: Patch  
+  feature:
+    regex: ^feature?[/-]
+    mode: ContinuousDelivery
+    tag: ""
+    increment: Patch
+    source-branches: ["main"]
