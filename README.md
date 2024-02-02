@@ -25,7 +25,9 @@ You can run the tool on your local machine by cloning this repository. You can a
 
 ### System requirements
 
-To run the Docker container you need to have [Docker](https://docs.docker.com/get-docker/) installed on your machine. The image is publishe to [Docker Hub](https://hub.docker.com/repository/docker/dickwolff/export-to-ghostfolio/). You can then run the image like:
+To run the Docker container you need to have [Docker](https://docs.docker.com/get-docker/) installed on your machine. The image is publishe to [Docker Hub](https://hub.docker.com/r/dickwolff/export-to-ghostfolio). Contrary to the locally run version of the tool, the containerized version tries to determine which file type to process by looking to the header line inside the file. So there is no need to specify which converter to use.
+
+ You can then run the image like:
 
 ```
 docker run -d -v /C/.../docker_in:/var/e2g-input -v /C/.../docker_out:/var/e2g-output --env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx dickwolff/export-to-ghostfolio
