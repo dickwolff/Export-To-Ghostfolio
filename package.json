@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Convert multiple broker exports to Ghostfolio import",
   "scripts": {
-    "start": "ts-node ./src/index.ts",
+    "start": "ts-node ./src/manual.ts",
     "watch": "ts-node ./src/watcher.ts",
     "test": "jest --coverage"
   },
