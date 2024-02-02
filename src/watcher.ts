@@ -7,7 +7,7 @@ import { createAndRunConverter } from "./converter";
 // Define input and output.
 const inputFolder = process.env.E2G_INPUT_FOLDER || "/var/e2g-input";
 const outputFolder = process.env.E2G_OUTPUT_FOLDER || "/var/e2g-output";
-const usePolling = Boolean(process.env.E2G_USE_POLLING) || false;
+const usePolling = Boolean(process.env.USE_POLLING) || false;
 
 console.log(`[i] Watching ${inputFolder}${usePolling ? " (using polling)" : ""}..`);
 

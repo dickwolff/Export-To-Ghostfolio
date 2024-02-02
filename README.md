@@ -14,11 +14,47 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 
 Is your broker not in the list? Feel free to create an [issue](https://github.com/dickwolff/Export-To-Ghostfolio/issues/new) or, even better, build it yourself and create a [pull request](https://github.com/dickwolff/Export-To-Ghostfolio/compare)!
 
-## System requirements
+## How to use
+
+You can run the tool on your local machine by cloning this repository. You can also run the tool inside a Docker container. See the runtime specific instructions below.
+
+## Docker
+
+<details>
+<summary>View instructions</summary>
+
+### System requirements
+
+To run the Docker container you need to have [Docker](https://docs.docker.com/get-docker/) installed on your machine. The image is publishe to [Docker Hub](https://hub.docker.com/repository/docker/dickwolff/export-to-ghostfolio/). You can then run the image like:
+
+```
+docker run -d -v /C/.../docker_in:/var/e2g-input -v /C/.../docker_out:/var/e2g-output --env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx dickwolff/export-to-ghostfolio
+```
+
+The following parameters can be given to the Docker run command.
+
+| Command | Optional | Description |
+| ------- | -------- | ----------- |
+| ` -v {local_in-folder}:/var/e2g-input` | N | The input folder where you put the files to be processed |
+| `-v {local_out_folder}:/var/e2g-output` | N | The output folder where the Ghostfolio import JSON will be placed. Also the input file will be moved here when an error ocurred while processing the file. |
+| `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx` | N | Your Ghostolio account ID <sup>1</sup> |
+| `--env USE_POLLING=true` | Y | When set to true, the container will continously look for new files to process and the container will not stop. |
+| `--env DEBUG_LOGGING=true` | Y | When set to true, the container will show logs in more detail, useful for error tracing. |
+
+1: You can retrieve your Ghostfolio account ID by going to Accounts > select your account and copying the ID from the URL.
+
+![image](https://user-images.githubusercontent.com/5620002/203353840-f5db7323-fb2f-4f4f-befc-e4e340466a74.png)
+
+</details>
+
+## Run locally
+
+<details>
+<summary>View instructions</summary>
+
+### System requirements
 
 The tool requires you to install the latest LTS version of Node, which you can download [here](https://nodejs.org/en/download/). The tool can run on any OS on which you can install Node.
-
-## How to use
 
 ### Download transaction export
 
@@ -41,6 +77,7 @@ Login to your Finpension account. Select your portfolio from the landing page. T
 Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.
 
 #### Schwab
+
 Login to your Schwab account. Go to “Accounts” then “History”. Select the account you want to download details from. Select the “Date Range” and select “Export” (csv). Save the file.
 
 ![Export instructions for Schwab](./assets/export-schwab.jpg)
@@ -60,7 +97,7 @@ The repository contains a sample `.env` file. Rename this from `.env.sample`.
     ![image](https://user-images.githubusercontent.com/5620002/203353840-f5db7323-fb2f-4f4f-befc-e4e340466a74.png)
 - Optionally you can enable debug logging by setting the `DEBUG_LOGGING` variable to `TRUE`.
 
-You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the symbols that are supported with YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN). 
+You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the symbols that are supported with YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN).
 
 | Exporter    | Run command                         |
 | ----------- | ----------------------------------- |
@@ -70,6 +107,10 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | Swissquote  | `run start swissquote` (or `sq`)    |
 | Schwab      | `run start schwab`                  |
   
+</details>
+
+## Import to Ghostfolio
+
 The export file can now be imported in Ghostfolio by going to Portfolio > Activities and pressing the 3 dots at the top right of the table. Since Ghostfolio 1.221.0, you can now preview the import and validate the data has been converted correctly. When it is to your satisfaction, press import to add the activities to your portfolio.
 
 ![image](https://user-images.githubusercontent.com/5620002/203356387-1f42ca31-7cff-44a5-8f6c-84045cf7101e.png)
