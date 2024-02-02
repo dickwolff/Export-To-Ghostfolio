@@ -7,44 +7,73 @@ import { createAndRunConverter } from "./converter";
 // Define input and output.
 const inputFolder = process.env.E2G_INPUT_FOLDER || "/var/e2g-input";
 const outputFolder = process.env.E2G_OUTPUT_FOLDER || "/var/e2g-output";
+const usePolling = Boolean(process.env.E2G_USE_POLLING) || false;
 
-console.log(`[i] Watching ${inputFolder}..\n`);
+console.log(`[i] Watching ${inputFolder}${usePolling ? " (using polling)" : ""}..`);
 
-chokidar.watch(inputFolder, { usePolling: true }).on("add", filePath => {
+let isProcessing = false;
 
-    console.log(`[i] Found ${filePath}!`);
+chokidar
+    .watch(inputFolder, { usePolling: usePolling })
+    .on("add", filePath => {
 
-    const fileContents = fs.readFileSync(filePath, "utf-8");
+        isProcessing = true;
 
-    const closestMatch = matcher.closestMatch(fileContents.split("\n")[0], [...headers.keys()]);
+        console.log(`[i] Found ${filePath}!`);
 
-    let converterKey = closestMatch as string;
+        const fileContents = fs.readFileSync(filePath, "utf-8");
 
-    // If multiple matches were found (type would not be 'string'), pick the first.
-    if (typeof closestMatch !== "string") {
-        converterKey = closestMatch[0];
-    }
+        const closestMatch = matcher.closestMatch(fileContents.split("\n")[0], [...headers.keys()]);
 
-    const converter = headers.get(converterKey);
-    console.log(`[i] Determined the file type to be of kind '${converter}'.`);
+        let converterKey = closestMatch as string;
 
-    // Determine convertor type and run conversion.
-    createAndRunConverter(converter, filePath, outputFolder, 
-        () => {
+        // If multiple matches were found (type would not be 'string'), pick the first.
+        if (typeof closestMatch !== "string") {
+            converterKey = closestMatch[0];
+        }
 
-            // After conversion was succesful, remove input file.
-            console.log(`[i] Finished converting ${path}, removing file..\n\n`);
-            fs.rmSync(filePath);
-            
-        }, (err) => {
+        const converter = headers.get(converterKey);
+        console.log(`[i] Determined the file type to be of kind '${converter}'.`);
 
-            console.log("[e] An error ocurred while processing. Moving file to output");
-            console.log(`[e] Error details: ${err}`);
+        // Determine convertor type and run conversion.
+        createAndRunConverter(converter, filePath, outputFolder,
+            () => {
 
-            const errorFilePath = path.join(outputFolder, filePath);            
-            fs.renameSync(filePath, errorFilePath);
-        });
-});
+                // After conversion was succesful, remove input file.
+                console.log(`[i] Finished converting ${path}, removing file..\n\n`);
+                fs.rmSync(filePath);
+
+                isProcessing = false;
+
+                if (!usePolling) {
+                    process.exit(0);
+                }
+
+            }, (err) => {
+
+                console.log("[e] An error ocurred while processing. Moving file to output");
+                console.log(`[e] Error details: ${err}`);
+
+                const errorFilePath = path.join(outputFolder, filePath);
+                fs.renameSync(filePath, errorFilePath);
+
+                isProcessing = false;
+
+                if (!usePolling) {
+                    process.exit(0);
+                }
+            });
+    })
+    .on("ready", () => {
+
+        // When polling was not set to true (thus runOnce) and there is no file currently being processed, stop the container.
+        setTimeout(() => {
+            if (!usePolling && !isProcessing) {
+                console.log("[i] Found no file to convert, stop container as usePolling is set to false..");
+                process.exit(0);
+            }
+        }, 5000);
+    });
 
 // Prep header set.
 const headers: Map<string, string> = new Map<string, string>();
