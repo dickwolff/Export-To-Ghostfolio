@@ -20,7 +20,7 @@ You can run the tool on your local machine by cloning this repository. You can a
 
 ## Docker
 
-![Docker Pulls](https://img.shields.io/docker/pulls/dickwolff/export-to-ghostfolio?style=for-the-badge)
+[![Docker Pulls](https://img.shields.io/docker/pulls/dickwolff/export-to-ghostfolio?style=for-the-badge)](https://hub.docker.com/r/dickwolff/export-to-ghostfolio)
 
 <details>
 <summary>View instructions</summary>
