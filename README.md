@@ -48,6 +48,7 @@ The following parameters can be given to the Docker run command.
 | `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx` | N | Your Ghostolio account ID <sup>1</sup> |
 | `--env USE_POLLING=true` | Y | When set to true, the container will continously look for new files to process and the container will not stop. |
 | `--env DEBUG_LOGGING=true` | Y | When set to true, the container will show logs in more detail, useful for error tracing. |
+| `--env FORCE_DEGIRO_V2=true` | Y | When set to true, the converter will use the DEGIRO V2 converter (currently in beta) when a DEGIRO file was found. |
 
 1: You can retrieve your Ghostfolio account ID by going to Accounts > select your account and copying the ID from the URL.
 

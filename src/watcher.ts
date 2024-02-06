@@ -32,8 +32,16 @@ chokidar
             converterKey = closestMatch[0];
         }
 
-        const converter = headers.get(converterKey);
-        console.log(`[i] Determined the file type to be of kind '${converter}'.`);
+        let converter = headers.get(converterKey);
+
+        // Temporary control to force DEGIRO V2 converter while in beta.
+        if (process.env.FORCE_DEGIRO_V2 && converter === "degiro") {
+            converter = "degiro-v2"
+            console.log(`[i] Determined the file type to be of kind '${converter}' (overidden by environment variable).`);
+        }
+        else {
+            console.log(`[i] Determined the file type to be of kind '${converter}'.`);
+        }
 
         // Determine convertor type and run conversion.
         createAndRunConverter(converter, filePath, outputFolder,
