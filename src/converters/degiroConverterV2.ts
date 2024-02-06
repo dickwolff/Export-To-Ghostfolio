@@ -26,14 +26,11 @@ export class DeGiroConverterV2 extends AbstractConverter {
    */
   public processFileContents(inputFile: string, successCallback: any, errorCallback: any): void {
 
-    // Read file contents of the CSV export.
-    const csvFile = fs.readFileSync(inputFile, "utf-8");
-
     // Parse the CSV and convert to Ghostfolio import format.
-    parse(csvFile, {
+    parse(inputFile, {
         delimiter: ",",
         fromLine: 2,
-        columns: this.processHeaders(csvFile),
+        columns: this.processHeaders(inputFile),
         cast: (columnValue, context) => {
 
           // Custom mapping below.
@@ -42,7 +39,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
         }
       }, async (_, records: DeGiroRecord[]) => {
 
-        console.log(`[i] Read CSV file ${inputFile}. Start processing..`);
+        console.log("[i] Read CSV file. Start processing..");
         const result: GhostfolioExport = {
           meta: {
             date: new Date(),
@@ -65,7 +62,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
 
           // TODO: Is is possible to add currency? So VWRL.AS is retrieved for IE00B3RBWM25 instead of VWRL.L.
           // Maybe add yahoo-finance2 library that Ghostfolio uses, so I dont need to call Ghostfolio for this.
-            
+          
           // Platform fees do not have a security, add those immediately.
           if (this.isPlatformFees(record)) {
           
@@ -100,7 +97,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
               this.progress);
           } 
           catch (err) {    
-            this.logQueryError(record.isin || record.product, idx);            
+            this.logQueryError(record.isin || record.product, idx);
             return errorCallback(err);
           }
 
@@ -311,7 +308,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
         },        
         txFeeRecord ? 2 : 1 // Skip 1 record if action record had no TxFee.
       ];
-    }    
+    }   
   }
 
   private isBuyOrSellRecordSet(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord): boolean {
@@ -339,26 +336,39 @@ export class DeGiroConverterV2 extends AbstractConverter {
   }
 
   private isBuyOrSellRecord(record: DeGiroRecord): boolean {
-        
+    
+    if (!record) {
+      return false;
+    }
+
     const dividendRecordType = ["\@", "zu je"]//, "acquisto"];
 
     return dividendRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
     
   private isDividendRecord(record: DeGiroRecord): boolean {    
+    
+    if (!record) {
+      return false;
+    }
+
     return record.description.toLocaleLowerCase().indexOf("dividend") > -1 || record.description.toLocaleLowerCase().indexOf("capital return") > -1;
   }
 
   private isTransactionFeeRecord(record: DeGiroRecord): boolean {
     
-    const transactionFeeRecordType = ["en\/of", "and\/or", "und\/oder", "e\/o", "adr\/gdr", "ritenuta", "belasting", "daň z dividendy"];
+    if (!record) {
+      return false;
+    }
+
+    const transactionFeeRecordType = ["en\/of", "and\/or", "und\/oder", "e\/o", "adr\/gdr", "ritenuta", "belasting", "daň z dividendy", "taxe sur les"];
 
     return transactionFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
 
   private isPlatformFees(record: DeGiroRecord): boolean {
 
-    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten"]; 
+    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten", "custo de conectividade", "de courtage"]; 
     
     return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }

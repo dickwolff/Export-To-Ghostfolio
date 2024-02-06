@@ -12,5 +12,10 @@ else {
     const inputFile = process.env.INPUT_FILE;
 
     // Determine convertor type and run conversion.
-    createAndRunConverter(process.argv[2].toLocaleLowerCase(), inputFile, ".", () => { }, () => { });
+    createAndRunConverter(
+        process.argv[2].toLocaleLowerCase(), 
+        inputFile, 
+        ".",
+        () => { process.exit(0); },
+        () => { process.exit(99); });
 }
