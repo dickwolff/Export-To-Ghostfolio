@@ -361,14 +361,14 @@ export class DeGiroConverterV2 extends AbstractConverter {
       return false;
     }
 
-    const transactionFeeRecordType = ["en\/of", "and\/or", "und\/oder", "e\/o", "adr\/gdr", "ritenuta", "belasting", "daň z dividendy", "taxe sur les", "comissões de transação"];
+    const transactionFeeRecordType = ["en\/of", "and\/or", "und\/oder", "e\/o", "adr\/gdr", "ritenuta", "belasting", "daň z dividendy", "taxe sur les", "comissões de transação", "courtage et/ou"];
 
     return transactionFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
 
   private isPlatformFees(record: DeGiroRecord): boolean {
 
-    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten", "custo de conectividade", "de courtage"]; 
+    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten", "custo de conectividade"]; 
     
     return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
