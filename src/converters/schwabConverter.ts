@@ -1,13 +1,13 @@
 import * as fs from "fs";
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
+import { SchwabRecord } from "../models/schwabRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
-import { SchwabRecord } from "../models/schwabRecord";
 
 export class SchwabConverter extends AbstractConverter {
 
