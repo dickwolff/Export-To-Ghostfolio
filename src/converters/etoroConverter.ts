@@ -108,7 +108,7 @@ export class EtoroConverter extends AbstractConverter {
                         quantity: 1,
                         type: GhostfolioOrderType[record.type],
                         unitPrice: feeAmount,
-                        currency: "USD", //todo: what else?
+                        currency: "USD", 
                         dataSource: "MANUAL",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                         symbol: ""
@@ -148,7 +148,7 @@ export class EtoroConverter extends AbstractConverter {
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: "",
                     fee: 0,
-                    quantity: record.units || 1,
+                    quantity: record.units,
                     type: GhostfolioOrderType[record.type],
                     unitPrice: record.amount,
                     currency: currency,
