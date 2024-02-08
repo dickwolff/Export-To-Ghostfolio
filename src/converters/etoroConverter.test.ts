@@ -26,7 +26,7 @@ describe("etoroConverter", () => {
       
       // Finish the test
       done();
-    }, () => { fail("Should not have an error!"); });      
+    }, () => { done.fail("Should not have an error!"); });      
   });
 
   describe("should throw an error if", () => {
@@ -38,7 +38,7 @@ describe("etoroConverter", () => {
       let tempFileName = "tmp/testinput/etoro-filedoesnotexist.csv";
       
       // Act
-      sut.readAndProcessFile(tempFileName, () =>  { fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () =>  { done.fail("Should not succeed!"); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -56,7 +56,7 @@ describe("etoroConverter", () => {
       tempFileContent += "Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA\n";      
       
       // Act
-      sut.processFileContents(tempFileContent, () =>  { fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () =>  { done.fail("Should not succeed!"); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
