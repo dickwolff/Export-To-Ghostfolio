@@ -183,7 +183,25 @@ export class DeGiroConverterV2 extends AbstractConverter {
       return true;
     }
     
-    const ignoredRecordTypes = ["ideal", "flatex", "cash sweep", "withdrawal", "productwijziging", "währungswechsel", "trasferisci", "deposito", "credito", "prelievo", "creditering", "debitering", "rente", "interesse", "ag", "verrekening promotie"];
+    const ignoredRecordTypes = [
+      "ideal", 
+      "flatex", 
+      "cash sweep", 
+      "withdrawal", 
+      "productwijziging", 
+      "währungswechsel", 
+      "trasferisci", 
+      "deposito", 
+      "credito", 
+      "prelievo", 
+      "creditering", 
+      "debitering", 
+      "rente", 
+      "interesse", 
+      "ag", 
+      "verrekening promotie",
+      "operation de change",
+      "versement de fonds"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
@@ -368,7 +386,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
 
   private isPlatformFees(record: DeGiroRecord): boolean {
 
-    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten", "custo de conectividade"]; 
+    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion"]; 
     
     return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
