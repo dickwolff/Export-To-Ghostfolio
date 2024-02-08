@@ -10,9 +10,40 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [DEGIRO](https://degiro.com)
 - [Finpension](https://finpension.ch)
 - [Swissquote](https://en.swissquote.com/)
-- [Schwab]()
+- [Schwab](https://www.schwab.com)
+- [eToro](https://www.etoro.com/)
 
 Is your broker not in the list? Feel free to create an [issue](https://github.com/dickwolff/Export-To-Ghostfolio/issues/new) or, even better, build it yourself and create a [pull request](https://github.com/dickwolff/Export-To-Ghostfolio/compare)!
+
+## Download transaction export
+
+### Trading 212
+
+Login to your Trading 212 account and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
+
+### DEGIRO
+
+Login to your DEGIRO account and create an export file (via Inbox > Account Overview, see image below). Choose the period from which you wish to export your history and click download.
+
+![Export instructions for DEGIRO](./assets/export-degiro.jpg)
+
+### Finpension
+
+Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select “Transactions”, on the following page to the right notice “transaction report (CSV-file)” and click to email or click to download locally.
+
+### Swissquote
+
+Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.
+
+### Schwab
+
+Login to your Schwab account. Go to “Accounts” then “History”. Select the account you want to download details from. Select the “Date Range” and select “Export” (csv). Save the file.
+
+![Export instructions for Schwab](./assets/export-schwab.jpg)
+
+### eToro
+
+to come
 
 ## How to use
 
@@ -64,32 +95,6 @@ The following parameters can be given to the Docker run command.
 ### System requirements
 
 The tool requires you to install the latest LTS version of Node, which you can download [here](https://nodejs.org/en/download/). The tool can run on any OS on which you can install Node.
-
-### Download transaction export
-
-#### Trading 212
-
-Login to your Trading 212 account and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
-
-#### DEGIRO
-
-Login to your DEGIRO account and create an export file (via Inbox > Account Overview, see image below). Choose the period from which you wish to export your history and click download.
-
-![Export instructions for DEGIRO](./assets/export-degiro.jpg)
-
-#### Finpension
-
-Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select “Transactions”, on the following page to the right notice “transaction report (CSV-file)” and click to email or click to download locally.
-
-#### Swissquote
-
-Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.
-
-#### Schwab
-
-Login to your Schwab account. Go to “Accounts” then “History”. Select the account you want to download details from. Select the “Date Range” and select “Export” (csv). Save the file.
-
-![Export instructions for Schwab](./assets/export-schwab.jpg)
 
 ### Use the tool
 
