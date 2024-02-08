@@ -4,8 +4,12 @@ run-name: Build Docker Container
 on:
   push:
     branches:
-      - "main"
-      - "feature/**"
+      - main
+    paths:
+      - "src/**"
+  pull_request:
+    branches:
+      - main
     paths:
       - "src/**"
 
