@@ -46,15 +46,17 @@ jobs:
       
       - name: Build and push (PR)
         uses: docker/build-push-action@v5
-        with:          
-          push: ${{ github.event_name == 'pull_request' }}
+        if: github.event_name == 'pull_request'
+        with:
+          push: true
           tags: |
             dickwolff/export-to-ghostfolio:${{ env.GitVersion_MajorMinorPatch }}-beta
             
       - name: Build and push (main)
         uses: docker/build-push-action@v5
+        if: github.event_name != 'pull_request'
         with:          
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: |
             dickwolff/export-to-ghostfolio:latest 
             dickwolff/export-to-ghostfolio:${{ env.GitVersion_MajorMinorPatch }}
