@@ -39,10 +39,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
-      - name: Build and push
+      - name: Build and push (PR)
+        uses: docker/build-push-action@v5
+        with:          
+          push: ${{ github.event_name == 'pull_request' }}
+          tags: |
+            dickwolff/export-to-ghostfolio:${{ env.GitVersion_EscapedBranchName }}
+
+      - name: Build and push (main)
         uses: docker/build-push-action@v5
         with:          
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             dickwolff/export-to-ghostfolio:latest 
             dickwolff/export-to-ghostfolio:${{ env.GitVersion_MajorMinorPatch }}
+
+            
