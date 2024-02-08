@@ -49,8 +49,8 @@ jobs:
         with:          
           push: ${{ github.event_name == 'pull_request' }}
           tags: |
-            dickwolff/export-to-ghostfolio:${{ env.GitVersion_EscapedBranchName }}
-
+            dickwolff/export-to-ghostfolio:${{ env.GitVersion_MajorMinorPatch }}-beta
+            
       - name: Build and push (main)
         uses: docker/build-push-action@v5
         with:          
