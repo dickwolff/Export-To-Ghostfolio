@@ -1,6 +1,7 @@
 import path from "path";
 import * as fs from "fs";
 import { GhostfolioExport } from "./models/ghostfolioExport";
+import { EtoroConverter } from "./converters/etoroConverter";
 import { DeGiroConverter } from "./converters/degiroConverter";
 import { SchwabConverter } from "./converters/schwabConverter";
 import { DeGiroConverterV2 } from "./converters/degiroConverterV2";
@@ -8,6 +9,7 @@ import { AbstractConverter } from "./converters/abstractconverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
+
 
 export function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
@@ -75,6 +77,10 @@ function createConverter(converterType: string): AbstractConverter {
         case "schwab":
             console.log("[i] Processing file using Schwab converter");
             converter = new SchwabConverter();
+            break;
+        case "etoro":
+            console.log("[i] Processing file using Etoro converter");
+            converter = new EtoroConverter();
             break;
         default:
             throw new Error(`Unknown converter '${converterType}' provided`);
