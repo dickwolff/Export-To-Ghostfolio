@@ -68,7 +68,7 @@ export class EtoroConverter extends AbstractConverter {
         }, async (_, records: EtoroRecord[]) => {
 
             // If records is empty, parsing failed..
-            if (records === undefined) {
+            if (records === undefined || records.length === 0) {                    
                 return errorCallback(new Error("An error ocurred while parsing!"));
             }
 
