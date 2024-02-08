@@ -1,4 +1,5 @@
 import { EtoroConverter } from "./etoroConverter";
+import { GhostfolioExport } from "../models/ghostfolioExport";
 
 describe("etoroConverter", () => {
 
