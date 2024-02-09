@@ -43,19 +43,14 @@ export class YahooFinanceService {
 
         // When isin was given, check wether there is a symbol conversion cached. Then change map. 
         if (isin && this.isinSymbolCache.has(isin)) {
-            symbol = this.isinSymbolCache[isin];
+            symbol = this.isinSymbolCache.get(isin);
         }
 
         // Second, check if the requested security is known by symbol (if given).
-        if (symbol) {
-
-            const symbolMatch = this.symbolCache.has(symbol);
-
-            // If a match was found, return the security.
-            if (symbolMatch) {
-                this.logDebug(`Retrieved symbol ${symbol} from cache!`, progress);
-                return symbolMatch[1];
-            }
+        // If a match was found, return the security.
+        if (symbol && this.symbolCache.has(symbol)) {
+            this.logDebug(`Retrieved symbol ${symbol} from cache!`, progress);
+            return this.symbolCache.get(symbol);
         }
 
         // The security is not known. Try to find is.
@@ -280,9 +275,9 @@ export class YahooFinanceService {
 
         const messageToLog = (additionalTabs ? '\t' : '') + `\t${message}`
 
-        if (process.env.DEBUG_LOGGING == "true") {
+        if (Boolean(process.env.DEBUG_LOGGING) == true) {
             if (!progress) {
-                console.log(`[i] ${messageToLog}`);
+                console.log(`[d] ${messageToLog}`);
             }
             else {
                 progress.log(`[d] ${messageToLog}\n`);
