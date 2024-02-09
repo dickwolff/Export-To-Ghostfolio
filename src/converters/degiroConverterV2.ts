@@ -203,7 +203,8 @@ export class DeGiroConverterV2 extends AbstractConverter {
       "ag",
       "verrekening promotie",
       "operation de change",
-      "versement de fonds"];
+      "versement de fonds",
+      "débit"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
