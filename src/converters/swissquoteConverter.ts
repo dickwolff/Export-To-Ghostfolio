@@ -10,12 +10,8 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 
 export class SwissquoteConverter extends AbstractConverter {
 
-    private yahooFinanceService: YahooFinanceService;
-
-    constructor() {
-        super();
-
-        this.yahooFinanceService = new YahooFinanceService();
+    constructor(yahooFinanceService: YahooFinanceService) {
+        super(yahooFinanceService);
 
         dayjs.extend(customParseFormat);
     }
@@ -26,7 +22,7 @@ export class SwissquoteConverter extends AbstractConverter {
     public processFileContents(input: string, successCallback: any, errorCallback: any): void {
 
         // Parse the CSV and convert to Ghostfolio import format.
-        const parser = parse(input, {
+        parse(input, {
             delimiter: ";",
             fromLine: 2,
             columns: this.processHeaders(input, ";"),

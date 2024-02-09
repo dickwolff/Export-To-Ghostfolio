@@ -9,6 +9,7 @@ import { AbstractConverter } from "./converters/abstractconverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
+import { YahooFinanceService } from "./yahooFinanceService";
 
 
 export function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
@@ -42,13 +43,15 @@ export function createAndRunConverter(converterType: string, inputFilePath: stri
 
 function createConverter(converterType: string): AbstractConverter {
 
+    const yahooFinanceService = new YahooFinanceService();
+
     let converter: AbstractConverter;
 
     switch (converterType) {
         case "t212":
         case "trading212":
             console.log("[i] Processing file using Trading212 converter");
-            converter = new Trading212Converter();
+            converter = new Trading212Converter(yahooFinanceService);
             break;
         case "degiro":
             console.log("[i] Processing file using DeGiro converter");
@@ -56,31 +59,31 @@ function createConverter(converterType: string): AbstractConverter {
             console.log("[i] The new converter has multiple record parsing improvements and also supports platform fees.");
             console.log("[i] The new converter is currently in beta and we're looking for your feedback!");
             console.log("[i] You can run the beta converter with the command 'npm run start degiro-v2'.");
-            converter = new DeGiroConverter();
+            converter = new DeGiroConverter(yahooFinanceService);
             break;
         case "degiro-v2":
             console.log("[i] Processing file using DeGiro converter (V2 Beta)");
             console.log("[i] NOTE: You are running a converter that is currently in beta.");
             console.log("[i] If you have any issues, please report them on GitHub. Many thanks!");
-            converter = new DeGiroConverterV2();
+            converter = new DeGiroConverterV2(yahooFinanceService);
             break;
         case "fp":
         case "finpension":
             console.log("[i] Processing file using Finpension converter");
-            converter = new FinpensionConverter();
+            converter = new FinpensionConverter(yahooFinanceService);
             break;
         case "sq":
         case "swissquote":
             console.log("[i] Processing file using Swissquote converter");
-            converter = new SwissquoteConverter();
+            converter = new SwissquoteConverter(yahooFinanceService);
             break;
         case "schwab":
             console.log("[i] Processing file using Schwab converter");
-            converter = new SchwabConverter();
+            converter = new SchwabConverter(yahooFinanceService);
             break;
         case "etoro":
             console.log("[i] Processing file using Etoro converter");
-            converter = new EtoroConverter();
+            converter = new EtoroConverter(yahooFinanceService);
             break;
         default:
             throw new Error(`Unknown converter '${converterType}' provided`);

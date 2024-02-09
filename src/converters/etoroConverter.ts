@@ -10,13 +10,9 @@ import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class EtoroConverter extends AbstractConverter {
 
-    private yahooFinanceService: YahooFinanceService;
+    constructor(yahooFinanceService: YahooFinanceService) {
+        super(yahooFinanceService);
 
-    constructor() {
-        super();
-
-        this.yahooFinanceService = new YahooFinanceService();
-        
         dayjs.extend(customParseFormat);
     }
 

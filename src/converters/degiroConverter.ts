@@ -10,12 +10,8 @@ import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class DeGiroConverter extends AbstractConverter {
 
-  private yahooFinanceService: YahooFinanceService;
-
-  constructor() {
-    super();
-
-    this.yahooFinanceService = new YahooFinanceService();
+  constructor(yahooFinanceService: YahooFinanceService) {
+    super(yahooFinanceService);
 
     dayjs.extend(customParseFormat);
   }
@@ -37,11 +33,12 @@ export class DeGiroConverter extends AbstractConverter {
         return columnValue;
       }
     }, async (_, records: DeGiroRecord[]) => {
-      
+
       // If records is empty, parsing failed..
-      if (records === undefined) {
+      if (records === undefined || records.length === 0) {
         return errorCallback(new Error("An error ocurred while parsing!"));
       }
+
 
       console.log("[i] Read CSV file. Start processing..");
       const result: GhostfolioExport = {
@@ -89,7 +86,7 @@ export class DeGiroConverter extends AbstractConverter {
             this.progress);
         }
         catch (err) {
-          this.logQueryError(record.isin || record.product, idx);  
+          this.logQueryError(record.isin || record.product, idx);
           return errorCallback(err);
         }
 

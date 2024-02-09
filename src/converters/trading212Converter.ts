@@ -9,12 +9,8 @@ import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class Trading212Converter extends AbstractConverter {
 
-    private yahooFinanceService: YahooFinanceService;
-
-    constructor() {
-        super();
-
-        this.yahooFinanceService = new YahooFinanceService();
+    constructor(yahooFinanceService: YahooFinanceService) {
+        super(yahooFinanceService);
     }
 
     /**
@@ -69,7 +65,7 @@ export class Trading212Converter extends AbstractConverter {
         }, async (_, records: Trading212Record[]) => {
 
             // If records is empty, parsing failed..
-            if (records === undefined) {
+            if (records === undefined || records.length === 0) {                    
                 return errorCallback(new Error("An error ocurred while parsing!"));
             }
 

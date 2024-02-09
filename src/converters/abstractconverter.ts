@@ -1,11 +1,17 @@
 import * as fs from "fs";
 import * as cliProgress from "cli-progress";
+import { YahooFinanceService } from "../yahooFinanceService";
 
 export abstract class AbstractConverter {
 
+    protected yahooFinanceService: YahooFinanceService;
+    
     protected progress: cliProgress.MultiBar;
 
-    constructor() {
+    constructor(yahooFinanceService: YahooFinanceService) {
+
+        this.yahooFinanceService = yahooFinanceService;
+
         this.progress = new cliProgress.MultiBar(
             {
                 stopOnComplete: true,
