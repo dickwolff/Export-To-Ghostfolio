@@ -53,17 +53,14 @@ export class YahooFinanceService {
             return this.symbolCache.get(symbol);
         }
 
-        // The security is not known. Try to find is.
-
-        // First try by ISIN.    
-        let symbols = await this.getSymbolsByQuery(isin, progress);
-        this.logDebug(`getSecurity(): Found ${symbols.length} match${symbols.length === 1 ? "" : "es"} by ISIN ${isin}`, progress);
+        // The security is not known. Try to find it
+        let symbols: YahooFinanceRecord[] = [];
 
         // First try by ISIN.
         // If no ISIN was given as a parameter, just skip this part.
         if (isin) {
             symbols = await this.getSymbolsByQuery(isin, progress);
-            this.logDebug(`getSecurity(): Found ${symbols.length} matches by ISIN ${isin}`, progress);
+            this.logDebug(`getSecurity(): Found ${symbols.length} match${symbols.length === 1 ? "" : "es"} by ISIN ${isin}`, progress);
 
             // If no result found by ISIN, try by symbol.
             if (symbols.length == 0 && symbol) {
