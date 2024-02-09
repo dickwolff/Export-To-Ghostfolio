@@ -204,7 +204,8 @@ export class DeGiroConverterV2 extends AbstractConverter {
       "verrekening promotie",
       "operation de change",
       "versement de fonds",
-      "débit"];
+      "débit",
+      "depósito"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
@@ -389,7 +390,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
 
   private isPlatformFees(record: DeGiroRecord): boolean {
 
-    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion"];
+    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion", "juros"];
 
     return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
