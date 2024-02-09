@@ -11,8 +11,7 @@ import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
 import { YahooFinanceService } from "./yahooFinanceService";
 
-
-export function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
+export async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
     // Verify if Ghostolio account ID is set (because without it there can be no valid output).
     if (!process.env.GHOSTFOLIO_ACCOUNT_ID) {
@@ -22,7 +21,7 @@ export function createAndRunConverter(converterType: string, inputFilePath: stri
     const converterTypeLc = converterType.toLocaleLowerCase();
 
     // Determine convertor type.
-    const converter = createConverter(converterTypeLc);
+    const converter = await createConverter(converterTypeLc);
 
     // Map the file to a Ghostfolio import.
     converter.readAndProcessFile(inputFilePath, (result: GhostfolioExport) => {
@@ -41,9 +40,12 @@ export function createAndRunConverter(converterType: string, inputFilePath: stri
     }, (error) => errorCallback(error));
 }
 
-function createConverter(converterType: string): AbstractConverter {
+async function createConverter(converterType: string): Promise<AbstractConverter> {
 
     const yahooFinanceService = new YahooFinanceService();
+
+    const cacheSize = await yahooFinanceService.loadCache();
+    console.log(`[i] Restored ${cacheSize[0]} ISIN-symbol pairs and ${cacheSize[1]} symbols from cache..`);
 
     let converter: AbstractConverter;
 

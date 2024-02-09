@@ -29,9 +29,6 @@ export class YahooFinanceService {
 
         // Retrieve prefered exchange postfix if set in .env
         this.preferedExchangePostfix = process.env.DEGIRO_PREFERED_EXCHANGE_POSTFIX;
-
-        // Preload the cache from disk.
-        this.preloadCache().then((cacheSize) => console.log(`\n[i] Restored ${cacheSize[0]} ISIN-symbol pairs and ${cacheSize[1]} symbols from cache..`));
     }
 
     /**
@@ -53,7 +50,7 @@ export class YahooFinanceService {
         if (symbol) {
 
             const symbolMatch = this.symbolCache.has(symbol);
-            
+
             // If a match was found, return the security.
             if (symbolMatch) {
                 this.logDebug(`Retrieved symbol ${symbol} from cache!`, progress);
@@ -132,6 +129,33 @@ export class YahooFinanceService {
         }
 
         return null;
+    }
+
+    /**
+     * Load the cache with ISIN and symbols.
+     * 
+     * @returns The size of the loaded cache
+     */
+    public async loadCache(): Promise<[number, number]> {
+
+        // Verify if there is data in the ISIN-Symbol cache. If so, restore to the local variable.
+        const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");        
+        if (isinSymbolCacheExist) {
+            const cache = await cacache.get(cachePath, "isinSymbolCache");                        
+            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);    
+            this.isinSymbolCache = cacheAsJson;                     
+        }        
+
+        // Verify if there is data in the Symbol cache. If so, restore to the local variable.
+        const symbolCacheExists = await cacache.get.info(cachePath, "symbolCache");        
+        if (symbolCacheExists) {
+            const cache = await cacache.get(cachePath, "symbolCache");
+            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);            
+            this.symbolCache = cacheAsJson;
+        }        
+
+        // Return cache sizes.
+        return [this.isinSymbolCache.size, this.symbolCache.size];
     }
 
     /**
@@ -235,28 +259,6 @@ export class YahooFinanceService {
         }
 
         return symbolMatch;
-    }
-
-    private async preloadCache(): Promise<[number, number]> {
-
-        // Verify if there is data in the ISIN-Symbol cache. If so, restore to the local variable.
-        const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");        
-        if (isinSymbolCacheExist) {
-            const cache = await cacache.get(cachePath, "isinSymbolCache");                        
-            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);    
-            this.isinSymbolCache = cacheAsJson;                     
-        }        
-
-        // Verify if there is data in the Symbol cache. If so, restore to the local variable.
-        const symbolCacheExists = await cacache.get.info(cachePath, "symbolCache");        
-        if (symbolCacheExists) {
-            const cache = await cacache.get(cachePath, "symbolCache");
-            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);            
-            this.symbolCache = cacheAsJson;
-        }        
-
-        // Return cache sizes.
-        return [this.isinSymbolCache.size, this.symbolCache.size];
     }
 
     private async saveInCache(isin?: string, symbol?: string, value?: any) {
