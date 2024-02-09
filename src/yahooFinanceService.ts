@@ -31,7 +31,7 @@ export class YahooFinanceService {
         this.preferedExchangePostfix = process.env.DEGIRO_PREFERED_EXCHANGE_POSTFIX;
 
         // Preload the cache from disk.
-        this.preloadCache().then(() => console.log("\n[i] Restored symbols from cache.."))
+        this.preloadCache().then((cacheSize) => console.log(`\n[i] Restored ${cacheSize[0]} ISIN-symbol pairs and ${cacheSize[1]} symbols from cache..`));
     }
 
     /**
@@ -53,7 +53,7 @@ export class YahooFinanceService {
         if (symbol) {
 
             const symbolMatch = this.symbolCache.has(symbol);
-
+            
             // If a match was found, return the security.
             if (symbolMatch) {
                 this.logDebug(`Retrieved symbol ${symbol} from cache!`, progress);
@@ -237,7 +237,7 @@ export class YahooFinanceService {
         return symbolMatch;
     }
 
-    private async preloadCache() {
+    private async preloadCache(): Promise<[number, number]> {
 
         // Verify if there is data in the ISIN-Symbol cache. If so, restore to the local variable.
         const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");        
@@ -254,6 +254,9 @@ export class YahooFinanceService {
             const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);            
             this.symbolCache = cacheAsJson;
         }        
+
+        // Return cache sizes.
+        return [this.isinSymbolCache.size, this.symbolCache.size];
     }
 
     private async saveInCache(isin?: string, symbol?: string, value?: any) {
