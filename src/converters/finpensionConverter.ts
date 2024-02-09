@@ -9,12 +9,8 @@ import { FinpensionRecord } from "../models/finpensionRecord";
 
 export class FinpensionConverter extends AbstractConverter {
 
-    private yahooFinanceService: YahooFinanceService;
-
-    constructor() {
-        super();
-
-        this.yahooFinanceService = new YahooFinanceService();
+    constructor(yahooFinanceService: YahooFinanceService) {
+        super(yahooFinanceService);
     }
 
     /**

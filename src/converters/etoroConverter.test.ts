@@ -1,8 +1,8 @@
-import { Trading212Converter } from "./trading212Converter";
+import { EtoroConverter } from "./etoroConverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 
-describe("trading212Converter", () => {
+describe("etoroConverter", () => {
 
   afterEach(() => {
     jest.clearAllMocks();
@@ -11,7 +11,7 @@ describe("trading212Converter", () => {
   it("should construct", () => {
 
     // Act
-    const sut = new Trading212Converter(new YahooFinanceService());
+    const sut = new EtoroConverter(new YahooFinanceService());
 
     // Assert
     expect(sut).toBeTruthy();
@@ -20,8 +20,8 @@ describe("trading212Converter", () => {
   it("should process sample CSV file", (done) => {
 
     // Arange
-    const sut = new Trading212Converter(new YahooFinanceService());
-    const inputFile = "sample-trading212-export.csv";
+    const sut = new EtoroConverter(new YahooFinanceService());
+    const inputFile = "sample-etoro-export.csv";
 
     // Act      
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
@@ -36,9 +36,9 @@ describe("trading212Converter", () => {
     it("the input file does not exist", (done) => {
 
       // Arrange
-      const sut = new Trading212Converter(new YahooFinanceService());
+      const sut = new EtoroConverter(new YahooFinanceService());
 
-      let tempFileName = "tmp/testinput/trading212-filedoesnotexist.csv";
+      let tempFileName = "tmp/testinput/etoro-filedoesnotexist.csv";
 
       // Act
       sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -52,10 +52,10 @@ describe("trading212Converter", () => {
     it("the input file is empty", (done) => {
 
       // Arrange
-      const sut = new Trading212Converter(new YahooFinanceService());
+      const sut = new EtoroConverter(new YahooFinanceService());
 
       let tempFileContent = "";
-      tempFileContent += "Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)\n";
+      tempFileContent += "Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA\n";
 
       // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -72,13 +72,13 @@ describe("trading212Converter", () => {
       // Arrange
 
       let tempFileContent = "";
-      tempFileContent += "Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)\n";
-      tempFileContent += `Market buy,2023-12-18 14:30:03.613,US17275R1023,CSCO,"Cisco Systems",0.0290530000,49.96,USD,1.09303,,"EUR",1.33,"EUR",,,,EOF7504196256,,`;
+      tempFileContent += "Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA\n";
+      tempFileContent += `02/01/2024 00:10:33,Dividend,NKE/USD,0.17,-,0.17,"4,581.91",99.60,2272508626,Stocks,0.00`;
 
       // Mock Yahoo Finance service to throw error.
       const yahooFinanceService = new YahooFinanceService();
       jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
-      const sut = new Trading212Converter(yahooFinanceService);
+      const sut = new EtoroConverter(yahooFinanceService);
 
       // Act      
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -96,13 +96,13 @@ describe("trading212Converter", () => {
     // Arrange
 
     let tempFileContent = "";
-    tempFileContent += "Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)\n";
-    tempFileContent += `Market buy,2023-12-18 14:30:03.613,US17275R1023,CSCO,"Cisco Systems",0.0290530000,49.96,USD,1.09303,,"EUR",1.33,"EUR",,,,EOF7504196256,,`;
+    tempFileContent += "Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA\n";
+    tempFileContent += `02/01/2024 00:10:33,Dividend,NKE/USD,0.17,-,0.17,"4,581.91",99.60,2272508626,Stocks,0.00`;
 
     // Mock Yahoo Finance service to return null.
     const yahooFinanceService = new YahooFinanceService();
     jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { return null });
-    const sut = new Trading212Converter(yahooFinanceService);
+    const sut = new EtoroConverter(yahooFinanceService);
 
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");
@@ -110,7 +110,7 @@ describe("trading212Converter", () => {
     // Act      
     sut.processFileContents(tempFileContent, () => {
 
-      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for US17275R1023 with currency USD! Please add this manually..\n");
+      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for dividend action for NKE/USD! Please add this manually..\n");
       done();
     }, () => done.fail("Should not have an error!"));
   });

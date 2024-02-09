@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { SchwabRecord } from "../models/schwabRecord";
@@ -11,12 +10,8 @@ import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class SchwabConverter extends AbstractConverter {
 
-    private yahooFinanceService: YahooFinanceService;
-
-    constructor() {
-        super();
-
-        this.yahooFinanceService = new YahooFinanceService();
+    constructor(yahooFinanceService: YahooFinanceService) {
+        super(yahooFinanceService);
 
         dayjs.extend(customParseFormat);
     }
@@ -24,16 +19,13 @@ export class SchwabConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    public processFileContents(inputFile: string, successCallback: any, errorCallback: any): void {
-
-        // Read file contents of the CSV export.
-        const csvFile = fs.readFileSync(inputFile, "utf-8");
+    public processFileContents(input: string, successCallback: any, errorCallback: any): void {
 
         // Parse the CSV and convert to Ghostfolio import format.
-        const parser = parse(csvFile, {
+        parse(input, {
             delimiter: ",",
             fromLine: 2,
-            columns: this.processHeaders(csvFile),
+            columns: this.processHeaders(input),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
@@ -83,11 +75,11 @@ export class SchwabConverter extends AbstractConverter {
         }, async (_, records: SchwabRecord[]) => {
 
             // If records is empty, parsing failed..
-            if (records === undefined) {
-                throw new Error(`An error ocurred while parsing ${inputFile}...`);
+            if (records === undefined || records.length === 0) {                    
+                return errorCallback(new Error("An error ocurred while parsing!"));
             }
 
-            console.log(`[i] Read CSV file ${inputFile}. Start processing..`);
+            console.log("[i] Read CSV file. Start processing..");
             const result: GhostfolioExport = {
                 meta: {
                     date: new Date(),
@@ -188,12 +180,6 @@ export class SchwabConverter extends AbstractConverter {
             this.progress.stop()
 
             successCallback(result);
-        });
-
-        // Catch any error.
-        parser.on('error', function (err) {
-            console.log("[i] An error ocurred while processing the input file! See error below:")
-            console.error("[e]", err.message);
         });
     }
 
