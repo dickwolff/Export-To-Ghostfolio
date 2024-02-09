@@ -17,6 +17,11 @@ Is your broker not in the list? Feel free to create an [issue](https://github.co
 
 ## Download transaction export
 
+See the transaction export instructions for each of the supported brokers below. 
+
+<details>
+<summary>View transaction export instructions</summary>
+
 ### Trading 212
 
 Login to your Trading 212 account and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
@@ -43,7 +48,9 @@ Login to your Schwab account. Go to “Accounts” then “History”. Select th
 
 ### eToro
 
-to come
+Login to your eToro account and navigate to "Portfolio". Then select "History" in the top menu. Next, click on the icon on the far right and select "Account statement". Choose the dates of interest and click "Create". On the next page, click on the Excel icon on the top right to download the file. After downloading, open the file in Excel and delete all the tabs except the "Account Activity" tab. Then use Excel to convert the file to CSV.
+
+</details>
 
 ## How to use
 
