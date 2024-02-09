@@ -20,13 +20,13 @@ export class DeGiroConverterV2 extends AbstractConverter {
   /**
    * @inheritdoc
    */
-  public processFileContents(inputFile: string, successCallback: any, errorCallback: any): void {
+  public processFileContents(input: string, successCallback: any, errorCallback: any): void {
 
     // Parse the CSV and convert to Ghostfolio import format.
-    parse(inputFile, {
+    parse(input, {
       delimiter: ",",
       fromLine: 2,
-      columns: this.processHeaders(inputFile),
+      columns: this.processHeaders(input),
       cast: (columnValue, _) => {
 
         // Custom mapping below.
@@ -39,7 +39,6 @@ export class DeGiroConverterV2 extends AbstractConverter {
       if (records === undefined || records.length === 0) {
         return errorCallback(new Error("An error ocurred while parsing!"));
       }
-
 
       console.log("[i] Read CSV file. Start processing..");
       const result: GhostfolioExport = {

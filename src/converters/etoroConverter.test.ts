@@ -1,6 +1,6 @@
 import { EtoroConverter } from "./etoroConverter";
-import { GhostfolioExport } from "../models/ghostfolioExport";
 import { YahooFinanceService } from "../yahooFinanceService";
+import { GhostfolioExport } from "../models/ghostfolioExport";
 
 describe("etoroConverter", () => {
 
