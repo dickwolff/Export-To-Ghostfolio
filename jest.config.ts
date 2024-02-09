@@ -9,6 +9,11 @@ const config: Config.InitialOptions = {
   },
   coverageDirectory: 'coverage',
   collectCoverageFrom: ['src/**/*.ts'],
+  coveragePathIgnorePatterns: [
+    '/src/models',
+    '/src/manual.ts',
+    '/src/watcher.ts',
+    '/src/converter.ts'],
   coverageReporters: ['text', 'cobertura', 'html']
 };
 
