@@ -4,7 +4,12 @@ run-name: Build Docker Container
 on:
   push:
     branches:
-      - "main"
+      - main
+    paths:
+      - "src/**"
+  pull_request:
+    branches:
+      - main
     paths:
       - "src/**"
 
@@ -39,10 +44,21 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
-      - name: Build and push
+      - name: Build and push (PR)
         uses: docker/build-push-action@v5
+        if: github.event_name == 'pull_request'
+        with:
+          push: true
+          tags: |
+            dickwolff/export-to-ghostfolio:${{ env.GitVersion_MajorMinorPatch }}-beta
+            
+      - name: Build and push (main)
+        uses: docker/build-push-action@v5
+        if: github.event_name != 'pull_request'
         with:          
-          push: ${{ github.event_name != "pull_request" }}
+          push: true
           tags: |
             dickwolff/export-to-ghostfolio:latest 
             dickwolff/export-to-ghostfolio:${{ env.GitVersion_MajorMinorPatch }}
+
+            

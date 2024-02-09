@@ -32,8 +32,16 @@ chokidar
             converterKey = closestMatch[0];
         }
 
-        const converter = headers.get(converterKey);
-        console.log(`[i] Determined the file type to be of kind '${converter}'.`);
+        let converter = headers.get(converterKey);
+
+        // Temporary control to force DEGIRO V2 converter while in beta.
+        if (process.env.FORCE_DEGIRO_V2 && converter === "degiro") {
+            converter = "degiro-v2"
+            console.log(`[i] Determined the file type to be of kind '${converter}' (overidden by environment variable).`);
+        }
+        else {
+            console.log(`[i] Determined the file type to be of kind '${converter}'.`);
+        }
 
         // Determine convertor type and run conversion.
         createAndRunConverter(converter, filePath, outputFolder,
@@ -87,3 +95,4 @@ headers.set(`Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency"
 headers.set(`Date,Action,Symbol,Description,Quantity,Price,Fees & Comm,Amount`, "schwab");
 headers.set(`Date;Order #;Transaction;Symbol;Name;ISIN;Quantity;Unit price;Costs;Accrued Interest;Net Amount;Balance;Currency`, "swissquote");
 headers.set(`Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee`, "trading212");
+headers.set(`Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA`, "etoro");
