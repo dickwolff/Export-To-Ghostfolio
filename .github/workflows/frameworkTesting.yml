@@ -71,7 +71,7 @@ jobs:
           {
             "schemaVersion": 1,
             "label": "Code Coverage",
-            "message": "$coverage",
+            "message": "$coverage%",
             "style": "for-the-badge",
             "color": "$color"
           }
