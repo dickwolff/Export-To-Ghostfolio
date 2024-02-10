@@ -63,8 +63,9 @@ jobs:
         run: |
           read -r line < code-coverage-results.txt 
           covBadge=${line/flat/for-the-badge}"
-          echo $covBadge
+        #echo $covBadge
           
+          echo -e ($covBadge) >> cov.txt
         #touch cov.txt
         #echo "$covBadge" > ~/cov.txt
 
