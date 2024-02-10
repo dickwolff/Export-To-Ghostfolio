@@ -13,7 +13,7 @@ on:
       - main
     paths:
       - "src/**"
-      - ".github/workflows/**"
+      - ".github/workflows/**" #remove later
 
 jobs:
   run-tests:
@@ -57,4 +57,11 @@ jobs:
           hide_branch_rate: true
           hide_complexity: true
           badge: true
-          output: 'console'
+          output: 'file'
+
+      - name: Publish code coverage results
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_SECRET }}
+          gist_id: 36ad591681898e170d7fe636cd88b816
+          file_path: code-coverage-results.txt 
