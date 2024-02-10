@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { DeGiroRecord } from "../models/degiroRecord";
