@@ -59,11 +59,11 @@ jobs:
           badge: true
           output: 'file'
 
-      - name: aa
+      - name: Extract code coverage badge
         run: |
           read -r line < code-coverage-results.txt 
           echo "$line"
-          covBadge = ${line/flat/for-the-badge}
+          echo "covBadge=${line/flat/for-the-badge}"
           echo "$covBadge"
           
           cat <<EOF > $HOME/cov.txt
