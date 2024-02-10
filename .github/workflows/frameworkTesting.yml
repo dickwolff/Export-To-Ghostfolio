@@ -65,8 +65,8 @@ jobs:
           covBadge=${line/flat/for-the-badge}"
           echo $covBadge
           
-          touch cov.txt
-          echo "$covBadge" > ~/cov.txt
+          #touch cov.txt
+          #echo "$covBadge" > ~/cov.txt
 
       # - name: Create code coverage badge
       #   uses: schneegans/dynamic-badges-action@v1.7.0
@@ -78,9 +78,9 @@ jobs:
       #     message: World
       #     color: orange
 
-      # - name: Publish code coverage results
+      # - name: Publish code coverage badge
       #   uses: exuanbo/actions-deploy-gist@v1
       #   with:
       #     token: ${{ secrets.GIST_SECRET }}
       #     gist_id: 36ad591681898e170d7fe636cd88b816
-      #     file_path: code-coverage-results.txt 
+      #     file_path: cov.txt 
