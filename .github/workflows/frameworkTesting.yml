@@ -67,9 +67,11 @@ jobs:
 
           cat <<EOF > cov.json
           {
+            "schemaVersion": 1,
             "label": "Code Coverage"
             "message": "$coverage"
             "style": "for-the-badge"
+            "color": "orange"
           }
         
       - name: Publish code coverage badge
