@@ -64,7 +64,7 @@ jobs:
           read -r line < code-coverage-results.txt 
           covBadge=${line/flat/for-the-badge}
           echo $covBadge
-          echo "$covBadge" > ~/cov.txt
+          echo "$covBadge" > cov.txt
         #touch cov.txt
 
       # - name: Create code coverage badge
@@ -77,9 +77,9 @@ jobs:
       #     message: World
       #     color: orange
 
-      # - name: Publish code coverage badge
-      #   uses: exuanbo/actions-deploy-gist@v1
-      #   with:
-      #     token: ${{ secrets.GIST_SECRET }}
-      #     gist_id: 36ad591681898e170d7fe636cd88b816
-      #     file_path: cov.txt 
+      - name: Publish code coverage badge
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_SECRET }}
+          gist_id: 36ad591681898e170d7fe636cd88b816
+          file_path: cov.txt 
