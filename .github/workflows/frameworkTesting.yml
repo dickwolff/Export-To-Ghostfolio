@@ -67,9 +67,9 @@ jobs:
 
           cat <<EOF > cov.json
           {
-            label: Code Coverage
-            value: $coverage
-            style: for-the-badge
+            "label": "Code Coverage"
+            "value": "$coverage"
+            "style": "for-the-badge"
           }
         
       - name: Publish code coverage badge
