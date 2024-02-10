@@ -69,7 +69,7 @@ jobs:
           
           coverage=$(echo "$line" | sed -n 's/.*Code%20Coverage-\([0-9]*\)%.*/\1/p')
           condition=$(echo "$line" | sed -n 's/.*%25-\([a-z]*\)?.*/\1/p')
-          color=$(( condition == "critical" ? "e05d44" : "44cc11" ))  
+          color=$(( condition == "critical" ? "#e05d44" : "#44cc11" ))  
 
           cat <<EOF > cov.json
           {
