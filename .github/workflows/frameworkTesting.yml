@@ -65,21 +65,10 @@ jobs:
           covBadge=${line/flat/for-the-badge}
           echo $covBadge
           echo "$covBadge" > cov.txt
-        #touch cov.txt
-
-      # - name: Create code coverage badge
-      #   uses: schneegans/dynamic-badges-action@v1.7.0
-      #   with:
-      #     auth: ${{ secrets.GIST_SECRET }}
-      #     gistID: 36ad591681898e170d7fe636cd88b816
-      #     filename: test.json # Use test.svg if you want to use the SVG mode.
-      #     label: Hello
-      #     message: World
-      #     color: orange
-
+        
       - name: Publish code coverage badge
         uses: exuanbo/actions-deploy-gist@v1
         with:
           token: ${{ secrets.GIST_SECRET }}
-          gist_id: 36ad591681898e170d7fe636cd88b816
+          gist_id: dd5dc24ffa62de59b3d836f856f48a10
           file_path: cov.txt 
