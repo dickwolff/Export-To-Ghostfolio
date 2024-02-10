@@ -15,7 +15,8 @@ on:
       - "src/**"
 
 jobs:
-  run-converter-tests:
+  run-tests:
+    name: Run Tests
     runs-on: ubuntu-latest
     permissions: 
       pull-requests: write 
@@ -30,7 +31,7 @@ jobs:
 
       - run: npm run test
   
-      - name: Convert code coverage results
+      - name: Convert code coverage results for summary
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: coverage/*.xml
@@ -47,3 +48,39 @@ jobs:
 
       - name: Write to job summary
         run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Convert code coverage results for badge
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        if: github.event_name != 'pull_request'
+        with:
+          filename: coverage/*.xml
+          hide_branch_rate: true
+          hide_complexity: true
+          badge: true
+          output: 'file'
+
+      - name: Extract code coverage badge
+        if: github.event_name != 'pull_request'
+        run: |
+          read -r line < code-coverage-results.txt 
+          
+          coverage=$(echo "$line" | sed -n 's/.*Code%20Coverage-\([0-9]*\)%.*/\1/p')
+          condition=$(echo "$line" | sed -n 's/.*%25-\([a-z]*\)?.*/\1/p')
+          [[ $condition == "critical" ]] && color="#e05d44" || color="#44cc11"
+
+          cat <<EOF > cov.json
+          {
+            "schemaVersion": 1,
+            "label": "Code Coverage",
+            "message": "$coverage",
+            "style": "for-the-badge",
+            "color": "$color"
+          }
+        
+      - name: Publish code coverage badge
+        uses: exuanbo/actions-deploy-gist@v1
+        if: github.event_name != 'pull_request'
+        with:
+          token: ${{ secrets.GIST_SECRET }}
+          gist_id: dd5dc24ffa62de59b3d836f856f48a10
+          file_path: cov.json 
