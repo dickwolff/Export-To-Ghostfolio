@@ -28,6 +28,9 @@ describe("etoroConverter", () => {
 
       // Assert
       expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBeGreaterThan(0);
+      expect(actualExport.activities.length).toBe(18);
+
       done();
     }, () => { done.fail("Should not have an error!"); });
   });
@@ -45,6 +48,7 @@ describe("etoroConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
+
         done();
       });
     });
@@ -62,7 +66,8 @@ describe("etoroConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toContain("An error ocurred while parsing")
+        expect(err.message).toContain("An error ocurred while parsing");
+
         done();
       });
     });
@@ -70,7 +75,6 @@ describe("etoroConverter", () => {
     it("Yahoo Finance throws an error", (done) => {
 
       // Arrange
-
       let tempFileContent = "";
       tempFileContent += "Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA\n";
       tempFileContent += `02/01/2024 00:10:33,Dividend,NKE/USD,0.17,-,0.17,"4,581.91",99.60,2272508626,Stocks,0.00`;
@@ -85,7 +89,8 @@ describe("etoroConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toContain("Unit test error")
+        expect(err.message).toContain("Unit test error");
+
         done();
       });
     });
@@ -94,7 +99,6 @@ describe("etoroConverter", () => {
   it("should log when Yahoo Finance returns no symbol", (done) => {
 
     // Arrange
-
     let tempFileContent = "";
     tempFileContent += "Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA\n";
     tempFileContent += `02/01/2024 00:10:33,Dividend,NKE/USD,0.17,-,0.17,"4,581.91",99.60,2272508626,Stocks,0.00`;
@@ -111,6 +115,7 @@ describe("etoroConverter", () => {
     sut.processFileContents(tempFileContent, () => {
 
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for dividend action for NKE/USD! Please add this manually..\n");
+
       done();
     }, () => done.fail("Should not have an error!"));
   });

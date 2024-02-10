@@ -28,6 +28,9 @@ describe("trading212Converter", () => {
 
       // Assert
       expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBeGreaterThan(0);
+      expect(actualExport.activities.length).toBe(7);
+
       done();
     }, () => { done.fail("Should not have an error!"); });
   });
@@ -45,6 +48,7 @@ describe("trading212Converter", () => {
 
         // Assert
         expect(err).toBeTruthy();
+
         done();
       });
     });
@@ -62,7 +66,8 @@ describe("trading212Converter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toContain("An error ocurred while parsing")
+        expect(err.message).toContain("An error ocurred while parsing");
+
         done();
       });
     });
@@ -85,7 +90,8 @@ describe("trading212Converter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toContain("Unit test error")
+        expect(err.message).toContain("Unit test error");
+
         done();
       });
     });
@@ -111,6 +117,7 @@ describe("trading212Converter", () => {
     sut.processFileContents(tempFileContent, () => {
 
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for US17275R1023 with currency USD! Please add this manually..\n");
+
       done();
     }, () => done.fail("Should not have an error!"));
   });

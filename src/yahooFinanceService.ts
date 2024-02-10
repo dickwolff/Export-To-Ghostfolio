@@ -1,5 +1,8 @@
+import * as cacache from "cacache";
 import yahooFinance from 'yahoo-finance2';
 import { YahooFinanceRecord } from './models/yahooFinanceRecord';
+
+const cachePath = "tmp/e2g-cache";
 
 export class YahooFinanceService {
 
@@ -40,32 +43,24 @@ export class YahooFinanceService {
 
         // When isin was given, check wether there is a symbol conversion cached. Then change map. 
         if (isin && this.isinSymbolCache.has(isin)) {
-            symbol = this.isinSymbolCache[isin];
+            symbol = this.isinSymbolCache.get(isin);
         }
-        
+
         // Second, check if the requested security is known by symbol (if given).
-        if (symbol) {
-
-            const symbolMatch = this.symbolCache.has(symbol);
-
-            // If a match was found, return the security.
-            if (symbolMatch) {
-                this.logDebug(`Retrieved symbol ${symbol} from cache!`, progress);
-                return symbolMatch[1];
-            }
+        // If a match was found, return the security.
+        if (symbol && this.symbolCache.has(symbol)) {
+            this.logDebug(`Retrieved symbol ${symbol} from cache!`, progress);
+            return this.symbolCache.get(symbol);
         }
 
-        // The security is not known. Try to find is.
-
-        // First try by ISIN.    
-        let symbols = await this.getSymbolsByQuery(isin, progress);
-        this.logDebug(`getSecurity(): Found ${symbols.length} match${symbols.length === 1 ? "" : "es"} by ISIN ${isin}`, progress);
+        // The security is not known. Try to find it
+        let symbols: YahooFinanceRecord[] = [];
 
         // First try by ISIN.
         // If no ISIN was given as a parameter, just skip this part.
         if (isin) {
             symbols = await this.getSymbolsByQuery(isin, progress);
-            this.logDebug(`getSecurity(): Found ${symbols.length} matches by ISIN ${isin}`, progress);
+            this.logDebug(`getSecurity(): Found ${symbols.length} match${symbols.length === 1 ? "" : "es"} by ISIN ${isin}`, progress);
 
             // If no result found by ISIN, try by symbol.
             if (symbols.length == 0 && symbol) {
@@ -112,18 +107,47 @@ export class YahooFinanceService {
 
             this.logDebug(`getSecurity(): Match found for ${isin ?? symbol ?? name}`, progress);
 
-            // If there was an isin given, place it in the isin-symbol mapping cache.
-            if (isin) {
-                this.isinSymbolCache[isin] = symbolMatch.symbol;
+            // If there was an isin given, place it in the isin-symbol mapping cache (if it wasn't there before).
+            if (isin && !this.isinSymbolCache.has(isin)) {
+                await this.saveInCache(isin, null, symbolMatch.symbol);                  
             }
 
-            // Store the record in cache by symbol.
-            this.symbolCache[symbolMatch.symbol] = symbolMatch;
+            // Store the record in cache by symbol (if it wasn't there before).
+            if (!this.symbolCache.has(symbolMatch.symbol)) {
+                await this.saveInCache(null, symbolMatch.symbol, symbolMatch);
+            }
 
             return symbolMatch;
         }
 
         return null;
+    }
+
+    /**
+     * Load the cache with ISIN and symbols.
+     * 
+     * @returns The size of the loaded cache
+     */
+    public async loadCache(): Promise<[number, number]> {
+
+        // Verify if there is data in the ISIN-Symbol cache. If so, restore to the local variable.
+        const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");        
+        if (isinSymbolCacheExist) {
+            const cache = await cacache.get(cachePath, "isinSymbolCache");                        
+            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);    
+            this.isinSymbolCache = cacheAsJson;                     
+        }        
+
+        // Verify if there is data in the Symbol cache. If so, restore to the local variable.
+        const symbolCacheExists = await cacache.get.info(cachePath, "symbolCache");        
+        if (symbolCacheExists) {
+            const cache = await cacache.get(cachePath, "symbolCache");
+            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);            
+            this.symbolCache = cacheAsJson;
+        }        
+
+        // Return cache sizes.
+        return [this.isinSymbolCache.size, this.symbolCache.size];
     }
 
     /**
@@ -133,7 +157,7 @@ export class YahooFinanceService {
      * @returns The symbols that are retrieved from Yahoo Finance, if any.
      */
     private async getSymbolsByQuery(query: string, progress?: any): Promise<YahooFinanceRecord[]> {
-
+    
         // First get quotes for the query.
         let queryResult = await yahooFinance.search(query,
             {
@@ -229,13 +253,28 @@ export class YahooFinanceService {
         return symbolMatch;
     }
 
+    private async saveInCache(isin?: string, symbol?: string, value?: any) {
+
+        // Save ISIN-value combination to cache if given.
+        if (isin && value) {
+            this.isinSymbolCache.set(isin, value);                                    
+            await cacache.put(cachePath, "isinSymbolCache", JSON.stringify(this.isinSymbolCache, this.mapReplacer));            
+        }
+        
+        // Save symbol-value combination to cache if given.
+        if (symbol && value) {
+            this.symbolCache.set(symbol, value);
+            await cacache.put(cachePath, "symbolCache", JSON.stringify(this.symbolCache, this.mapReplacer));
+        }
+    }
+
     private logDebug(message, progress?, additionalTabs?: boolean) {
 
         const messageToLog = (additionalTabs ? '\t' : '') + `\t${message}`
 
-        if (process.env.DEBUG_LOGGING == "true") {
+        if (Boolean(process.env.DEBUG_LOGGING) == true) {
             if (!progress) {
-                console.log(`[i] ${messageToLog}`);
+                console.log(`[d] ${messageToLog}`);
             }
             else {
                 progress.log(`[d] ${messageToLog}\n`);
@@ -244,4 +283,25 @@ export class YahooFinanceService {
     }
 
     private sink() { }
+
+    private mapReplacer(_, value) {
+        if (value instanceof Map) {
+            return {
+                dataType: 'Map',
+                value: Array.from(value.entries()), // or with spread: value: [...value]
+            };
+        } else {
+            return value;
+        }
+    }
+      
+    private mapReviver(_, value) {
+        if (typeof value === 'object' && value !== null) {
+          if (value.dataType === 'Map') {
+            return new Map(value.value);
+          }
+        }
+
+        return value;
+    }
 }

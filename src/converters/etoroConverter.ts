@@ -139,6 +139,8 @@ export class EtoroConverter extends AbstractConverter {
                     continue;
                 }
 
+                const unitPrice = parseFloat((record.amount / record.units).toFixed(6));
+
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
@@ -146,7 +148,7 @@ export class EtoroConverter extends AbstractConverter {
                     fee: 0,
                     quantity: record.units,
                     type: GhostfolioOrderType[record.type],
-                    unitPrice: record.amount,
+                    unitPrice: unitPrice,
                     currency: currency,
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),

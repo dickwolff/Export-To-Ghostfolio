@@ -1,8 +1,19 @@
 import path from "path";
 import * as fs from "fs";
 import chokidar from "chokidar";
+import * as cacache from "cacache";
 import * as matcher from "closest-match";
 import { createAndRunConverter } from "./converter";
+
+// Check if the cache should be purged.
+if (Boolean(process.env.PURGE_CACHE)) {
+
+    console.log("[i] Purging cache (PURGE_CACHE set to true)..");
+    Promise.all([
+        cacache.rm("tmp/e2g-cache", "isinSymbolCache"),
+        cacache.rm("tmp/e2g-cache", "symbolCache")
+    ]).then(() => console.log("[i] Cache purged!"));
+}
 
 // Define input and output.
 const inputFolder = process.env.E2G_INPUT_FOLDER || "/var/e2g-input";

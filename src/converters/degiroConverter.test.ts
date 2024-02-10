@@ -1,14 +1,16 @@
-import { YahooFinanceService } from "../yahooFinanceService";
 import { DeGiroConverter } from "./degiroConverter";
+import { YahooFinanceService } from "../yahooFinanceService";
 
 describe("degiroConverter", () => {
 
-    it("should construct", () => {
+  it("should construct", () => {
 
-      // Act
-      const sut = new DeGiroConverter(new YahooFinanceService());
+    // Act
+    const sut = new DeGiroConverter(new YahooFinanceService());
 
-      // Asssert
-      expect(sut).toBeTruthy();
-    });
+    // Assert
+    expect(sut).toBeTruthy();
+  });
+
+  // This converter is replaced by V2, so no sense in unit testing this any further.
 });

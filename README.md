@@ -88,10 +88,15 @@ The following parameters can be given to the Docker run command.
 | `--env USE_POLLING=true` | Y | When set to true, the container will continously look for new files to process and the container will not stop. |
 | `--env DEBUG_LOGGING=true` | Y | When set to true, the container will show logs in more detail, useful for error tracing. |
 | `--env FORCE_DEGIRO_V2=true` | Y | When set to true, the converter will use the DEGIRO V2 converter (currently in beta) when a DEGIRO file was found. |
+| `--env PURGE_CACHE=true` | Y | When set to true, the file cache will be purged on start. |
 
 1: You can retrieve your Ghostfolio account ID by going to Accounts > select your account and copying the ID from the URL.
 
 ![image](https://user-images.githubusercontent.com/5620002/203353840-f5db7323-fb2f-4f4f-befc-e4e340466a74.png)
+
+### Caching
+
+The tool uses `cacache` to store data retrieved from Yahoo Finance inside the container. This way the load on Yahoo Finance is reduced and the tool should run faster. The cached data is stored inside the container in `tmp/e2g-cache`. If you feel you need to invalidate your cache, you can do so by adding `--env PURGE_CACHE=true` to your run command. This will clear the cache on container start, and the tool will recreate the cache the next time it has to retrieve data from Yahoo Finance.
 
 </details>
 
@@ -129,6 +134,10 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | Swissquote  | `run start swissquote` (or `sq`)    |
 | Schwab      | `run start schwab`                  |
   
+### Caching
+
+The tool uses `cacache` to store data retrieved from Yahoo Finance on disk. This way the load on Yahoo Finance is reduced and the tool should run faster. The cached data is stored in `tmp/e2g-cache`. If you feel you need to invalidate your cache, you can do so by removing the folder and the tool will recreate the cache when you run it the next time.
+
 </details>
 
 ## Import to Ghostfolio
