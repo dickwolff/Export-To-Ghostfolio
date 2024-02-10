@@ -8,7 +8,7 @@ describe("degiroConverterV2", () => {
       // Act
       const sut = new DeGiroConverterV2(new YahooFinanceService());
 
-      // Asssert
+      // Assert
       expect(sut).toBeTruthy();
     });
 });

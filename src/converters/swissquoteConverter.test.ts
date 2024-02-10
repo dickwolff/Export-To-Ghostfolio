@@ -9,7 +9,7 @@ describe("swissquoteConverter", () => {
     // Act
     const sut = new SwissquoteConverter(new YahooFinanceService());
 
-    // Asssert
+    // Assert
     expect(sut).toBeTruthy();
   });
   
@@ -24,8 +24,9 @@ describe("swissquoteConverter", () => {
 
       // Assert
       expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBeGreaterThan(0);
+      expect(actualExport.activities.length).toBe(14);
       
-      // Finish the test
       done();
     }, () => { fail("Should not have an error!"); });      
   });
@@ -43,6 +44,7 @@ describe("swissquoteConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
+        
         done();
       });      
     });
@@ -61,7 +63,8 @@ describe("swissquoteConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toContain("An error ocurred while parsing")
+        expect(err.message).toContain("An error ocurred while parsing");
+        
         done();
       });      
     });
@@ -81,6 +84,7 @@ describe("swissquoteConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
+
         done();    
       });
     });
