@@ -65,9 +65,8 @@ jobs:
           covBadge=${line/flat/for-the-badge}"
           echo $covBadge
           
-          cat <<EOF > $HOME/cov.txt
-          "$covBadge"
-          EOF
+          touch cov.txt
+          echo "$covBadge" > ~/cov.txt
 
       # - name: Create code coverage badge
       #   uses: schneegans/dynamic-badges-action@v1.7.0
