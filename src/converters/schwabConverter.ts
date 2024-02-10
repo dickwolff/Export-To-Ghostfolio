@@ -87,15 +87,15 @@ export class SchwabConverter extends AbstractConverter {
                 },
                 activities: []
             }
-
+            
             // Populate the progress bar.
             const bar1 = this.progress.create(records.length - 1, 0);
 
-            // Skip last line of export ( stats).
+            // Skip last line of export (stats).
             for (let idx = 0; idx < records.length - 1; idx++) {
                 const record = records[idx];
-
-                // Skip administrative fee/deposit/withdraw transactions.
+             
+                // Skip administrative deposit/withdraw transactions.
                 if (this.isIgnoredRecord(record)) {
                     bar1.increment();
                     continue;
@@ -142,7 +142,7 @@ export class SchwabConverter extends AbstractConverter {
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`[i]\tNo result found for ${record.action} action for ${record.symbol || record.description} with currency USD! Please add this manually..\n`);
+                    this.progress.log(`[i] No result found for ${record.action} action for ${record.symbol || record.description} with currency USD! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }
