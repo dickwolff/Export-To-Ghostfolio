@@ -59,6 +59,7 @@ jobs:
           badge: true
           output: 'file'
 #https://img.shields.io/badge/Code%20Coverage-80%25-success?style=flat
+#https://img.shields.io/badge/Code%20Coverage-40%25-critical?style=flat
       - name: Extract code coverage badge
         run: |
           read -r line < code-coverage-results.txt 
@@ -68,9 +69,9 @@ jobs:
           cat <<EOF > cov.json
           {
             "schemaVersion": 1,
-            "label": "Code Coverage"
-            "message": "$coverage"
-            "style": "for-the-badge"
+            "label": "Code Coverage",
+            "message": "$coverage",
+            "style": "for-the-badge",
             "color": "orange"
           }
         
