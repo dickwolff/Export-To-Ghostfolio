@@ -139,7 +139,7 @@ export class EtoroConverter extends AbstractConverter {
                     continue;
                 }
 
-                const unitPrice = parseFloat(record.amount / record.units).toFixed(6);
+                const unitPrice = parseFloat((record.amount / record.units).toFixed(6));
 
                 // Add record to export.
                 result.activities.push({
