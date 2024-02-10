@@ -64,7 +64,7 @@ jobs:
           read -r line < code-coverage-results.txt 
           echo "$line"
           covBadge = ${line/flat/for-the-badge}
-          echo $covBadge
+          echo "$covBadge"
           
           cat <<EOF > $HOME/cov.txt
           $covBadge
