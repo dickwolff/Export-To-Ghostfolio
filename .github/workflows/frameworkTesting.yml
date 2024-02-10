@@ -58,17 +58,23 @@ jobs:
           hide_complexity: true
           badge: true
           output: 'file'
-
+#https://img.shields.io/badge/Code%20Coverage-80%25-success?style=flat
       - name: Extract code coverage badge
         run: |
           read -r line < code-coverage-results.txt 
-          covBadge=${line/flat/for-the-badge}
-          echo $covBadge
-          echo "$covBadge" > cov.txt
+          
+          coverage=$(echo "$line" | sed -n 's/.*Code%20Coverage-\([0-9]*\)%.*/\1/p')
+
+          cat <<EOF > cov.json
+          {
+            label: Code Coverage
+            value: $coverage
+            style: for-the-badge
+          }
         
       - name: Publish code coverage badge
         uses: exuanbo/actions-deploy-gist@v1
         with:
           token: ${{ secrets.GIST_SECRET }}
           gist_id: dd5dc24ffa62de59b3d836f856f48a10
-          file_path: cov.txt 
+          file_path: cov.json 
