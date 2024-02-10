@@ -1,5 +1,5 @@
-import { YahooFinanceService } from "../yahooFinanceService";
 import { DeGiroConverter } from "./degiroConverter";
+import { YahooFinanceService } from "../yahooFinanceService";
 
 describe("degiroConverter", () => {
 
@@ -11,4 +11,6 @@ describe("degiroConverter", () => {
       // Assert
       expect(sut).toBeTruthy();
     });
+
+    // This converter is replaced by V2, so no sense in unit testing this any further.
 });
