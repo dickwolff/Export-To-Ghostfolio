@@ -59,9 +59,24 @@ jobs:
           badge: true
           output: 'file'
 
-      - name: Publish code coverage results
-        uses: exuanbo/actions-deploy-gist@v1
-        with:
-          token: ${{ secrets.GIST_SECRET }}
-          gist_id: 36ad591681898e170d7fe636cd88b816
-          file_path: code-coverage-results.txt 
+      - name: aa
+        run: |
+          read -r line < code-coverage-results.txt 
+          echo "$line"
+
+      # - name: Create code coverage badge
+      #   uses: schneegans/dynamic-badges-action@v1.7.0
+      #   with:
+      #     auth: ${{ secrets.GIST_SECRET }}
+      #     gistID: 36ad591681898e170d7fe636cd88b816
+      #     filename: test.json # Use test.svg if you want to use the SVG mode.
+      #     label: Hello
+      #     message: World
+      #     color: orange
+
+      # - name: Publish code coverage results
+      #   uses: exuanbo/actions-deploy-gist@v1
+      #   with:
+      #     token: ${{ secrets.GIST_SECRET }}
+      #     gist_id: 36ad591681898e170d7fe636cd88b816
+      #     file_path: code-coverage-results.txt 
