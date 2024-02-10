@@ -60,11 +60,16 @@ jobs:
           output: 'file'
 #https://img.shields.io/badge/Code%20Coverage-80%25-success?style=flat
 #https://img.shields.io/badge/Code%20Coverage-40%25-critical?style=flat
+#green=44cc11
+#orange=e05d44
+
       - name: Extract code coverage badge
         run: |
           read -r line < code-coverage-results.txt 
           
           coverage=$(echo "$line" | sed -n 's/.*Code%20Coverage-\([0-9]*\)%.*/\1/p')
+          condition=$(echo "$line" | sed -n 's/.*%25-\([a-z]*\)?.*/\1/p')
+          color=$(( condition == "critical" ? "e05d44" : "44cc11" ))  
 
           cat <<EOF > cov.json
           {
@@ -72,7 +77,7 @@ jobs:
             "label": "Code Coverage",
             "message": "$coverage",
             "style": "for-the-badge",
-            "color": "orange"
+            "color": "$color"
           }
         
       - name: Publish code coverage badge
