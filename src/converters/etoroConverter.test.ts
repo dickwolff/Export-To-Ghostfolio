@@ -115,7 +115,7 @@ describe("etoroConverter", () => {
     sut.processFileContents(tempFileContent, () => {
 
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for dividend action for NKE/USD! Please add this manually..\n");
-      
+
       done();
     }, () => done.fail("Should not have an error!"));
   });
