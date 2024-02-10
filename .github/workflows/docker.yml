@@ -15,6 +15,7 @@ on:
 
 jobs:
   docker:
+    name: Publish Docker Image
     runs-on: ubuntu-latest
     steps:  
       - name: Checkout

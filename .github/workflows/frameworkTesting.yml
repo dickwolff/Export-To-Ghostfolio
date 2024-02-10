@@ -15,7 +15,8 @@ on:
       - "src/**"
 
 jobs:
-  run-converter-tests:
+  run-tests:
+    name: Run Tests
     runs-on: ubuntu-latest
     permissions: 
       pull-requests: write 
@@ -30,7 +31,7 @@ jobs:
 
       - run: npm run test
   
-      - name: Convert code coverage results
+      - name: Convert code coverage results for summary
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: coverage/*.xml
@@ -47,3 +48,12 @@ jobs:
 
       - name: Write to job summary
         run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Convert code coverage results for badge
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage/*.xml
+          hide_branch_rate: true
+          hide_complexity: true
+          badge: true
+          output: 'console'
