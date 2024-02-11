@@ -12,7 +12,6 @@ on:
       - main
     paths:
       - "src/**"
-      - ".github/**" # temp remove later
 
 jobs:
   docker:
