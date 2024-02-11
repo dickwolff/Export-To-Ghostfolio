@@ -47,7 +47,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Determine image version
-        shell: bash
+    #    shell: bash
         run: |
           if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
             echo "IMAGE_VERSION=${{ env.GitVersion_MajorMinorPatch }}-beta" >> $GITHUB_ENV
@@ -61,9 +61,9 @@ jobs:
         with:
           push: true
           tags: |
-            dickwolff/export-to-ghostfolio:$IMAGE_VERSION
+            dickwolff/export-to-ghostfolio:${{ env.IMAGE_VERSION }}
           build-args: |
-           IMAGE_VERSION=$IMAGE_VERSION
+           IMAGE_VERSION=${{ env.IMAGE_VERSION }}
             
       - name: Build and push (main)
         uses: docker/build-push-action@v5
@@ -72,8 +72,8 @@ jobs:
           push: true
           tags: |
             dickwolff/export-to-ghostfolio:latest 
-            dickwolff/export-to-ghostfolio:$IMAGE_VERSION
+            dickwolff/export-to-ghostfolio:${{ env.IMAGE_VERSION }}
           build-args: |
-            IMAGE_VERSION=$IMAGE_VERSION
+            IMAGE_VERSION=${{ env.IMAGE_VERSION }}
 
             
