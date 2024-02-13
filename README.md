@@ -84,6 +84,7 @@ The following parameters can be given to the Docker run command.
 | ------- | -------- | ----------- |
 | ` -v {local_in-folder}:/var/e2g-input` | N | The input folder where you put the files to be processed |
 | `-v {local_out_folder}:/var/e2g-output` | N | The output folder where the Ghostfolio import JSON will be placed. Also the input file will be moved here when an error ocurred while processing the file. |
+| `-v {local_cache_folder}:/var/e2g-cache` | Y | The folder where Yahoo Finance symbols will be cached  |
 | `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx` | N | Your Ghostolio account ID <sup>1</sup> |
 | `--env USE_POLLING=true` | Y | When set to true, the container will continously look for new files to process and the container will not stop. |
 | `--env DEBUG_LOGGING=true` | Y | When set to true, the container will show logs in more detail, useful for error tracing. |
