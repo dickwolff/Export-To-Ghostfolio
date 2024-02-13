@@ -11,3 +11,12 @@ updates:
       interval: "weekly"
     labels:     
       - "Dependencies"
+    groups:
+      dependencies:
+        dependency-type: "production"
+        patterns:
+          - "*"
+      dev-dependencies:
+        dependency-type: "development"
+        patterns:
+          - "*"
