@@ -2,7 +2,7 @@ import * as cacache from "cacache";
 import yahooFinance from 'yahoo-finance2';
 import { YahooFinanceRecord } from './models/yahooFinanceRecord';
 
-const cachePath = process.env.E2G_CACHE_FOLDER || "var/e2g-cache";
+const cachePath = process.env.E2G_CACHE_FOLDER || "/var/e2g-cache";
 
 export class YahooFinanceService {
 
