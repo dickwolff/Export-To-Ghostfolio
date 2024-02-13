@@ -12,6 +12,7 @@ pids
 logs
 results
 tmp
+var
 
 # Coverage reports
 coverage
