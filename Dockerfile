@@ -14,6 +14,7 @@ RUN npm install
 
 RUN mkdir /var/e2g-input
 RUN mkdir /var/e2g-output
+RUN mkdir /var/e2g-cache
 
 ENTRYPOINT [ "npm" ]
 CMD ["run", "watch"]
