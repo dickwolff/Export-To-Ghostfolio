@@ -29,6 +29,8 @@ jobs:
       - run: npm install
 
       - run: npm run test
+        env: 
+          E2G_CACHE_FOLDER: 'tmp/e2g-cache'
   
       - name: Convert code coverage results for summary
         uses: irongut/CodeCoverageSummary@v1.3.0
