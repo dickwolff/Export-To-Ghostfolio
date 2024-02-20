@@ -34,10 +34,10 @@ export class RabobankConverter extends AbstractConverter {
                 if (context.column === "type") {
                     const action = columnValue.toLocaleLowerCase();
 
-                    if (action.indexOf("koop") > -1) {
+                    if (action.indexOf("koop fondsen") > -1) {
                         return "buy";
                     }
-                    else if (action.indexOf("verkoop") > -1) {
+                    else if (action.indexOf("verkoop fondsen") > -1) {
                         return "sell";
                     }
                     else if (action.indexOf("dividend") > -1) {
