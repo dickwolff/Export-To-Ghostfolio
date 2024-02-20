@@ -46,16 +46,15 @@ export class RabobankConverter extends AbstractConverter {
                     else if (action.indexOf("rente") > -1) {
                         return "interest";
                     }
-                    else if (action.indexOf("tarieven") > -1) {
-                        return "fee";
-                    }
                 }
 
                 // Parse numbers to floats (from string).
-                if (context.column === "amount" || 
-                    context.column === "price") {
+                if (context.column === "amount" ||
+                    context.column === "price" ||
+                    context.column === "totalAmount" ||
+                    context.column === "currencyCosts") {
 
-                    return parseFloat(columnValue);
+                    return Math.abs(parseFloat(columnValue.replace(",", ".")));
                 }
 
                 return columnValue;
@@ -63,7 +62,7 @@ export class RabobankConverter extends AbstractConverter {
         }, async (_, records: RabobankRecord[]) => {
 
             // If records is empty, parsing failed..
-            if (records === undefined || records.length === 0) {                    
+            if (records === undefined || records.length === 0) {
                 return errorCallback(new Error("An error ocurred while parsing!"));
             }
 
@@ -84,28 +83,37 @@ export class RabobankConverter extends AbstractConverter {
 
                 // Check if the record should be ignored.
                 if (this.isIgnoredRecord(record)) {
+
                     bar1.increment();
                     continue;
                 }
 
-                // Interest does not have a security, so add those immediately.
-                if (record.type.toLocaleLowerCase() === "interest" ||
-                    record.type.toLocaleLowerCase() === "fee") {
+                const date = dayjs(`${record.date}`, "DD-MM-YYYY");
 
-                    const feeAmount = Math.abs(record.totalAmount);
+                // Interest or platform fees do not have a security, so add those immediately.
+                if (record.type.toLocaleLowerCase() === "interest" ||
+                    record.type.toLocaleLowerCase().indexOf("tarieven") > -1) {
+
+                    let orderType = GhostfolioOrderType[record.type];
+                    let description = "";
+
+                    if (record.type.toLocaleLowerCase().indexOf("tarieven") > -1) {
+                        orderType = GhostfolioOrderType.fee;
+                        description = record.type;
+                    }
 
                     // Add fees record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                         comment: "",
-                        fee: feeAmount,
+                        fee: 0,
                         quantity: 1,
-                        type: GhostfolioOrderType[record.type],
-                        unitPrice: feeAmount,
-                        currency: "USD", 
+                        type: orderType,
+                        unitPrice: record.totalAmount,
+                        currency: record.currency,
                         dataSource: "MANUAL",
-                        date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: ""
+                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: description
                     });
 
                     bar1.increment();
@@ -122,28 +130,42 @@ export class RabobankConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.isin, idx + 2);        
+                    this.logQueryError(record.isin, idx + 2);
                     return errorCallback(err);
                 }
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`[i] No result found for ${record.type} action for ${record.isin}! Please add this manually..\n`);
+                    this.progress.log(`[i] No result found for ${record.type} action for ${record.name}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
+                }
+
+                let price, quantity, fees = 0;
+
+                // On dividend records, amount and quantity are reversed.
+                if (record.type === "dividend") {
+                    quantity = record.price;
+                    price = record.amount;
+                    fees = 0;
+                }
+                else {
+                    quantity = record.amount
+                    price = record.price;
+                    fees = record.currencyCosts;
                 }
 
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: "",
-                    fee: 0,
-                    quantity: record.amount,
+                    fee: fees,
+                    quantity: quantity,
                     type: GhostfolioOrderType[record.type],
-                    unitPrice: record.price,
+                    unitPrice: price,
                     currency: record.currency,
                     dataSource: "YAHOO",
-                    date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
+                    date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
                 });
 
@@ -154,6 +176,31 @@ export class RabobankConverter extends AbstractConverter {
 
             successCallback(result);
         });
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected processHeaders(_: string): string[] {
+
+        // Generic header mapping from the DEGIRO CSV export.
+        const csvHeaders = [
+            "account",
+            "name",
+            "date",
+            "type",
+            "currency",
+            "amount",
+            "price",
+            "priceCurrency",
+            "currencyCosts",
+            "value",
+            "totalAmount",
+            "isin",
+            "time",
+            "exchange"];
+
+        return csvHeaders;
     }
 
     /**

@@ -1,15 +1,16 @@
 import path from "path";
 import * as fs from "fs";
+import { YahooFinanceService } from "./yahooFinanceService";
 import { GhostfolioExport } from "./models/ghostfolioExport";
 import { EtoroConverter } from "./converters/etoroConverter";
 import { DeGiroConverter } from "./converters/degiroConverter";
 import { SchwabConverter } from "./converters/schwabConverter";
-import { DeGiroConverterV2 } from "./converters/degiroConverterV2";
 import { AbstractConverter } from "./converters/abstractconverter";
+import { DeGiroConverterV2 } from "./converters/degiroConverterV2";
+import { RabobankConverter } from "./converters/rabobankConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
-import { YahooFinanceService } from "./yahooFinanceService";
 
 export async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
@@ -73,6 +74,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
         case "finpension":
             console.log("[i] Processing file using Finpension converter");
             converter = new FinpensionConverter(yahooFinanceService);
+            break;
+        case "rabobank":
+            console.log("[i] Processing file using Rabobank converter");
+            converter = new RabobankConverter(yahooFinanceService);
             break;
         case "sq":
         case "swissquote":

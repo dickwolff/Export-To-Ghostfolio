@@ -4,9 +4,13 @@ import { GhostfolioExport } from "../models/ghostfolioExport";
 
 describe("rabobankConverter", () => {
 
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockImplementation(jest.fn());
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
-  })
+  });
 
   it("should construct", () => {
 
@@ -29,7 +33,7 @@ describe("rabobankConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(18);
+      expect(actualExport.activities.length).toBe(10);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
@@ -59,7 +63,7 @@ describe("rabobankConverter", () => {
       const sut = new RabobankConverter(new YahooFinanceService());
 
       let tempFileContent = "";
-      tempFileContent += "﻿Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
+      tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
 
       // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -76,8 +80,8 @@ describe("rabobankConverter", () => {
 
       // Arrange
       let tempFileContent = "";
-      tempFileContent += "﻿Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
-      tempFileContent += `12345678;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima\n`;
+      tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
+      tempFileContent += `12345678;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima`;
 
       // Mock Yahoo Finance service to throw error.
       const yahooFinanceService = new YahooFinanceService();
@@ -100,8 +104,8 @@ describe("rabobankConverter", () => {
 
     // Arrange
     let tempFileContent = "";
-    tempFileContent += "﻿Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
-    tempFileContent += `12345678;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima\n`;
+    tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
+    tempFileContent += `12345678;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima`;
 
     // Mock Yahoo Finance service to return null.
     const yahooFinanceService = new YahooFinanceService();
@@ -114,7 +118,7 @@ describe("rabobankConverter", () => {
     // Act      
     sut.processFileContents(tempFileContent, () => {
 
-      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for dividend action for NKE/USD! Please add this manually..\n");
+      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for 1895 Euro Obligaties Indexfonds! Please add this manually..\n");
 
       done();
     }, () => done.fail("Should not have an error!"));

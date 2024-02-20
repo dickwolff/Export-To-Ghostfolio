@@ -12,5 +12,5 @@ export class RabobankRecord {
     totalAmount: number;
     isin: string;
     time: string;
-    echange: string;
+    exchange: string;
 }
