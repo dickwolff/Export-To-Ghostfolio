@@ -1,11 +1,11 @@
 ﻿Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs
-36076805;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima
-36076805;1895 Wereld Aandelen Enh Indexfonds;08-02-2024;Verkoop Fondsen;EUR;-1,2343;134,776 ;EUR;0;166,36;166,36;NL0014065450;11:46:02.924;Clearstream - Vestima
-36076805;1895 Wereld Aandelen Enh Indexfonds;26-01-2024;Koop Fondsen;EUR;1,2538;131,6444 ;EUR;0;165,06;-165,06;NL0014065450;11:48:06.921;Clearstream - Vestima
-36076805;1895 Euro Obligaties Indexfonds;26-01-2024;Koop Fondsen;EUR;0,7917;84,4902 ;EUR;0;66,89;-66,89;NL0014857104;11:47:58.373;Clearstream - Vestima
-36076805;;24-01-2024;Storting / opname;EUR;0;0,00 ;EUR;0;0,00;250,00;;;
-36076805;;06-01-2024;Tarieven en services;EUR;0;0,00 ;EUR;0;0,00;-17,44;;;
-36076805;;03-01-2024;Rente beleggersrekening;EUR;0;0,00 ;EUR;0;0,00;1,63;;;
-36076805;1895 Wereld Aandelen Enh Indexfonds;28-12-2023;Koop Fondsen;EUR;1,3699;127,224 ;EUR;0;174,28;-174,28;NL0014065450;12:11:49.471;Clearstream - Vestima
-36076805;1895 Euro Obligaties Indexfonds;28-12-2023;Koop Fondsen;EUR;0,8761;86,0839 ;EUR;0;75,42;-75,42;NL0014857104;12:11:52.495;Clearstream - Vestima
-36076805;;27-12-2023;Storting / opname;EUR;0;0,00 ;EUR;0;0,00;250,00;;;
+12345678;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima
+12345678;1895 Wereld Aandelen Enh Indexfonds;08-02-2024;Verkoop Fondsen;EUR;-1,2343;134,776 ;EUR;0;166,36;166,36;NL0014065450;11:46:02.924;Clearstream - Vestima
+12345678;1895 Wereld Aandelen Enh Indexfonds;26-01-2024;Koop Fondsen;EUR;1,2538;131,6444 ;EUR;0;165,06;-165,06;NL0014065450;11:48:06.921;Clearstream - Vestima
+12345678;1895 Euro Obligaties Indexfonds;26-01-2024;Koop Fondsen;EUR;0,7917;84,4902 ;EUR;0;66,89;-66,89;NL0014857104;11:47:58.373;Clearstream - Vestima
+12345678;;24-01-2024;Storting / opname;EUR;0;0,00 ;EUR;0;0,00;250,00;;;
+12345678;;06-01-2024;Tarieven en services;EUR;0;0,00 ;EUR;0;0,00;-17,44;;;
+12345678;;03-01-2024;Rente beleggersrekening;EUR;0;0,00 ;EUR;0;0,00;1,63;;;
+12345678;1895 Wereld Aandelen Enh Indexfonds;28-12-2023;Koop Fondsen;EUR;1,3699;127,224 ;EUR;0;174,28;-174,28;NL0014065450;12:11:49.471;Clearstream - Vestima
+12345678;1895 Euro Obligaties Indexfonds;28-12-2023;Koop Fondsen;EUR;0,8761;86,0839 ;EUR;0;75,42;-75,42;NL0014857104;12:11:52.495;Clearstream - Vestima
+12345678;;27-12-2023;Storting / opname;EUR;0;0,00 ;EUR;0;0,00;250,00;;;
