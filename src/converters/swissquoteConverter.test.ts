@@ -4,6 +4,14 @@ import { YahooFinanceService } from "../yahooFinanceService";
 
 describe("swissquoteConverter", () => {
 
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockImplementation(jest.fn());
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("should construct", () => {
 
     // Act

@@ -2,8 +2,16 @@ import { DeGiroConverterV2 } from "./degiroConverterV2";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 
-fdescribe("degiroConverterV2", () => {
+describe("degiroConverterV2", () => {
 
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockImplementation(jest.fn());
+  });
+  
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+  
   it("should construct", () => {
 
     // Act

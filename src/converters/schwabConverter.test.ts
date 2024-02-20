@@ -4,9 +4,13 @@ import { GhostfolioExport } from "../models/ghostfolioExport";
 
 describe("schwabConverter", () => {
 
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockImplementation(jest.fn());
+  });
+  
   afterEach(() => {
     jest.clearAllMocks();
-  })
+  });
 
   it("should construct", () => {
 

@@ -4,9 +4,13 @@ import { GhostfolioExport } from "../models/ghostfolioExport";
 
 describe("trading212Converter", () => {
 
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockImplementation(jest.fn());
+  });
+  
   afterEach(() => {
     jest.clearAllMocks();
-  })
+  });
 
   it("should construct", () => {
 
