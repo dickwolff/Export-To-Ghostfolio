@@ -59,7 +59,7 @@ describe("rabobankConverter", () => {
       const sut = new RabobankConverter(new YahooFinanceService());
 
       let tempFileContent = "";
-      tempFileContent += "Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA\n";
+      tempFileContent += "﻿Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
 
       // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -76,8 +76,8 @@ describe("rabobankConverter", () => {
 
       // Arrange
       let tempFileContent = "";
-      tempFileContent += "Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA\n";
-      tempFileContent += `02/01/2024 00:10:33,Dividend,NKE/USD,0.17,-,0.17,"4,581.91",99.60,2272508626,Stocks,0.00`;
+      tempFileContent += "﻿Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
+      tempFileContent += `12345678;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima\n`;
 
       // Mock Yahoo Finance service to throw error.
       const yahooFinanceService = new YahooFinanceService();
@@ -100,8 +100,8 @@ describe("rabobankConverter", () => {
 
     // Arrange
     let tempFileContent = "";
-    tempFileContent += "Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA\n";
-    tempFileContent += `02/01/2024 00:10:33,Dividend,NKE/USD,0.17,-,0.17,"4,581.91",99.60,2272508626,Stocks,0.00`;
+    tempFileContent += "﻿Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
+    tempFileContent += `12345678;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima\n`;
 
     // Mock Yahoo Finance service to return null.
     const yahooFinanceService = new YahooFinanceService();
