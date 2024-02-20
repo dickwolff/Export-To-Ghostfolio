@@ -7,12 +7,13 @@
 
 This tool allows you to convert a multiple transaction exports (CSV) to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for:
 
-- [Trading 212](https://trading212.com)
 - [DEGIRO](https://degiro.com)
-- [Finpension](https://finpension.ch)
-- [Swissquote](https://en.swissquote.com/)
-- [Schwab](https://www.schwab.com)
 - [eToro](https://www.etoro.com/)
+- [Finpension](https://finpension.ch)
+- [Rabobank](https://rabobank.nl)
+- [Schwab](https://www.schwab.com)
+- [Swissquote](https://en.swissquote.com/)
+- [Trading 212](https://trading212.com)
 
 Is your broker not in the list? Feel free to create an [issue](https://github.com/dickwolff/Export-To-Ghostfolio/issues/new) or, even better, build it yourself and create a [pull request](https://github.com/dickwolff/Export-To-Ghostfolio/compare)!
 
@@ -23,23 +24,23 @@ See the transaction export instructions for each of the supported brokers below.
 <details>
 <summary>View transaction export instructions</summary>
 
-### Trading 212
-
-Login to your Trading 212 account and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
-
 ### DEGIRO
 
 Login to your DEGIRO account and create an export file (via Inbox > Account Overview, see image below). Choose the period from which you wish to export your history and click download.
 
 ![Export instructions for DEGIRO](./assets/export-degiro.jpg)
 
+### eToro
+
+Login to your eToro account and navigate to "Portfolio". Then select "History" in the top menu. Next, click on the icon on the far right and select "Account statement". Choose the dates of interest and click "Create". On the next page, click on the Excel icon on the top right to download the file. After downloading, open the file in Excel and delete all the tabs except the "Account Activity" tab. Then use Excel to convert the file to CSV.
+
 ### Finpension
 
 Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select “Transactions”, on the following page to the right notice “transaction report (CSV-file)” and click to email or click to download locally.
 
-### Swissquote
+### Rabobank
 
-Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.
+Login to Rabobank and navigate to your investments. Navigate to "Transactions & Contract Notes" (Mutaties & Nota's). Select the range you wish to export at the top. Then scroll to the bottom of the page and click "Export as .csv"
 
 ### Schwab
 
@@ -47,9 +48,13 @@ Login to your Schwab account. Go to “Accounts” then “History”. Select th
 
 ![Export instructions for Schwab](./assets/export-schwab.jpg)
 
-### eToro
+### Swissquote
 
-Login to your eToro account and navigate to "Portfolio". Then select "History" in the top menu. Next, click on the icon on the far right and select "Account statement". Choose the dates of interest and click "Create". On the next page, click on the Excel icon on the top right to download the file. After downloading, open the file in Excel and delete all the tabs except the "Account Activity" tab. Then use Excel to convert the file to CSV.
+Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.
+
+### Trading 212
+
+Login to your Trading 212 account and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
 
 </details>
 
