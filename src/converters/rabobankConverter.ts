@@ -23,7 +23,7 @@ export class RabobankConverter extends AbstractConverter {
 
         // Parse the CSV and convert to Ghostfolio import format.
         parse(input, {
-            delimiter: ",",
+            delimiter: ";",
             fromLine: 2,
             columns: this.processHeaders(input),
             cast: (columnValue, context) => {
@@ -34,27 +34,26 @@ export class RabobankConverter extends AbstractConverter {
                 if (context.column === "type") {
                     const action = columnValue.toLocaleLowerCase();
 
-                    if (action.indexOf("open position") > -1) {
+                    if (action.indexOf("koop") > -1) {
                         return "buy";
                     }
-                    else if (action.indexOf("position closed") > -1) {
+                    else if (action.indexOf("verkoop") > -1) {
                         return "sell";
                     }
                     else if (action.indexOf("dividend") > -1) {
                         return "dividend";
                     }
-                    else if (action.indexOf("interest") > -1) {
+                    else if (action.indexOf("rente") > -1) {
                         return "interest";
+                    }
+                    else if (action.indexOf("tarieven") > -1) {
+                        return "fee";
                     }
                 }
 
                 // Parse numbers to floats (from string).
                 if (context.column === "amount" || 
-                    context.column === "units") {
-
-                    if (context.column === "units" && columnValue === "-") {
-                        return 1;
-                    }
+                    context.column === "price") {
 
                     return parseFloat(columnValue);
                 }
@@ -89,12 +88,11 @@ export class RabobankConverter extends AbstractConverter {
                     continue;
                 }
 
-                const date = dayjs(`${record.date}`, "DD/MM/YYYY HH:mm:ss");
-
                 // Interest does not have a security, so add those immediately.
-                if (record.type.toLocaleLowerCase() === "interest") {
+                if (record.type.toLocaleLowerCase() === "interest" ||
+                    record.type.toLocaleLowerCase() === "fee") {
 
-                    const feeAmount = Math.abs(record.amount);
+                    const feeAmount = Math.abs(record.totalAmount);
 
                     // Add fees record to export.
                     result.activities.push({
@@ -106,7 +104,7 @@ export class RabobankConverter extends AbstractConverter {
                         unitPrice: feeAmount,
                         currency: "USD", 
                         dataSource: "MANUAL",
-                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                        date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
                         symbol: ""
                     });
 
@@ -114,44 +112,38 @@ export class RabobankConverter extends AbstractConverter {
                     continue;
                 }
 
-                const detailsSplit = record.details.split("/");
-                const symbol = detailsSplit[0];
-                const currency = detailsSplit[1];
-
                 let security: YahooFinanceRecord;
                 try {
                     security = await this.yahooFinanceService.getSecurity(
+                        record.isin,
                         null,
-                        symbol,
-                        null,
-                        currency,
+                        record.name,
+                        record.currency,
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.details, idx + 2);        
+                    this.logQueryError(record.isin, idx + 2);        
                     return errorCallback(err);
                 }
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`[i] No result found for ${record.type} action for ${record.details}! Please add this manually..\n`);
+                    this.progress.log(`[i] No result found for ${record.type} action for ${record.isin}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }
-
-                const unitPrice = parseFloat((record.amount / record.units).toFixed(6));
 
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: "",
                     fee: 0,
-                    quantity: record.units,
+                    quantity: record.amount,
                     type: GhostfolioOrderType[record.type],
-                    unitPrice: unitPrice,
-                    currency: currency,
+                    unitPrice: record.price,
+                    currency: record.currency,
                     dataSource: "YAHOO",
-                    date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                    date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
                 });
 
@@ -168,7 +160,7 @@ export class RabobankConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: RabobankRecord): boolean {
-        let ignoredRecordTypes = ["deposit", "withdraw", "conversion"];
+        let ignoredRecordTypes = ["storting", "opname"];
 
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
     }
