@@ -7,11 +7,13 @@ on:
       - main
     paths:
       - "src/**"
+      - "package.json"
   pull_request:
     branches:
       - main
     paths:
       - "src/**"
+      - "package.json"
 
 jobs:
   run-tests:
