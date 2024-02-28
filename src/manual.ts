@@ -13,9 +13,13 @@ else {
 
     // Determine convertor type and run conversion.
     createAndRunConverter(
-        process.argv[2].toLocaleLowerCase(), 
-        inputFile, 
+        process.argv[2].toLocaleLowerCase(),
+        inputFile,
         ".",
         () => { process.exit(0); },
-        () => { process.exit(99); });
+        (error) => {
+            console.log(`[e] Error details: ${error}`);
+            process.exit(99);
+        }
+    );
 }
