@@ -10,6 +10,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [DEGIRO](https://degiro.com)
 - [eToro](https://www.etoro.com/)
 - [Finpension](https://finpension.ch)
+- [Interactive Brokers (IBKR)](https://www.interactivebrokers.com)
 - [Rabobank](https://rabobank.nl)
 - [Schwab](https://www.schwab.com)
 - [Swissquote](https://en.swissquote.com/)
@@ -37,6 +38,10 @@ Login to your eToro account and navigate to "Portfolio". Then select "History" i
 ### Finpension
 
 Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select “Transactions”, on the following page to the right notice “transaction report (CSV-file)” and click to email or click to download locally.
+
+### Interactive Brokers (IBKR)
+
+to come..
 
 ### Rabobank
 

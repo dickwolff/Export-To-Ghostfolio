@@ -2,16 +2,13 @@ import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { IbkrRecord } from "../models/ibkrRecord";
 import { AbstractConverter } from "./abstractconverter";
+import { IbkrTradeRecord } from "../models/ibkrTradeRecord";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
-import customParseFormat from "dayjs/plugin/customParseFormat";
+import { IbkrDividendRecord } from "../models/ibkrDividendRecord";
+import { GhostfolioActivity } from "../models/ghostfolioActivity";
 import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
-import { IbkrDividendRecord } from "../models/ibkrDividendRecord";
-import { IbkrTradeRecord } from "../models/ibkrTradeRecord";
-
-import * as matcher from "closest-match";
-import { GhostfolioActivity } from "../models/ghostfolioActivity";
 
 export class IbkrConverter extends AbstractConverter {
 
@@ -25,7 +22,7 @@ export class IbkrConverter extends AbstractConverter {
     public processFileContents(input: string, successCallback: any, errorCallback: any): void {
 
         // Parse the CSV and convert to Ghostfolio import format.
-        const p = parse(input, {
+        parse(input, {
             delimiter: ",",
             fromLine: 2,
             columns: this.processHeaders(input),
@@ -122,7 +119,7 @@ export class IbkrConverter extends AbstractConverter {
 
                 const date = dayjs(`${record.date}`, "YYYYMMDD");
 
-                let fees, quantity, price = 0;
+                let fees = 0, quantity = 0, price = 0;
                 let type = GhostfolioOrderType.buy;
                 let comment = "";
 
@@ -144,7 +141,7 @@ export class IbkrConverter extends AbstractConverter {
 
                     // When a match was found, that data entry should be completed.
                     if (existingDividendRecord) {
-                        
+
                         // Existing record is tax record. Should be overwritten.
                         if (existingDividendRecord.comment.indexOf("TAX") > -1) {
                             existingDividendRecord.comment = comment;
@@ -191,10 +188,6 @@ export class IbkrConverter extends AbstractConverter {
 
             successCallback(result);
         });
-
-        p.on("error", (e) => {
-            console.log("aaaaaaaaaa", e)
-        })
     }
 
     /**
