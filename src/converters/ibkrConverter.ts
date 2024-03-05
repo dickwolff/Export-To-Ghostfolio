@@ -227,7 +227,7 @@ export class IbkrConverter extends AbstractConverter {
      */
     public isIgnoredRecord(record: IbkrRecord): boolean {
         
-        return !!record.isin;
+        return !record.isin;
     }
 
     private findExactDividendMatch(dividendRecord: IbkrDividendRecord, symbol: string, activities: GhostfolioActivity[]): GhostfolioActivity {
