@@ -41,7 +41,17 @@ Login to your Finpension account. Select your portfolio from the landing page. T
 
 ### Interactive Brokers (IBKR)
 
-to come..
+Login to your Interactive Brokers account. Navigate to Account Management and click "Reporting" in the sidebar. Next, click on the "Flex Queries"-tab in the "Reporting" section. From the Flex "Queries section", Click the plus (+) icon on the right side to create a new Flex Query. Create a new Flex Query for Trades, and another one for Dividends. Set the export format to "CSV". See the required columns below the image.
+
+![Export instructions for IBKR](./assets/export-ibkr.jpg)
+
+####  Trades
+
+For trades, select "Trades". Then select the following properties: `Buy/Sell, TradeDate, ISIN, Quantity, TradePrice, TradeMoney, CurrencyPrimary, IBCommission, IBCommissionCurrency`.
+
+#### Dividends
+
+For dividends, select "Cash Transactions". Then select the following properties: `Type, SettleDate, ISIN, Description, Amount, CurrencyPrimary`.
 
 ### Rabobank
 
