@@ -10,6 +10,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [DEGIRO](https://degiro.com)
 - [eToro](https://www.etoro.com/)
 - [Finpension](https://finpension.ch)
+- [Interactive Brokers (IBKR)](https://www.interactivebrokers.com)
 - [Rabobank](https://rabobank.nl)
 - [Schwab](https://www.schwab.com)
 - [Swissquote](https://en.swissquote.com/)
@@ -37,6 +38,20 @@ Login to your eToro account and navigate to "Portfolio". Then select "History" i
 ### Finpension
 
 Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select “Transactions”, on the following page to the right notice “transaction report (CSV-file)” and click to email or click to download locally.
+
+### Interactive Brokers (IBKR)
+
+Login to your Interactive Brokers account. Navigate to Account Management and click "Reporting" in the sidebar. Next, click on the "Flex Queries"-tab in the "Reporting" section. From the Flex "Queries section", Click the plus (+) icon on the right side to create a new Flex Query. Create a new Flex Query for Trades, and another one for Dividends. Set the export format to "CSV". See the required columns below the image.
+
+![Export instructions for IBKR](./assets/export-ibkr.jpg)
+
+####  Trades
+
+For trades, select "Trades". Then select the following properties: `Buy/Sell, TradeDate, ISIN, Quantity, TradePrice, TradeMoney, CurrencyPrimary, IBCommission, IBCommissionCurrency`.
+
+#### Dividends
+
+For dividends, select "Cash Transactions". Then select the following properties: `Type, SettleDate, ISIN, Description, Amount, CurrencyPrimary`.
 
 ### Rabobank
 

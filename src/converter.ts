@@ -1,5 +1,6 @@
 import path from "path";
 import * as fs from "fs";
+import { IbkrConverter } from "./converters/ibkrConverter";
 import { YahooFinanceService } from "./yahooFinanceService";
 import { GhostfolioExport } from "./models/ghostfolioExport";
 import { EtoroConverter } from "./converters/etoroConverter";
@@ -74,6 +75,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
         case "finpension":
             console.log("[i] Processing file using Finpension converter");
             converter = new FinpensionConverter(yahooFinanceService);
+            break;
+        case "ibkr":
+            console.log("[i] Processing file using IBKR converter");
+            converter = new IbkrConverter(yahooFinanceService);
             break;
         case "rabobank":
             console.log("[i] Processing file using Rabobank converter");
