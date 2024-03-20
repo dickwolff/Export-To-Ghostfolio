@@ -199,7 +199,6 @@ export class DeGiroConverterV2 extends AbstractConverter {
       "debitering",
       "rente",
       "interesse",
-      "ag",
       "verrekening promotie",
       "operation de change",
       "versement de fonds",
