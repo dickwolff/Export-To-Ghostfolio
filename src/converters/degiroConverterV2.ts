@@ -224,7 +224,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
     const nextRecord = records[currentIndex + 1];
 
     // Return wether both records are about the same product.
-    return currentRecord.product === nextRecord.product;
+    return currentRecord.product === nextRecord.product && currentRecord.orderId === nextRecord.orderId;
   }
 
   private combineRecords(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord, security: YahooFinanceRecord): [GhostfolioActivity, number] {

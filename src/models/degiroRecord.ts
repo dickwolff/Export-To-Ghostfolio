@@ -8,4 +8,5 @@ export class DeGiroRecord {
     fx: string;
     currency: string;
     amount: string;
+    orderId: string;
 }
