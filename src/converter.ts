@@ -12,6 +12,7 @@ import { RabobankConverter } from "./converters/rabobankConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
+import { XTBConverter } from "./converters/xtbConverter";
 
 export async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
@@ -35,7 +36,7 @@ export async function createAndRunConverter(converterType: string, inputFilePath
         const fileContents = JSON.stringify(result);
         fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
 
-        console.log(`[i] Wrote data to '${outputFileName}.json'!`);
+        console.log(`[i] Wrote data to '${outputFileName}'!`);
 
         completionCallback();
 
@@ -96,6 +97,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
         case "etoro":
             console.log("[i] Processing file using Etoro converter");
             converter = new EtoroConverter(yahooFinanceService);
+            break;
+        case "xtb":
+            console.log("[i] Processing file using XTB converter");
+            converter = new XTBConverter(yahooFinanceService);
             break;
         default:
             throw new Error(`Unknown converter '${converterType}' provided`);
