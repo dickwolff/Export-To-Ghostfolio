@@ -130,7 +130,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
             continue;
           }
         }
-        else if (this.isTransactionFeeRecord(record)) {
+        else if (this.isTransactionFeeRecord(record, false)) {
 
           // If it was a transaction record without any other transaction connected, skip it.
           bar1.increment();
@@ -223,7 +223,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
     const nextRecord = records[currentIndex + 1];
 
     // Return wether both records are about the same product.
-    return currentRecord.product === nextRecord.product;
+    return currentRecord.product === nextRecord.product && currentRecord.orderId === nextRecord.orderId;
   }
 
   private combineRecords(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord, security: YahooFinanceRecord): [GhostfolioActivity, number] {
@@ -236,12 +236,12 @@ export class DeGiroConverterV2 extends AbstractConverter {
 
       // Determine which of the two records is the action record (e.g. buy/sell) and which contains the transaction fees.
       // Firstly, check if the current record is the TxFee record.
-      if (this.isTransactionFeeRecord(currentRecord)) {
+      if (this.isTransactionFeeRecord(currentRecord, true)) {
         actionRecord = nextRecord;
         txFeeRecord = currentRecord;
       }
       // Next, check wether the next record is NOT a TxFee record. In this case, the transaction has no fees.
-      else if (!this.isTransactionFeeRecord(nextRecord)) {
+      else if (!this.isTransactionFeeRecord(nextRecord, true)) {
         txFeeRecord = null;
       }
 
@@ -295,12 +295,12 @@ export class DeGiroConverterV2 extends AbstractConverter {
 
       // Determine which of the two records is the dividend record and which contains the transaction fees.
       // Firstly, check if the current record is the TxFee record.
-      if (this.isTransactionFeeRecord(currentRecord)) {
+      if (this.isTransactionFeeRecord(currentRecord, false)) {
         dividendRecord = nextRecord;
         txFeeRecord = currentRecord;
       }
       // Next, check wether the next record is NOT a TxFee record. In this case, the dividend has no fees.
-      else if (!this.isTransactionFeeRecord(nextRecord)) {
+      else if (!this.isTransactionFeeRecord(nextRecord, false)) {
         txFeeRecord = null;
       }
 
@@ -338,9 +338,9 @@ export class DeGiroConverterV2 extends AbstractConverter {
     // - TxFee + Buy/Sell records, or
     // - Buy/Sell record without TxFee.
     return (
-      (this.isBuyOrSellRecord(currentRecord) && this.isTransactionFeeRecord(nextRecord)) ||
-      (this.isTransactionFeeRecord(currentRecord) && this.isBuyOrSellRecord(nextRecord) ||
-        (this.isBuyOrSellRecord(currentRecord) && !this.isTransactionFeeRecord(nextRecord))));
+      (this.isBuyOrSellRecord(currentRecord) && this.isTransactionFeeRecord(nextRecord, true)) ||
+      (this.isTransactionFeeRecord(currentRecord, true) && this.isBuyOrSellRecord(nextRecord) ||
+        (this.isBuyOrSellRecord(currentRecord) && !this.isTransactionFeeRecord(nextRecord, true))));
   }
 
   private isDividendRecordSet(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord): boolean {
@@ -350,9 +350,9 @@ export class DeGiroConverterV2 extends AbstractConverter {
     // - TxFee + Dividend record, or
     // - Dividend record without TxFee.
     return (
-      (this.isDividendRecord(currentRecord) && this.isTransactionFeeRecord(nextRecord)) ||
-      (this.isTransactionFeeRecord(currentRecord) && this.isDividendRecord(nextRecord)) ||
-      (this.isDividendRecord(currentRecord) && !this.isTransactionFeeRecord(nextRecord)));
+      (this.isDividendRecord(currentRecord) && this.isTransactionFeeRecord(nextRecord, false)) ||
+      (this.isTransactionFeeRecord(currentRecord, false) && this.isDividendRecord(nextRecord)) ||
+      (this.isDividendRecord(currentRecord) && !this.isTransactionFeeRecord(nextRecord, false)));
   }
 
   private isBuyOrSellRecord(record: DeGiroRecord): boolean {
@@ -375,9 +375,14 @@ export class DeGiroConverterV2 extends AbstractConverter {
     return record.description.toLocaleLowerCase().indexOf("dividend") > -1 || record.description.toLocaleLowerCase().indexOf("capital return") > -1;
   }
 
-  private isTransactionFeeRecord(record: DeGiroRecord): boolean {
+  private isTransactionFeeRecord(record: DeGiroRecord, isBuyOrSellTransactionFeeRecord: boolean): boolean {
 
     if (!record) {
+      return false;
+    }
+
+    // When a dividend transaction must be found, there should not be an orderid.
+    if (!isBuyOrSellTransactionFeeRecord && record.orderId) {
       return false;
     }
 

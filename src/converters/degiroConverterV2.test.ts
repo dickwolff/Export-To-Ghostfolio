@@ -5,7 +5,7 @@ import { GhostfolioExport } from "../models/ghostfolioExport";
 describe("degiroConverterV2", () => {
 
   beforeEach(() => {
-    jest.spyOn(console, "log").mockImplementation(jest.fn());
+   // jest.spyOn(console, "log").mockImplementation(jest.fn());
   });
   
   afterEach(() => {
@@ -33,7 +33,7 @@ describe("degiroConverterV2", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(16);
+      expect(actualExport.activities.length).toBe(15);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
