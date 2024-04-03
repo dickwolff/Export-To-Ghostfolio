@@ -6,6 +6,7 @@ on:
     branches:
       - main
     paths:
+      - "./github/workflows/docker.yml"
       - "src/**"
       - "package.json"
   pull_request:
