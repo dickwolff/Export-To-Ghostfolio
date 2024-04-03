@@ -5,7 +5,7 @@ import { GhostfolioExport } from "../models/ghostfolioExport";
 describe("degiroConverterV2", () => {
 
   beforeEach(() => {
-    jest.spyOn(console, "log").mockImplementation(jest.fn());
+   // jest.spyOn(console, "log").mockImplementation(jest.fn());
   });
   
   afterEach(() => {
