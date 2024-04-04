@@ -65,6 +65,7 @@ jobs:
             dickwolff/export-to-ghostfolio:${{ env.IMAGE_VERSION }}
           build-args: |
            IMAGE_VERSION=${{ env.IMAGE_VERSION }}
+          platforms: linux/amd64,linux/arm64
             
       - name: Build and push (main)
         uses: docker/build-push-action@v5
@@ -76,5 +77,4 @@ jobs:
             dickwolff/export-to-ghostfolio:${{ env.IMAGE_VERSION }}
           build-args: |
             IMAGE_VERSION=${{ env.IMAGE_VERSION }}
-
-            
+          platforms: linux/amd64,linux/arm64
