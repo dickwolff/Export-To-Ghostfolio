@@ -21,6 +21,9 @@ export async function createAndRunConverter(converterType: string, inputFilePath
         return errorCallback(new Error("Environment variable GHOSTFOLIO_ACCOUNT_ID not set!"));
     }
 
+    // If DEBUG_LOGGING is set, set spaces to 2 else null for easier to read JSON output.
+    const spaces = process.env.DEBUG_LOGGING ? 2 : null;
+
     const converterTypeLc = converterType.toLocaleLowerCase();
 
     // Determine convertor type.
@@ -33,7 +36,7 @@ export async function createAndRunConverter(converterType: string, inputFilePath
 
         // Write result to file.
         const outputFileName = path.join(outputFilePath, `ghostfolio-${converterTypeLc}.json`);
-        const fileContents = JSON.stringify(result);
+        const fileContents = JSON.stringify(result, null, spaces);
         fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
 
         console.log(`[i] Wrote data to '${outputFileName}.json'!`);
