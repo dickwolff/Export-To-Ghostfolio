@@ -39,7 +39,7 @@ export async function createAndRunConverter(converterType: string, inputFilePath
         const fileContents = JSON.stringify(result, null, spaces);
         fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
 
-        console.log(`[i] Wrote data to '${outputFileName}.json'!`);
+        console.log(`[i] Wrote data to '${outputFileName}'!`);
 
         completionCallback();
 
