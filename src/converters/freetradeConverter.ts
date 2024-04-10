@@ -115,6 +115,7 @@ export class FreetradeConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
+                    /* istanbul ignore next */
                     this.logQueryError(record.ticker || record.isin, idx + 2);
                     return errorCallback(err);
                 }
