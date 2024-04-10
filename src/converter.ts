@@ -12,6 +12,7 @@ import { RabobankConverter } from "./converters/rabobankConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
+import { FreetradeConverter } from "./converters/freetradeConverter";
 
 export async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
@@ -96,6 +97,11 @@ async function createConverter(converterType: string): Promise<AbstractConverter
         case "etoro":
             console.log("[i] Processing file using Etoro converter");
             converter = new EtoroConverter(yahooFinanceService);
+            break;
+        case "ft":
+        case "freetrade":
+            console.log("[i] Processing file using Freetrade converter");
+            converter = new FreetradeConverter(yahooFinanceService);
             break;
         default:
             throw new Error(`Unknown converter '${converterType}' provided`);
