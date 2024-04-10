@@ -76,6 +76,10 @@ export class YahooFinanceService {
 
         // Find a symbol that has the same currency.
         let symbolMatch = this.findSymbolMatch(symbols, expectedCurrency);
+        // If not found and the expectedCurrency is GBP, try again with GBp.
+        if (!symbolMatch && expectedCurrency === "GBP") {
+            symbolMatch = this.findSymbolMatch(symbols, "GBp");
+        }
 
         // If no match found and no symbol given, take the symbol from the first ISIN match.
         // Split on '.', so BNS.TO becomes BNS (for more matches).
