@@ -33,7 +33,7 @@ export class YahooFinanceService {
 
     /**
      * Get a security.
-     * 
+     *
      * @param isin The isin of the security
      * @param symbol The symbol of the security
      * @param progress The progress bar instance, for logging (optional)
@@ -41,7 +41,7 @@ export class YahooFinanceService {
      */
     public async getSecurity(isin?, symbol?, name?, expectedCurrency?, progress?): Promise<YahooFinanceRecord> {
 
-        // When isin was given, check wether there is a symbol conversion cached. Then change map. 
+        // When isin was given, check wether there is a symbol conversion cached. Then change map.
         if (isin && this.isinSymbolCache.has(isin)) {
             symbol = this.isinSymbolCache.get(isin);
         }
@@ -113,7 +113,7 @@ export class YahooFinanceService {
 
             // If there was an isin given, place it in the isin-symbol mapping cache (if it wasn't there before).
             if (isin && !this.isinSymbolCache.has(isin)) {
-                await this.saveInCache(isin, null, symbolMatch.symbol);                  
+                await this.saveInCache(isin, null, symbolMatch.symbol);
             }
 
             // Store the record in cache by symbol (if it wasn't there before).
@@ -129,26 +129,26 @@ export class YahooFinanceService {
 
     /**
      * Load the cache with ISIN and symbols.
-     * 
+     *
      * @returns The size of the loaded cache
      */
     public async loadCache(): Promise<[number, number]> {
 
         // Verify if there is data in the ISIN-Symbol cache. If so, restore to the local variable.
-        const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");        
+        const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");
         if (isinSymbolCacheExist) {
-            const cache = await cacache.get(cachePath, "isinSymbolCache");                        
-            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);    
-            this.isinSymbolCache = cacheAsJson;                     
-        }        
+            const cache = await cacache.get(cachePath, "isinSymbolCache");
+            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);
+            this.isinSymbolCache = cacheAsJson;
+        }
 
         // Verify if there is data in the Symbol cache. If so, restore to the local variable.
-        const symbolCacheExists = await cacache.get.info(cachePath, "symbolCache");        
+        const symbolCacheExists = await cacache.get.info(cachePath, "symbolCache");
         if (symbolCacheExists) {
             const cache = await cacache.get(cachePath, "symbolCache");
-            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);            
+            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);
             this.symbolCache = cacheAsJson;
-        }        
+        }
 
         // Return cache sizes.
         return [this.isinSymbolCache.size, this.symbolCache.size];
@@ -156,12 +156,12 @@ export class YahooFinanceService {
 
     /**
      * Get symbols for a security by a given key.
-     * 
+     *
      * @param query The security identification to query by.
      * @returns The symbols that are retrieved from Yahoo Finance, if any.
      */
     private async getSymbolsByQuery(query: string, progress?: any): Promise<YahooFinanceRecord[]> {
-    
+
         // First get quotes for the query.
         let queryResult = await yahooFinance.search(query,
             {
@@ -187,7 +187,7 @@ export class YahooFinanceService {
         }
 
         const result: YahooFinanceRecord[] = [];
-        
+
         // Loop through the resulted quotes and retrieve summary data.
         for (let idx = 0; idx < queryResult.quotes.length; idx++) {
             const quote = queryResult.quotes[idx];
@@ -235,7 +235,7 @@ export class YahooFinanceService {
 
     /**
      * Find a match by either currency and/or prefered exchange in a list of given symbols.
-     * 
+     *
      * @param symbols The list of symbols to query
      * @param expectedCurrency The expected currency for the symbol
      * @returns A symbol matched by either currency and/or prefered exchange, if any found..
@@ -261,10 +261,10 @@ export class YahooFinanceService {
 
         // Save ISIN-value combination to cache if given.
         if (isin && value) {
-            this.isinSymbolCache.set(isin, value);                                    
-            await cacache.put(cachePath, "isinSymbolCache", JSON.stringify(this.isinSymbolCache, this.mapReplacer));            
+            this.isinSymbolCache.set(isin, value);
+            await cacache.put(cachePath, "isinSymbolCache", JSON.stringify(this.isinSymbolCache, this.mapReplacer));
         }
-        
+
         // Save symbol-value combination to cache if given.
         if (symbol && value) {
             this.symbolCache.set(symbol, value);
@@ -298,7 +298,7 @@ export class YahooFinanceService {
             return value;
         }
     }
-      
+
     private mapReviver(_, value) {
         if (typeof value === 'object' && value !== null) {
           if (value.dataType === 'Map') {
