@@ -25,7 +25,7 @@ describe("freetradeConverter", () => {
 
     // Arange
     const sut = new FreetradeConverter(new YahooFinanceService());
-    const inputFile = "sample-freetrade-simple-export.csv";
+    const inputFile = "sample-freetrade-export.csv";
 
     // Act
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
