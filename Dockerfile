@@ -12,9 +12,9 @@ COPY . .
 
 RUN npm install
 
-RUN mkdir /var/e2g-input
-RUN mkdir /var/e2g-output
-RUN mkdir /var/e2g-cache
+RUN mkdir /var/tmp/e2g-input
+RUN mkdir /var/tmp/e2g-output
+RUN mkdir /var/tmp/e2g-cache
 
 ENTRYPOINT [ "npm" ]
 CMD ["run", "watch"]

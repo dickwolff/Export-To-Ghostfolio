@@ -10,14 +10,14 @@ if (Boolean(process.env.PURGE_CACHE)) {
 
     console.log("[i] Purging cache (PURGE_CACHE set to true)..");
     Promise.all([
-        cacache.rm("tmp/e2g-cache", "isinSymbolCache"),
-        cacache.rm("tmp/e2g-cache", "symbolCache")
+        cacache.rm("/var/tmp/e2g-cache", "isinSymbolCache"),
+        cacache.rm("/var/tmp/e2g-cache", "symbolCache")
     ]).then(() => console.log("[i] Cache purged!"));
 }
 
 // Define input and output.
-const inputFolder = process.env.E2G_INPUT_FOLDER || "/var/e2g-input";
-const outputFolder = process.env.E2G_OUTPUT_FOLDER || "/var/e2g-output";
+const inputFolder = process.env.E2G_INPUT_FOLDER || "/var/tmp/e2g-input";
+const outputFolder = process.env.E2G_OUTPUT_FOLDER || "/var/tmp/e2g-output";
 const usePolling = Boolean(process.env.USE_POLLING) || false;
 
 console.log(`[i] Watching ${inputFolder}${usePolling ? " (using polling)" : ""}..`);

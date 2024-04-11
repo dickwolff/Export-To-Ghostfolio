@@ -99,16 +99,16 @@ Contrary to the locally run version of the tool, the containerized version tries
  You can then run the image like:
 
 ```
-docker run -d -v /C/.../docker_in:/var/e2g-input -v /C/.../docker_out:/var/e2g-output --env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx dickwolff/export-to-ghostfolio
+docker run -d -v /C/.../docker_in:/var/tmp/e2g-input -v /C/.../docker_out:/var/tmp/e2g-output --env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx dickwolff/export-to-ghostfolio
 ```
 
 The following parameters can be given to the Docker run command.
 
 | Command | Optional | Description |
 | ------- | -------- | ----------- |
-| ` -v {local_in-folder}:/var/e2g-input` | N | The input folder where you put the files to be processed |
-| `-v {local_out_folder}:/var/e2g-output` | N | The output folder where the Ghostfolio import JSON will be placed. Also the input file will be moved here when an error ocurred while processing the file. |
-| `-v {local_cache_folder}:/var/e2g-cache` | Y | The folder where Yahoo Finance symbols will be cached  |
+| ` -v {local_in-folder}:/var/tmp/e2g-input` | N | The input folder where you put the files to be processed |
+| `-v {local_out_folder}:/var/tmp/e2g-output` | N | The output folder where the Ghostfolio import JSON will be placed. Also the input file will be moved here when an error ocurred while processing the file. |
+| `-v {local_cache_folder}:/var/tmp/e2g-cache` | Y | The folder where Yahoo Finance symbols will be cached  |
 | `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx` | N | Your Ghostolio account ID <sup>1</sup> |
 | `--env USE_POLLING=true` | Y | When set to true, the container will continously look for new files to process and the container will not stop. |
 | `--env DEBUG_LOGGING=true` | Y | When set to true, the container will show logs in more detail, useful for error tracing. |
@@ -121,7 +121,7 @@ The following parameters can be given to the Docker run command.
 
 ### Caching
 
-The tool uses `cacache` to store data retrieved from Yahoo Finance inside the container. This way the load on Yahoo Finance is reduced and the tool should run faster. The cached data is stored inside the container in `tmp/e2g-cache`. If you feel you need to invalidate your cache, you can do so by adding `--env PURGE_CACHE=true` to your run command. This will clear the cache on container start, and the tool will recreate the cache the next time it has to retrieve data from Yahoo Finance.
+The tool uses `cacache` to store data retrieved from Yahoo Finance inside the container. This way the load on Yahoo Finance is reduced and the tool should run faster. The cached data is stored inside the container in `/var/tmp/e2g-cache`. If you feel you need to invalidate your cache, you can do so by adding `--env PURGE_CACHE=true` to your run command. This will clear the cache on container start, and the tool will recreate the cache the next time it has to retrieve data from Yahoo Finance.
 
 </details>
 
@@ -163,7 +163,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
   
 ### Caching
 
-The tool uses `cacache` to store data retrieved from Yahoo Finance on disk. This way the load on Yahoo Finance is reduced and the tool should run faster. The cached data is stored in `tmp/e2g-cache`. If you feel you need to invalidate your cache, you can do so by removing the folder and the tool will recreate the cache when you run it the next time.
+The tool uses `cacache` to store data retrieved from Yahoo Finance on disk. This way the load on Yahoo Finance is reduced and the tool should run faster. The cached data is stored in `/var/tmp/e2g-cache`. If you feel you need to invalidate your cache, you can do so by removing the folder and the tool will recreate the cache when you run it the next time.
 
 </details>
 
