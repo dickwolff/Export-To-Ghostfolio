@@ -39,6 +39,10 @@ Login to your eToro account and navigate to "Portfolio". Then select "History" i
 
 Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select “Transactions”, on the following page to the right notice “transaction report (CSV-file)” and click to email or click to download locally.
 
+### Freetrade
+
+Open the Freetrade app. Select your portfolio from the option in the top-left under the "Portfolio" heading. Select "Activity" from the list of icons along the bottom of the screen. Select the share icon in the top-right corner and then follow the on-screen instructions.
+
 ### Interactive Brokers (IBKR)
 
 Login to your Interactive Brokers account. Navigate to Account Management and click "Reporting" in the sidebar. Next, click on the "Flex Queries"-tab in the "Reporting" section. From the Flex "Queries section", Click the plus (+) icon on the right side to create a new Flex Query. Create a new Flex Query for Trades, and another one for Dividends. Set the export format to "CSV". See the required columns below the image.
@@ -149,11 +153,13 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 
 | Exporter    | Run command                         |
 | ----------- | ----------------------------------- |
-| Trading 212 | `run start trading212` (or `t212`)  |
 | DEGIRO      | `run start degiro`                  |
 | Finpension  | `run start finpension` (or `fp`)    |
+| Freetrade   | `run start freetrade`  (or `ft`)    |
 | Swissquote  | `run start swissquote` (or `sq`)    |
 | Schwab      | `run start schwab`                  |
+| Trading 212 | `run start trading212` (or `t212`)  |
+
   
 ### Caching
 
