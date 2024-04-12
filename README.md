@@ -116,9 +116,9 @@ The following parameters can be given to the Docker run command.
 | `--env FORCE_DEGIRO_V2=true` | Y | When set to true, the converter will use the DEGIRO V2 converter (currently in beta) when a DEGIRO file was found. |
 | `--env PURGE_CACHE=true` | Y | When set to true, the file cache will be purged on start. |
 
-[1]: You can retrieve your Ghostfolio account ID by going to Accounts > select your account and copying the ID from the URL.
+[^1]: You can retrieve your Ghostfolio account ID by going to Accounts > select your account and copying the ID from the URL.
 
-  ![image](https://user-images.githubusercontent.com/5620002/203353840-f5db7323-fb2f-4f4f-befc-e4e340466a74.png)
+    ![image](https://user-images.githubusercontent.com/5620002/203353840-f5db7323-fb2f-4f4f-befc-e4e340466a74.png)
 
 ### How to use by generating your own image
 
