@@ -1,5 +1,6 @@
 import path from "path";
 import * as fs from "fs";
+import { XtbConverter } from "./converters/xtbConverter";
 import { IbkrConverter } from "./converters/ibkrConverter";
 import { YahooFinanceService } from "./yahooFinanceService";
 import { GhostfolioExport } from "./models/ghostfolioExport";
@@ -35,7 +36,7 @@ export async function createAndRunConverter(converterType: string, inputFilePath
         const fileContents = JSON.stringify(result);
         fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
 
-        console.log(`[i] Wrote data to '${outputFileName}.json'!`);
+        console.log(`[i] Wrote data to '${outputFileName}'!`);
 
         completionCallback();
 
@@ -96,6 +97,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
         case "etoro":
             console.log("[i] Processing file using Etoro converter");
             converter = new EtoroConverter(yahooFinanceService);
+            break;
+        case "xtb":
+            console.log("[i] Processing file using XTB converter");
+            converter = new XtbConverter(yahooFinanceService);
             break;
         default:
             throw new Error(`Unknown converter '${converterType}' provided`);
