@@ -7,7 +7,7 @@ describe("schwabConverter", () => {
   beforeEach(() => {
     jest.spyOn(console, "log").mockImplementation(jest.fn());
   });
-  
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -25,9 +25,9 @@ describe("schwabConverter", () => {
 
     // Arange
     const sut = new SchwabConverter(new YahooFinanceService());
-    const inputFile = "sample-schwab-export.csv";
+    const inputFile = "samples/schwab-export.csv";
 
-    // Act      
+    // Act
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
 
       // Assert
@@ -89,7 +89,7 @@ describe("schwabConverter", () => {
       jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
       const sut = new SchwabConverter(yahooFinanceService);
 
-      // Act      
+      // Act
       sut.processFileContents(tempFileContent, (e) => { done.fail("Should not succeed!"); }, (err: Error) => {
 
         // Assert
@@ -117,7 +117,7 @@ describe("schwabConverter", () => {
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");
 
-    // Act      
+    // Act
     sut.processFileContents(tempFileContent, () => {
 
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for sell action for FIHBX with currency USD! Please add this manually..\n");

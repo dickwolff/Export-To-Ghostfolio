@@ -25,9 +25,9 @@ describe("swissquoteConverter", () => {
 
     // Act
     const sut = new SwissquoteConverter(new YahooFinanceService());
-    const inputFile = "sample-swissquote-export.csv";
+    const inputFile = "samples/swissquote-export.csv";
 
-    // Act      
+    // Act
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
 
       // Assert

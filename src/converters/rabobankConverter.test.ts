@@ -25,9 +25,9 @@ describe("rabobankConverter", () => {
 
     // Arange
     const sut = new RabobankConverter(new YahooFinanceService());
-    const inputFile = "sample-rabobank-export.csv";
+    const inputFile = "samples/rabobank-export.csv";
 
-    // Act      
+    // Act
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
 
       // Assert
@@ -88,7 +88,7 @@ describe("rabobankConverter", () => {
       jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
       const sut = new RabobankConverter(yahooFinanceService);
 
-      // Act      
+      // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
 
         // Assert
@@ -115,7 +115,7 @@ describe("rabobankConverter", () => {
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");
 
-    // Act      
+    // Act
     sut.processFileContents(tempFileContent, () => {
 
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for 1895 Euro Obligaties Indexfonds! Please add this manually..\n");

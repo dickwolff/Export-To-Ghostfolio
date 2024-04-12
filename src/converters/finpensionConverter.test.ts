@@ -7,7 +7,7 @@ describe("finpensionConverter", () => {
   beforeEach(() => {
     jest.spyOn(console, "log").mockImplementation(jest.fn());
   });
-  
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -25,9 +25,9 @@ describe("finpensionConverter", () => {
 
     // Arange
     const sut = new FinpensionConverter(new YahooFinanceService());
-    const inputFile = "sample-finpension-export.csv";
+    const inputFile = "samples/finpension-export.csv";
 
-    // Act      
+    // Act
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
 
       // Assert
@@ -88,7 +88,7 @@ describe("finpensionConverter", () => {
       jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
       const sut = new FinpensionConverter(yahooFinanceService);
 
-      // Act      
+      // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
 
         // Assert
@@ -115,7 +115,7 @@ describe("finpensionConverter", () => {
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");
 
-    // Act      
+    // Act
     sut.processFileContents(tempFileContent, () => {
 
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for CH0189956813 with currency CHF! Please add this manually..\n");
