@@ -21,8 +21,8 @@ export async function createAndRunConverter(converterType: string, inputFilePath
         return errorCallback(new Error("Environment variable GHOSTFOLIO_ACCOUNT_ID not set!"));
     }
 
-    // If DEBUG_LOGGING is set, set spaces to 2 else null for easier to read JSON output.
-    const spaces = process.env.DEBUG_LOGGING ? 2 : null;
+    // If DEBUG_LOGGING is enabled, set spaces to 2 else null for easier to read JSON output.
+    const spaces = (Boolean(process.env.DEBUG_LOGGING) == true) ? 2 : null;
 
     const converterTypeLc = converterType.toLocaleLowerCase();
 
