@@ -76,6 +76,10 @@ Login to your Swissquote account. From the bar menu click on “Transactions”.
 
 Login to your Trading 212 account and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
 
+### XTB
+
+Login to your XTB account and from the top bar click on "Account history", then "Cash operations". Click the "Export button". Choose the period from which you wish to export your history, select report type "Cash Operations" choose file format "csv" then click "Export Report" button.
+
 </details>
 
 ## How to use

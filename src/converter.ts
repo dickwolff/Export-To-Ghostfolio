@@ -1,5 +1,6 @@
 import path from "path";
 import * as fs from "fs";
+import { XtbConverter } from "./converters/xtbConverter";
 import { IbkrConverter } from "./converters/ibkrConverter";
 import { YahooFinanceService } from "./yahooFinanceService";
 import { GhostfolioExport } from "./models/ghostfolioExport";
@@ -100,6 +101,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
         case "etoro":
             console.log("[i] Processing file using Etoro converter");
             converter = new EtoroConverter(yahooFinanceService);
+            break;
+        case "xtb":
+            console.log("[i] Processing file using XTB converter");
+            converter = new XtbConverter(yahooFinanceService);
             break;
         case "ft":
         case "freetrade":
