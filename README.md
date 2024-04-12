@@ -10,6 +10,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [DEGIRO](https://degiro.com)
 - [eToro](https://www.etoro.com/)
 - [Finpension](https://finpension.ch)
+- [Freetrade](https://freetrade.io)
 - [Interactive Brokers (IBKR)](https://www.interactivebrokers.com)
 - [Rabobank](https://rabobank.nl)
 - [Schwab](https://www.schwab.com)
@@ -20,7 +21,7 @@ Is your broker not in the list? Feel free to create an [issue](https://github.co
 
 ## Download transaction export
 
-See the transaction export instructions for each of the supported brokers below. 
+See the transaction export instructions for each of the supported brokers below.
 
 <details>
 <summary>View transaction export instructions</summary>
@@ -49,7 +50,7 @@ Login to your Interactive Brokers account. Navigate to Account Management and cl
 
 ![Export instructions for IBKR](./assets/export-ibkr.jpg)
 
-####  Trades
+#### Trades
 
 For trades, select "Trades". Then select the following properties: `Buy/Sell, TradeDate, ISIN, Quantity, TradePrice, TradeMoney, CurrencyPrimary, IBCommission, IBCommissionCurrency`.
 
@@ -90,34 +91,47 @@ You can run the tool on your local machine by cloning this repository. You can a
 
 ### System requirements
 
-To run the Docker container you need to have [Docker](https://docs.docker.com/get-docker/) installed on your machine. The image is published to [Docker Hub](https://hub.docker.com/r/dickwolff/export-to-ghostfolio). 
+To run the Docker container you need to have [Docker](https://docs.docker.com/get-docker/) installed on your machine. The image is published to [Docker Hub](https://hub.docker.com/r/dickwolff/export-to-ghostfolio).
 
-### How to use
+### How to use with the Dockerhub image
 
 Contrary to the locally run version of the tool, the containerized version tries to determine which file type to process by looking to the header line inside the file. So there is no need to specify which converter to use.
 
- You can then run the image like:
+You can then run the image like:
 
-```
-docker run -d -v /C/.../docker_in:/var/tmp/e2g-input -v /C/.../docker_out:/var/tmp/e2g-output --env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx dickwolff/export-to-ghostfolio
+```console
+docker run -d -v {local_in-folder}:/var/tmp/e2g-input -v {local_out_folder}:/var/tmp/e2g-output --env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx dickwolff/export-to-ghostfolio
 ```
 
 The following parameters can be given to the Docker run command.
 
 | Command | Optional | Description |
 | ------- | -------- | ----------- |
-| ` -v {local_in-folder}:/var/tmp/e2g-input` | N | The input folder where you put the files to be processed |
+| `-v {local_in-folder}:/var/tmp/e2g-input` | N | The input folder where you put the files to be processed |
 | `-v {local_out_folder}:/var/tmp/e2g-output` | N | The output folder where the Ghostfolio import JSON will be placed. Also the input file will be moved here when an error ocurred while processing the file. |
 | `-v {local_cache_folder}:/var/tmp/e2g-cache` | Y | The folder where Yahoo Finance symbols will be cached  |
-| `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx` | N | Your Ghostolio account ID <sup>1</sup> |
+| `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx` | N | Your Ghostolio account ID [^1] |
 | `--env USE_POLLING=true` | Y | When set to true, the container will continously look for new files to process and the container will not stop. |
 | `--env DEBUG_LOGGING=true` | Y | When set to true, the container will show logs in more detail, useful for error tracing. |
 | `--env FORCE_DEGIRO_V2=true` | Y | When set to true, the converter will use the DEGIRO V2 converter (currently in beta) when a DEGIRO file was found. |
 | `--env PURGE_CACHE=true` | Y | When set to true, the file cache will be purged on start. |
 
-1: You can retrieve your Ghostfolio account ID by going to Accounts > select your account and copying the ID from the URL.
+[1]: You can retrieve your Ghostfolio account ID by going to Accounts > select your account and copying the ID from the URL.
 
-![image](https://user-images.githubusercontent.com/5620002/203353840-f5db7323-fb2f-4f4f-befc-e4e340466a74.png)
+  ![image](https://user-images.githubusercontent.com/5620002/203353840-f5db7323-fb2f-4f4f-befc-e4e340466a74.png)
+
+### How to use by generating your own image
+
+Use this option if you wish to run using an isolated docker environment where you have full control over the image and thus can trust it to contain only what is expected.
+
+Clone this repository to your system and then run:
+
+```console
+docker build -t export-to-ghostfolio .
+docker run -d -v {local_in-folder}:/var/tmp/e2g-input -v {local_out_folder}:/var/tmp/e2g-output --env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx -t export-to-ghostfolio
+```
+
+You can use the same options as above for using the image on Dockerhub
 
 ### Caching
 
@@ -160,7 +174,6 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | Schwab      | `run start schwab`                  |
 | Trading 212 | `run start trading212` (or `t212`)  |
 
-  
 ### Caching
 
 The tool uses `cacache` to store data retrieved from Yahoo Finance on disk. This way the load on Yahoo Finance is reduced and the tool should run faster. The cached data is stored in `/var/tmp/e2g-cache`. If you feel you need to invalidate your cache, you can do so by removing the folder and the tool will recreate the cache when you run it the next time.
