@@ -275,6 +275,7 @@ console.log()
         }
     }
 
+    /* istanbul ignore next */
     private logDebug(message, progress?, additionalTabs?: boolean) {
 
         const messageToLog = (additionalTabs ? '\t' : '') + `\t${message}`
@@ -302,6 +303,7 @@ console.log()
         }
     }
       
+    /* istanbul ignore next */
     private mapReviver(_, value) {
         if (typeof value === 'object' && value !== null) {
           if (value.dataType === 'Map') {
