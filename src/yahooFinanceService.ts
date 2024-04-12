@@ -36,6 +36,8 @@ export class YahooFinanceService {
      * 
      * @param isin The isin of the security
      * @param symbol The symbol of the security
+     * @param name The name of the security
+     * @param expectedCurrency The currency of the transaction that should match the security
      * @param progress The progress bar instance, for logging (optional)
      * @returns The security that is retrieved from cache or Yahoo Finance.
      */
@@ -75,8 +77,8 @@ export class YahooFinanceService {
         }
 
         // Find a symbol that has the same currency.
-        let symbolMatch = this.findSymbolMatch(symbols, expectedCurrency);
-
+        let symbolMatch = this.findSymbolMatchByCurrency(symbols, expectedCurrency);
+console.log()
         // If no match found and no symbol given, take the symbol from the first ISIN match.
         // Split on '.', so BNS.TO becomes BNS (for more matches).
         if (!symbol && symbols.length > 0) {
@@ -87,7 +89,7 @@ export class YahooFinanceService {
         if (!symbolMatch && symbol) {
             this.logDebug(`getSecurity(): No initial match found, trying by symbol ${symbol}`, progress);
             const queryBySymbol = await this.getSymbolsByQuery(symbol, progress);
-            symbolMatch = this.findSymbolMatch(queryBySymbol, expectedCurrency);
+            symbolMatch = this.findSymbolMatchByCurrency(queryBySymbol, expectedCurrency);
         }
 
         // If no name was given, take name from the first ISIN match.
@@ -99,7 +101,7 @@ export class YahooFinanceService {
         if (!symbolMatch && name) {
             this.logDebug(`getSecurity(): No match found for symbol ${symbol || "not provided"}, trying by name ${name}`, progress);
             const queryByName = await this.getSymbolsByQuery(name, progress);
-            symbolMatch = this.findSymbolMatch(queryByName, expectedCurrency);
+            symbolMatch = this.findSymbolMatchByCurrency(queryByName, expectedCurrency);
         }
 
         // If a match was found, store it in cache..
@@ -236,9 +238,14 @@ export class YahooFinanceService {
      * @param expectedCurrency The expected currency for the symbol
      * @returns A symbol matched by either currency and/or prefered exchange, if any found..
      */
-    private findSymbolMatch(symbols: YahooFinanceRecord[], expectedCurrency: any) {
+    private findSymbolMatchByCurrency(symbols: YahooFinanceRecord[], expectedCurrency?: any) {
 
         let symbolMatch: YahooFinanceRecord;
+
+        // When no currency is expected and there are multiple symbols, pick the first.
+        if (!expectedCurrency && symbols.length > 0){
+            return symbols[0];
+        }
 
         // If a prefered exchange was given, try find a match by both currency and prefered exchange.
         if (this.preferedExchangePostfix != '') {
