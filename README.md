@@ -73,7 +73,7 @@ Login to your Trading 212 account and create an export file (via History > Downl
 
 ### XTB
 
-Login to your XTB account and from the top bar click on Account history > Cash operations -> Export button. Choose the period from which you wish to export your history, select report type "Cash Operations" and file format "csv" then click "Export Report" button.
+Login to your XTB account and from the top bar click on "Account history", then "Cash operations". Click the "Export button". Choose the period from which you wish to export your history, select report type "Cash Operations" choose file format "csv" then click "Export Report" button.
 
 </details>
 

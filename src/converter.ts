@@ -1,5 +1,6 @@
 import path from "path";
 import * as fs from "fs";
+import { XtbConverter } from "./converters/xtbConverter";
 import { IbkrConverter } from "./converters/ibkrConverter";
 import { YahooFinanceService } from "./yahooFinanceService";
 import { GhostfolioExport } from "./models/ghostfolioExport";
@@ -12,7 +13,6 @@ import { RabobankConverter } from "./converters/rabobankConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
-import { XTBConverter } from "./converters/xtbConverter";
 
 export async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
@@ -100,7 +100,7 @@ async function createConverter(converterType: string): Promise<AbstractConverter
             break;
         case "xtb":
             console.log("[i] Processing file using XTB converter");
-            converter = new XTBConverter(yahooFinanceService);
+            converter = new XtbConverter(yahooFinanceService);
             break;
         default:
             throw new Error(`Unknown converter '${converterType}' provided`);

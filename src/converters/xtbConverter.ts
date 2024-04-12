@@ -1,14 +1,14 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
+import { XtbRecord } from "../models/xtbRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { XTBRecord } from "../models/xtbRecord";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
-export class XTBConverter extends AbstractConverter {
+export class XtbConverter extends AbstractConverter {
 
     constructor(yahooFinanceService: YahooFinanceService) {
         super(yahooFinanceService);
@@ -50,7 +50,7 @@ export class XTBConverter extends AbstractConverter {
 
                 return columnValue;
             }
-        }, async (err, records: XTBRecord[]) => {
+        }, async (err, records: XtbRecord[]) => {
 
             if (err) {
                 console.log(err);
@@ -134,7 +134,7 @@ export class XTBConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    public isIgnoredRecord(record: XTBRecord): boolean {
+    public isIgnoredRecord(record: XtbRecord): boolean {
         let ignoredRecordTypes = ["deposit"];
 
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)

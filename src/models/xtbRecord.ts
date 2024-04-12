@@ -1,4 +1,4 @@
-export class XTBRecord {
+export class XtbRecord {
     id: number;
     type: string;
     time: Date;
