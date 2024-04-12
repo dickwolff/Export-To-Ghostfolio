@@ -7,7 +7,7 @@ describe("xtbConverter", () => {
   beforeEach(() => {
     jest.spyOn(console, "log").mockImplementation(jest.fn());
   });
-  
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -25,9 +25,9 @@ describe("xtbConverter", () => {
 
     // Arange
     const sut = new XtbConverter(new YahooFinanceService());
-    const inputFile = "sample-xtb-export.csv";
+    const inputFile = "samples/xtb-export.csv";
 
-    // Act      
+    // Act
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
 
       // Assert
@@ -89,7 +89,7 @@ describe("xtbConverter", () => {
       jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
       const sut = new XtbConverter(yahooFinanceService);
 
-      // Act      
+      // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
 
         // Assert
@@ -117,7 +117,7 @@ describe("xtbConverter", () => {
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");
 
-    // Act      
+    // Act
     sut.processFileContents(tempFileContent, () => {
 
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for OPEN BUY 8 @ 11.2835! Please add this manually..\n");
