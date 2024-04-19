@@ -33,7 +33,7 @@ describe("xtbConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(7);
+      expect(actualExport.activities.length).toBe(10);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
@@ -120,7 +120,7 @@ describe("xtbConverter", () => {
     // Act      
     sut.processFileContents(tempFileContent, () => {
 
-      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for OPEN BUY 8 @ 11.2835! Please add this manually..\n");
+      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for action buy, symbol SPYL.DE and comment OPEN BUY 8 @ 11.2835! Please add this manually..\n");
 
       done();
     }, () => done.fail("Should not have an error!"));

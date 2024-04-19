@@ -98,7 +98,7 @@ export class XtbConverter extends AbstractConverter {
                         quantity: 1,
                         type: GhostfolioOrderType[record.type],
                         unitPrice: record.amount,
-                        currency: process.env.XTB_ACCOUNT_CURRENCY,
+                        currency: process.env.XTB_ACCOUNT_CURRENCY || "EUR",
                         dataSource: "MANUAL",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                         symbol: record.comment,
@@ -128,7 +128,7 @@ export class XtbConverter extends AbstractConverter {
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`[i] No result found for ${record.type} action for ${record.comment}! Please add this manually..\n`);
+                    this.progress.log(`[i] No result found for action ${record.type}, symbol ${record.symbol} and comment ${record.comment}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }
