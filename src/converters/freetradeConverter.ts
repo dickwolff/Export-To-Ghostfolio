@@ -182,7 +182,7 @@ export class FreetradeConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: FreetradeRecord): boolean {
-        let ignoredRecordTypes = ["withdraw", "monthly_statement", "top_up"];
+        let ignoredRecordTypes = ["withdrawal", "monthly_statement", "top_up"];
 
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
     }
