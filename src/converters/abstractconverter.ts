@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import * as cliProgress from "cli-progress";
-import { YahooFinanceService } from "../yahooFinanceService";
+import YahooFinanceService from "../yahooFinanceService";
 
-export abstract class AbstractConverter {
+export default abstract class AbstractConverter {
 
     protected yahooFinanceService: YahooFinanceService;
     

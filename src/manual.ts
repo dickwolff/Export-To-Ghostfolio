@@ -1,4 +1,4 @@
-import { createAndRunConverter } from "./converter";
+import { createAndRunConverter } from "./converter.ts";
 
 const manual = () => {
     
@@ -27,4 +27,5 @@ const manual = () => {
     }
 }
 
-export default manual;
+const manually = manual();
+export default manually;
