@@ -4,8 +4,8 @@
   "type": "module",
   "description": "Convert multiple broker exports to Ghostfolio import",
   "scripts": {
-    "start": "ts-node-esm ./src/manual.ts",
-    "watch": "ts-node-esm ./src/watcher.ts",
+    "start": "ts-node-esm --experimental-specifier-resolution=node ./src/manual.ts",
+    "watch": "ts-node-esm --experimental-specifier-resolution=node ./src/watcher.ts",
     "test": "jest --coverage"
   },
   "author": "Dick Wolff",

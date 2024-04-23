@@ -1,14 +1,14 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { XtbRecord } from "../models/xtbRecord";
-import AbstractConverter from "./abstractconverter.ts";
-import YahooFinanceService from "../yahooFinanceService.ts";
-import { GhostfolioExport } from "../models/ghostfolioExport.ts";
-import customParseFormat from "dayjs/plugin/customParseFormat.ts";
-import YahooFinanceRecord from "../models/yahooFinanceRecord.ts";
+import { AbstractConverter } from "./abstractconverter";
+import { YahooFinanceService } from "../yahooFinanceService";
+import { GhostfolioExport } from "../models/ghostfolioExport";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
-export default class XtbConverter extends AbstractConverter {
+export class XtbConverter extends AbstractConverter {
 
     constructor(yahooFinanceService: YahooFinanceService) {
         super(yahooFinanceService);

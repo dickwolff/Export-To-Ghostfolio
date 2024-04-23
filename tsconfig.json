@@ -6,8 +6,6 @@
         "moduleResolution": "node",
         "sourceMap": true,
         "outDir": "dist",
-        "noEmit": true,
-        "allowImportingTsExtensions": true,
     },
     "lib": ["es6"]
 }

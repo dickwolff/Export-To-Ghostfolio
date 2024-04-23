@@ -1,4 +1,5 @@
-import { createAndRunConverter } from "./converter.ts";
+import dotenv from "dotenv";
+import { createAndRunConverter } from "./converter";
 
 const manual = () => {
     
@@ -8,7 +9,7 @@ const manual = () => {
     }
     else {
 
-        require("dotenv").config();
+        dotenv.config();
 
         // Define import file path.
         const inputFile = process.env.INPUT_FILE;

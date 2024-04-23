@@ -3,7 +3,7 @@ import { parse } from "csv-parse";
 import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
-import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
+import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 import { FinpensionRecord } from "../models/finpensionRecord";
 
