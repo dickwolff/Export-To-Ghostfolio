@@ -1,14 +1,14 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
-import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
+import { AbstractCsvConverter } from "./abstractCsvConverter";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { SwissquoteRecord } from "../models/swissquoteRecord";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
-export class SwissquoteConverter extends AbstractConverter {
+export class SwissquoteConverter extends AbstractCsvConverter {
 
     constructor(yahooFinanceService: YahooFinanceService) {
         super(yahooFinanceService);

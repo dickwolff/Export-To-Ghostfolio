@@ -1,15 +1,15 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { DeGiroRecord } from "../models/degiroRecord";
-import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
+import { AbstractCsvConverter } from "./abstractCsvConverter";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { GhostfolioActivity } from "../models/ghostfolioActivity";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
-export class DeGiroConverterV2 extends AbstractConverter {
+export class DeGiroConverterV2 extends AbstractCsvConverter {
 
   constructor(yahooFinanceService: YahooFinanceService) {
     super(yahooFinanceService);

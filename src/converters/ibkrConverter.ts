@@ -1,16 +1,16 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { IbkrRecord } from "../models/ibkrRecord";
-import { AbstractConverter } from "./abstractconverter";
 import { IbkrTradeRecord } from "../models/ibkrTradeRecord";
 import { YahooFinanceService } from "../yahooFinanceService";
+import { AbstractCsvConverter } from "./abstractCsvConverter";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { IbkrDividendRecord } from "../models/ibkrDividendRecord";
 import { GhostfolioActivity } from "../models/ghostfolioActivity";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
-export class IbkrConverter extends AbstractConverter {
+export class IbkrConverter extends AbstractCsvConverter {
 
     constructor(yahooFinanceService: YahooFinanceService) {
         super(yahooFinanceService);

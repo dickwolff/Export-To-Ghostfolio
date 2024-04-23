@@ -14,6 +14,7 @@ import { RabobankConverter } from "./converters/rabobankConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
+import { BrandNewDayConverter } from "./converters/brandnewdayConverter";
 
 async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
@@ -58,6 +59,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
         case "trading212":
             console.log("[i] Processing file using Trading212 converter");
             converter = new Trading212Converter(yahooFinanceService);
+        case "bnd":
+        case "brandnewday":
+            console.log("[i] Processing file using Brand New Day converter");
+            converter = new BrandNewDayConverter(yahooFinanceService);
             break;
         case "degiro":
             console.log("[i] Processing file using DeGiro converter");

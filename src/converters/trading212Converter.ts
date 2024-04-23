@@ -1,13 +1,13 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
-import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
+import { AbstractCsvConverter } from "./abstractCsvConverter";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import { Trading212Record } from "../models/trading212Record";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
-export class Trading212Converter extends AbstractConverter {
+export class Trading212Converter extends AbstractCsvConverter {
 
     constructor(yahooFinanceService: YahooFinanceService) {
         super(yahooFinanceService);
