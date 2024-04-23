@@ -1,10 +1,11 @@
 {
   "name": "export-to-ghostfolio",
   "version": "1.0.0",
+  "type": "module",
   "description": "Convert multiple broker exports to Ghostfolio import",
   "scripts": {
-    "start": "ts-node ./src/manual.ts",
-    "watch": "ts-node ./src/watcher.ts",
+    "start": "ts-node-esm ./src/manual.ts",
+    "watch": "ts-node-esm ./src/watcher.ts",
     "test": "jest --coverage"
   },
   "author": "Dick Wolff",
@@ -30,6 +31,7 @@
     "csv-parse": "^5.5.5",
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.5",
+    "pdfreader": "^3.0.2",
     "yahoo-finance2": "^2.9.2"
   }
 }

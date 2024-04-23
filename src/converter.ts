@@ -13,6 +13,7 @@ import { RabobankConverter } from "./converters/rabobankConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
+import { TradeRepublicConverter } from "./converters/tradeRepublicConverter";
 
 export async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
@@ -93,6 +94,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
         case "schwab":
             console.log("[i] Processing file using Schwab converter");
             converter = new SchwabConverter(yahooFinanceService);
+            break;
+        case "traderepublic":
+            console.log("[i] Processing file using TradeRepublic converter");
+            converter = new TradeRepublicConverter(yahooFinanceService);
             break;
         case "etoro":
             console.log("[i] Processing file using Etoro converter");
