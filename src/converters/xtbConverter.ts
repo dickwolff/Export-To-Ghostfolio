@@ -38,8 +38,11 @@ export class XtbConverter extends AbstractConverter {
                     if (type.indexOf("stocks/etf purchase") > -1) {
                         return "buy";
                     }
-                    if (type.indexOf("stocks/etf sale") > -1) {
+                    else if (type.indexOf("stocks/etf sale") > -1) {
                         return "sell";
+                    }
+                    else if (type.indexOf("free funds interests") > -1) {
+                        return "interest";
                     }
                 }
 
@@ -83,8 +86,30 @@ export class XtbConverter extends AbstractConverter {
                 }
 
                 const date = dayjs(`${record.time}`, "DD.MM.YYYY HH:mm:ss");
-                const match = record.comment.match(/(?:OPEN|CLOSE) BUY (\d+) @ ((?:[0-9]*[.])?[0-9]+)/)
-                const quantity = parseInt(match[1]);
+
+                // Interest does not have a security, so add those immediately.
+                if (record.type.toLocaleLowerCase() === "interest") {
+
+                    // Add interest record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: record.comment,
+                        fee: 0,
+                        quantity: 1,
+                        type: GhostfolioOrderType[record.type],
+                        unitPrice: record.amount,
+                        currency: process.env.XTB_ACCOUNT_CURRENCY || "EUR",
+                        dataSource: "MANUAL",
+                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: record.comment,
+                    });
+
+                    bar1.increment();
+                    continue;
+                }
+
+                const match = record.comment.match(/(?:OPEN|CLOSE) BUY (\d+|(?:[0-9]*[.])?[0-9]+)(?:\/(?:[0-9]*[.])?[0-9]+)? @ ((?:[0-9]*[.])?[0-9]+)/)
+                const quantity = parseFloat(match[1]);
                 const unitPrice = parseFloat(match[2]);
 
                 let security: YahooFinanceRecord;
@@ -103,7 +128,7 @@ export class XtbConverter extends AbstractConverter {
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`[i] No result found for ${record.type} action for ${record.comment}! Please add this manually..\n`);
+                    this.progress.log(`[i] No result found for action ${record.type}, symbol ${record.symbol} and comment ${record.comment}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }

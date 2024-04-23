@@ -1,8 +1,9 @@
 import path from "path";
 import * as fs from "fs";
-import { YahooFinanceService } from "./yahooFinanceService";
+import dayjs from "dayjs";
 import { XtbConverter } from "./converters/xtbConverter";
 import { IbkrConverter } from "./converters/ibkrConverter";
+import { YahooFinanceService } from "./yahooFinanceService";
 import { GhostfolioExport } from "./models/ghostfolioExport";
 import { EtoroConverter } from "./converters/etoroConverter";
 import { DeGiroConverter } from "./converters/degiroConverter";
@@ -32,7 +33,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
         console.log("[i] Processing complete, writing to file..")
 
         // Write result to file.
-        const outputFileName = path.join(outputFilePath, `ghostfolio-${converterTypeLc}.json`);
+        const outputFileName = path.join(outputFilePath, `ghostfolio-${converterTypeLc}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
         const fileContents = JSON.stringify(result);
         fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
 

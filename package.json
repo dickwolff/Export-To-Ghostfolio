@@ -31,7 +31,6 @@
     "csv-parse": "^5.5.5",
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.5",
-    "pdfreader": "^3.0.2",
-    "yahoo-finance2": "^2.9.2"
+    "yahoo-finance2": "^2.11.2"
   }
 }
