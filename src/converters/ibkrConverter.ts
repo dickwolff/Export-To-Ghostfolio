@@ -5,9 +5,9 @@ import { AbstractConverter } from "./abstractconverter";
 import { IbkrTradeRecord } from "../models/ibkrTradeRecord";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
+import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { IbkrDividendRecord } from "../models/ibkrDividendRecord";
 import { GhostfolioActivity } from "../models/ghostfolioActivity";
-import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class IbkrConverter extends AbstractConverter {
