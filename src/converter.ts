@@ -1,5 +1,6 @@
 import path from "path";
 import * as fs from "fs";
+import dayjs from "dayjs";
 import { AbstractConverter } from "./converters/abstractconverter";
 import { DeGiroConverter } from "./converters/degiroConverter";
 import { DeGiroConverterV2 } from "./converters/degiroConverterV2";
@@ -36,8 +37,8 @@ export async function createAndRunConverter(converterType: string, inputFilePath
         console.log("[i] Processing complete, writing to file..")
 
         // Write result to file.
-        const outputFileName = path.join(outputFilePath, `ghostfolio-${converterTypeLc}.json`);
-        const fileContents = JSON.stringify(result, null, spaces);
+        const outputFileName = path.join(outputFilePath, `ghostfolio-${converterTypeLc}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
+        const fileContents = JSON.stringify(result);
         fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
 
         console.log(`[i] Wrote data to '${outputFileName}'!`);
