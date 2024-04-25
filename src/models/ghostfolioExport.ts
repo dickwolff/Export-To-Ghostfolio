@@ -1,11 +1,16 @@
 import { GhostfolioActivity } from "./ghostfolioActivity";
 
-export class GhostfolioExport {
+class GhostfolioExport {
     meta: GhostfolioMeta;
     activities: GhostfolioActivity[];
 }
 
-export class GhostfolioMeta {
+class GhostfolioMeta {
     date: Date;
     version: string;
+}
+
+export {
+    GhostfolioExport,
+    GhostfolioMeta
 }

@@ -49,5 +49,8 @@ Account*.csv
 # Ignore Finpension export files
 Finpension.csv
 
+# Ignore PDF's
+*.pdf
+
 # Ignore export file
 ghostfolio-*.json
