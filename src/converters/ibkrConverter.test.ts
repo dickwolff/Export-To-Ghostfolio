@@ -6,6 +6,14 @@ describe("IbkrConverter", () => {
 
   beforeEach(() => {
     jest.spyOn(console, "log").mockImplementation(jest.fn());
+    // Mock YahooFinanceService - we don't want to make real requests and don't care about the result.
+    jest.spyOn(YahooFinanceService.prototype, "getSecurity").mockResolvedValue({
+      symbol: "AAPL",
+      exchange: "NASDAQ",
+      price: 100,
+      currency: "USD",
+      name: "Apple Inc.",
+    });
   });
 
   afterEach(() => {

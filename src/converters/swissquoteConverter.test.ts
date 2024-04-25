@@ -6,6 +6,13 @@ describe("swissquoteConverter", () => {
 
   beforeEach(() => {
     jest.spyOn(console, "log").mockImplementation(jest.fn());
+    jest.spyOn(YahooFinanceService.prototype, "getSecurity").mockResolvedValue({
+      symbol: "AAPL",
+      exchange: "NASDAQ",
+      price: 100,
+      currency: "USD",
+      name: "Apple Inc.",
+    });
   });
 
   afterEach(() => {
@@ -78,6 +85,10 @@ describe("swissquoteConverter", () => {
     });
 
     it("Yahoo Finance got empty input for query", (done) => {
+
+      // Mock Yahoo Finance service to throw error.
+      const yahooFinanceService = new YahooFinanceService();
+      jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
 
       // Act
       const sut = new SwissquoteConverter(new YahooFinanceService());
