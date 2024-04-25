@@ -1,3 +1,4 @@
+import dotenv from "dotenv";
 import { createAndRunConverter } from "./converter";
 
 // Check if converter was specified.
@@ -6,7 +7,7 @@ if (process.argv.length != 3) {
 }
 else {
 
-    require("dotenv").config();
+    dotenv.config();
 
     // Define import file path.
     const inputFile = process.env.INPUT_FILE;

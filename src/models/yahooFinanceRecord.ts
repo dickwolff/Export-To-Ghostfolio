@@ -1,5 +1,5 @@
 
-export class YahooFinanceRecord {
+export default class YahooFinanceRecord {
     symbol: string;
     exchange: string;
     price: number;

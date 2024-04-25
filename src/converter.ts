@@ -15,7 +15,7 @@ import { Trading212Converter } from "./converters/trading212Converter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
 
-export async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
+async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
     // Verify if Ghostolio account ID is set (because without it there can be no valid output).
     if (!process.env.GHOSTFOLIO_ACCOUNT_ID) {
@@ -108,4 +108,9 @@ async function createConverter(converterType: string): Promise<AbstractConverter
     }
 
     return converter;
+}
+
+export {
+    createAndRunConverter,
+    createConverter
 }
