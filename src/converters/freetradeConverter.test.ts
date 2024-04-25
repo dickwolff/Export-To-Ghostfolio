@@ -28,15 +28,16 @@ describe("freetradeConverter", () => {
     const inputFile = "samples/freetrade-export.csv";
 
     // Act
-    sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
+    sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport, err: Error) => {
 
       // Assert
+      expect(err).toBeFalsy();
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
       expect(actualExport.activities.length).toBe(7);
 
       done();
-    }, () => { done("Should not have an error!"); });
+    }, (err: any) => { done(err); });
   });
 
   describe("should throw an error if", () => {
