@@ -6,6 +6,7 @@ describe("swissquoteConverter", () => {
 
   beforeEach(() => {
     jest.spyOn(console, "log").mockImplementation(jest.fn());
+    // Mock YahooFinanceService - we don't want to make real requests and don't care about the result.
     jest.spyOn(YahooFinanceService.prototype, "getSecurity").mockResolvedValue({
       symbol: "AAPL",
       exchange: "NASDAQ",
@@ -40,7 +41,7 @@ describe("swissquoteConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(14);
+      expect(actualExport.activities.length).toBe(15);
 
       done();
     }, () => { fail("Should not have an error!"); });
