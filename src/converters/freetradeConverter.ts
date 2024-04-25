@@ -57,10 +57,10 @@ export class FreetradeConverter extends AbstractConverter {
 
                 return columnValue;
             }
-        }, async (_, records: FreetradeRecord[]) => {
+        }, async (error, records: FreetradeRecord[]) => {
             // If records is empty, parsing failed..
-            if (records === undefined || records.length === 0) {
-                return errorCallback(new Error("An error ocurred while parsing!"));
+            if (records === undefined || records.length === 0 || error) {
+                return errorCallback(new Error("An error ocurred while parsing!\n=> " + error));
             }
 
             console.log("[i] Read CSV file. Start processing..");
