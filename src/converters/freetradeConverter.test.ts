@@ -36,7 +36,7 @@ describe("freetradeConverter", () => {
       expect(actualExport.activities.length).toBe(7);
 
       done();
-    }, () => { done.fail("Should not have an error!"); });
+    }, () => { done("Should not have an error!"); });
   });
 
   describe("should throw an error if", () => {
@@ -48,7 +48,7 @@ describe("freetradeConverter", () => {
       let tempFileName = "tmp/testinput/freetrade-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done("Should not succeed!"); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -66,7 +66,7 @@ describe("freetradeConverter", () => {
       tempFileContent += "Title,Type,Timestamp,Account Currency,Total Amount,Buy / Sell,Ticker,ISIN,Price per Share in Account Currency,Stamp Duty,Quantity,Venue,Order ID,Order Type,Instrument Currency,Total Shares Amount,Price per Share,FX Rate,Base FX Rate,FX Fee (BPS),FX Fee Amount,Dividend Ex Date,Dividend Pay Date,Dividend Eligible Quantity,Dividend Amount Per Share,Dividend Gross Distribution Amount,Dividend Net Distribution Amount,Dividend Withheld Tax Percentage,Dividend Withheld Tax Amount\n";
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done("Should not succeed!"); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -90,7 +90,7 @@ describe("freetradeConverter", () => {
       const sut = new FreetradeConverter(yahooFinanceService);
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done("Should not succeed!"); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -124,7 +124,7 @@ describe("freetradeConverter", () => {
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for US17275R1023 with currency USD! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done("Should not have an error!"));
   });
 
   it("should log when Yahoo Finance returns no symbol", (done) => {
@@ -150,6 +150,6 @@ describe("freetradeConverter", () => {
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for CSCO with currency USD! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done("Should not have an error!"));
   });
 });
