@@ -105,7 +105,7 @@ Contrary to the locally run version of the tool, the containerized version tries
 You can then run the image like:
 
 ```console
-docker run -d -v {local_in-folder}:/var/tmp/e2g-input -v {local_out_folder}:/var/tmp/e2g-output --env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx dickwolff/export-to-ghostfolio
+docker run --rm -v {local_in-folder}:/var/tmp/e2g-input -v {local_out_folder}:/var/tmp/e2g-output --env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx dickwolff/export-to-ghostfolio
 ```
 
 The following parameters can be given to the Docker run command.
@@ -133,7 +133,7 @@ Clone this repository to your system and then run:
 
 ```console
 docker build -t export-to-ghostfolio .
-docker run -d -v {local_in-folder}:/var/tmp/e2g-input -v {local_out_folder}:/var/tmp/e2g-output --env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx -t export-to-ghostfolio
+docker run --rm -v {local_in-folder}:/var/tmp/e2g-input -v {local_out_folder}:/var/tmp/e2g-output --env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx -t export-to-ghostfolio
 ```
 
 You can use the same options as above for using the image on Dockerhub
