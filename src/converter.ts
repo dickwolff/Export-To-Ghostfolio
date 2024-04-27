@@ -38,7 +38,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
 
         // Write result to file.
         const outputFileName = path.join(outputFilePath, `ghostfolio-${converterTypeLc}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
-        const fileContents = JSON.stringify(result);
+        const fileContents = JSON.stringify(result, null, spaces);
         fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
 
         console.log(`[i] Wrote data to '${outputFileName}'!`);
