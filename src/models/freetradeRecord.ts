@@ -1,0 +1,31 @@
+export class FreetradeRecord {
+    title: string;
+    type: string;
+    timestamp: Date;
+    accountCurrency: string;
+    totalAmount: number;
+    buySell: string;
+    ticker: string;
+    isin: string;
+    pricePerShareInAccountCurrency: number;
+    stampDuty: number;
+    quantity: number;
+    venue: string;
+    orderId: string;
+    orderType: string;
+    instrumentCurrency: string;
+    totalSharesAmount: number;
+    pricePerShare: number;
+    fxRate: number;
+    baseFxRate: number;
+    fXFeeBps: number;
+    fXFeeAmount: number;
+    dividendExDate: Date;
+    dividendPayDate: Date;
+    dividendEligibleQuantity: number;
+    dividendAmountPerShare: number;
+    dividendGrossDistributionAmount: number;
+    dividendNetDistributionAmount: number;
+    dividendWithheldTaxPercentage: number;
+    dividendWithheldTaxAmount: number;
+}
