@@ -159,6 +159,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 
 | Exporter    | Run command                         |
 | ----------- | ----------------------------------- |
+| Trading 212 | `run start trading212` (or `t212`)  |
 | DEGIRO      | `run start degiro`                  |
 | Finpension  | `run start finpension` (or `fp`)    |
 | Freetrade   | `run start freetrade`  (or `ft`)    |
