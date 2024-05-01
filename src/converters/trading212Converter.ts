@@ -4,7 +4,7 @@ import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import { Trading212Record } from "../models/trading212Record";
-import { YahooFinanceRecord } from "../models/yahooFinanceRecord";
+import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class Trading212Converter extends AbstractConverter {

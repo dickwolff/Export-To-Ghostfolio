@@ -1,5 +1,7 @@
 import path from "path";
 import * as fs from "fs";
+import dayjs from "dayjs";
+import { XtbConverter } from "./converters/xtbConverter";
 import { IbkrConverter } from "./converters/ibkrConverter";
 import { YahooFinanceService } from "./yahooFinanceService";
 import { GhostfolioExport } from "./models/ghostfolioExport";
@@ -13,7 +15,7 @@ import { Trading212Converter } from "./converters/trading212Converter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
 
-export async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
+async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
     // Verify if Ghostolio account ID is set (because without it there can be no valid output).
     if (!process.env.GHOSTFOLIO_ACCOUNT_ID) {
@@ -31,11 +33,11 @@ export async function createAndRunConverter(converterType: string, inputFilePath
         console.log("[i] Processing complete, writing to file..")
 
         // Write result to file.
-        const outputFileName = path.join(outputFilePath, `ghostfolio-${converterTypeLc}.json`);
+        const outputFileName = path.join(outputFilePath, `ghostfolio-${converterTypeLc}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
         const fileContents = JSON.stringify(result);
         fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
 
-        console.log(`[i] Wrote data to '${outputFileName}.json'!`);
+        console.log(`[i] Wrote data to '${outputFileName}'!`);
 
         completionCallback();
 
@@ -97,9 +99,18 @@ async function createConverter(converterType: string): Promise<AbstractConverter
             console.log("[i] Processing file using Etoro converter");
             converter = new EtoroConverter(yahooFinanceService);
             break;
+        case "xtb":
+            console.log("[i] Processing file using XTB converter");
+            converter = new XtbConverter(yahooFinanceService);
+            break;
         default:
             throw new Error(`Unknown converter '${converterType}' provided`);
     }
 
     return converter;
+}
+
+export {
+    createAndRunConverter,
+    createConverter
 }

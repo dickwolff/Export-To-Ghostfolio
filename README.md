@@ -16,6 +16,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [Schwab](https://www.schwab.com)
 - [Swissquote](https://en.swissquote.com/)
 - [Trading 212](https://trading212.com)
+- [XTB](https://www.xtb.com/int)
 
 Is your broker not in the list? Feel free to create an [issue](https://github.com/dickwolff/Export-To-Ghostfolio/issues/new) or, even better, build it yourself and create a [pull request](https://github.com/dickwolff/Export-To-Ghostfolio/compare)!
 
@@ -75,6 +76,10 @@ Login to your Swissquote account. From the bar menu click on “Transactions”.
 ### Trading 212
 
 Login to your Trading 212 account and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
+
+### XTB
+
+Login to your XTB account and from the top bar click on "Account history", then "Cash operations". Click the "Export button". Choose the period from which you wish to export your history, select report type "Cash Operations" choose file format "csv" then click "Export Report" button.
 
 </details>
 

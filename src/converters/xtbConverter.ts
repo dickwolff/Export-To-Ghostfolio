@@ -1,14 +1,14 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
+import { XtbRecord } from "../models/xtbRecord";
 import { AbstractConverter } from "./abstractconverter";
-import { RabobankRecord } from "../models/rabobankRecord";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
-export class RabobankConverter extends AbstractConverter {
+export class XtbConverter extends AbstractConverter {
 
     constructor(yahooFinanceService: YahooFinanceService) {
         super(yahooFinanceService);
@@ -25,44 +25,42 @@ export class RabobankConverter extends AbstractConverter {
         parse(input, {
             delimiter: ";",
             fromLine: 2,
-            columns: this.processHeaders(input),
+            skip_empty_lines: true,
+            columns: this.processHeaders(input, ";"),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
 
-                // Convert actions to Ghostfolio type.
+                // Convert type to Ghostfolio type.
                 if (context.column === "type") {
-                    const action = columnValue.toLocaleLowerCase();
+                    const type = columnValue.toLocaleLowerCase();
 
-                    if (action.indexOf("verkoop fondsen") > -1) {
-                        return "sell";
-                    }
-                    else if (action.indexOf("koop fondsen") > -1) {
+                    if (type.indexOf("stocks/etf purchase") > -1) {
                         return "buy";
                     }
-                    else if (action.indexOf("dividend") > -1) {
-                        return "dividend";
+                    else if (type.indexOf("stocks/etf sale") > -1) {
+                        return "sell";
                     }
-                    else if (action.indexOf("rente") > -1) {
+                    else if (type.indexOf("free funds interests") > -1) {
                         return "interest";
                     }
                 }
 
                 // Parse numbers to floats (from string).
-                if (context.column === "amount" ||
-                    context.column === "price" ||
-                    context.column === "totalAmount" ||
-                    context.column === "currencyCosts") {
-
-                    return Math.abs(parseFloat(columnValue.replace(",", ".")));
+                if (context.column === "amount") {
+                    return parseFloat(columnValue);
                 }
 
                 return columnValue;
             }
-        }, async (_, records: RabobankRecord[]) => {
+        }, async (err, records: XtbRecord[]) => {
+
+            if (err) {
+                console.log(err);
+            }
 
             // If records is empty, parsing failed..
-            if (records === undefined || records.length === 0) {
+            if (records === undefined || records.length === 0) {                    
                 return errorCallback(new Error("An error ocurred while parsing!"));
             }
 
@@ -83,90 +81,70 @@ export class RabobankConverter extends AbstractConverter {
 
                 // Check if the record should be ignored.
                 if (this.isIgnoredRecord(record)) {
-
                     bar1.increment();
                     continue;
                 }
 
-                const date = dayjs(`${record.date}`, "DD-MM-YYYY");
+                const date = dayjs(`${record.time}`, "DD.MM.YYYY HH:mm:ss");
 
-                // Interest or platform fees do not have a security, so add those immediately.
-                if (record.type.toLocaleLowerCase() === "interest" ||
-                    record.type.toLocaleLowerCase().indexOf("tarieven") > -1) {
+                // Interest does not have a security, so add those immediately.
+                if (record.type.toLocaleLowerCase() === "interest") {
 
-                    let orderType = GhostfolioOrderType[record.type];
-                    let description = "";
-
-                    if (record.type.toLocaleLowerCase().indexOf("tarieven") > -1) {
-                        orderType = GhostfolioOrderType.fee;
-                        description = record.type;
-                    }
-
-                    // Add fees record to export.
+                    // Add interest record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: "",
+                        comment: record.comment,
                         fee: 0,
                         quantity: 1,
-                        type: orderType,
-                        unitPrice: record.totalAmount,
-                        currency: record.currency,
+                        type: GhostfolioOrderType[record.type],
+                        unitPrice: record.amount,
+                        currency: process.env.XTB_ACCOUNT_CURRENCY || "EUR",
                         dataSource: "MANUAL",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: description
+                        symbol: record.comment,
                     });
 
                     bar1.increment();
                     continue;
                 }
 
+                const match = record.comment.match(/(?:OPEN|CLOSE) BUY (\d+|(?:[0-9]*[.])?[0-9]+)(?:\/(?:[0-9]*[.])?[0-9]+)? @ ((?:[0-9]*[.])?[0-9]+)/)
+                const quantity = parseFloat(match[1]);
+                const unitPrice = parseFloat(match[2]);
+
                 let security: YahooFinanceRecord;
                 try {
                     security = await this.yahooFinanceService.getSecurity(
-                        record.isin,
                         null,
-                        record.name,
-                        record.currency,
+                        record.symbol,
+                        null,
+                        null,
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.isin, idx + 2);
+                    this.logQueryError(record.comment, idx + 2);        
                     return errorCallback(err);
                 }
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`[i] No result found for ${record.type} action for ${record.name}! Please add this manually..\n`);
+                    this.progress.log(`[i] No result found for action ${record.type}, symbol ${record.symbol} and comment ${record.comment}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }
-
-                let price, quantity, fees = 0;
-
-                // On dividend records, amount and quantity are reversed.
-                if (record.type === "dividend") {
-                    quantity = record.price;
-                    price = record.amount;
-                    fees = 0;
-                }
-                else {
-                    quantity = record.amount
-                    price = record.price;
-                    fees = record.currencyCosts;
-                }
-
+                
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: "",
-                    fee: fees,
+                    comment: record.comment,
+                    fee: 0,
                     quantity: quantity,
                     type: GhostfolioOrderType[record.type],
-                    unitPrice: price,
-                    currency: record.currency,
+                    unitPrice: unitPrice,
+                    currency: security.currency,
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
+                    symbol: security.symbol,
                 });
 
                 bar1.increment();
@@ -181,33 +159,8 @@ export class RabobankConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    protected processHeaders(_: string): string[] {
-
-        // Generic header mapping from the DEGIRO CSV export.
-        const csvHeaders = [
-            "account",
-            "name",
-            "date",
-            "type",
-            "currency",
-            "amount",
-            "price",
-            "priceCurrency",
-            "currencyCosts",
-            "value",
-            "totalAmount",
-            "isin",
-            "time",
-            "exchange"];
-
-        return csvHeaders;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public isIgnoredRecord(record: RabobankRecord): boolean {
-        let ignoredRecordTypes = ["storting", "opname"];
+    public isIgnoredRecord(record: XtbRecord): boolean {
+        let ignoredRecordTypes = ["deposit"];
 
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
     }
