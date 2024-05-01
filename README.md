@@ -10,6 +10,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [DEGIRO](https://degiro.com)
 - [eToro](https://www.etoro.com/)
 - [Finpension](https://finpension.ch)
+- [Freetrade](https://freetrade.io)
 - [Interactive Brokers (IBKR)](https://www.interactivebrokers.com)
 - [Rabobank](https://rabobank.nl)
 - [Schwab](https://www.schwab.com)
@@ -39,6 +40,10 @@ Login to your eToro account and navigate to "Portfolio". Then select "History" i
 ### Finpension
 
 Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select “Transactions”, on the following page to the right notice “transaction report (CSV-file)” and click to email or click to download locally.
+
+### Freetrade
+
+Open the Freetrade app. Select your portfolio from the option in the top-left under the "Portfolio" heading. Select "Activity" from the list of icons along the bottom of the screen. Select the share icon in the top-right corner and then follow the on-screen instructions.
 
 ### Interactive Brokers (IBKR)
 
@@ -157,9 +162,10 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | Trading 212 | `run start trading212` (or `t212`)  |
 | DEGIRO      | `run start degiro`                  |
 | Finpension  | `run start finpension` (or `fp`)    |
+| Freetrade   | `run start freetrade`  (or `ft`)    |
 | Swissquote  | `run start swissquote` (or `sq`)    |
 | Schwab      | `run start schwab`                  |
-  
+
 ### Caching
 
 The tool uses `cacache` to store data retrieved from Yahoo Finance on disk. This way the load on Yahoo Finance is reduced and the tool should run faster. The cached data is stored in `tmp/e2g-cache`. If you feel you need to invalidate your cache, you can do so by removing the folder and the tool will recreate the cache when you run it the next time.

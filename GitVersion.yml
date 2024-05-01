@@ -1,4 +1,4 @@
-next-version: 0.8.4
+next-version: 0.9.0
 assembly-informational-format: "{NuGetVersion}"
 mode: ContinuousDeployment
 branches:
@@ -6,7 +6,7 @@ branches:
     regex: main
     mode: ContinuousDelivery
     tag: ""
-    increment: Patch  
+    increment: Patch
   feature:
     regex: ^feature?[/-]
     mode: ContinuousDelivery
