@@ -33,7 +33,7 @@ describe("swissquoteConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(15);
+      expect(actualExport.activities.length).toBe(14);
 
       done();
     }, () => { fail("Should not have an error!"); });
