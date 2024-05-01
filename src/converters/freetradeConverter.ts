@@ -154,6 +154,7 @@ export class FreetradeConverter extends AbstractConverter {
                     bar1.increment();
                     continue;
                 }
+
                 // Buy & Sell
                 let feeAmount = record.stampDuty + record.fXFeeAmount;
                 let unitPrice = record.pricePerShare;
