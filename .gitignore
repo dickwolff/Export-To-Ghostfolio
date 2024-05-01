@@ -54,3 +54,6 @@ Finpension.csv
 
 # Ignore export file
 ghostfolio-*.json
+
+# Ignore output folder
+e2g-output

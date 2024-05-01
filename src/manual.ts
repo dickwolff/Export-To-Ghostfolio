@@ -12,7 +12,7 @@ else {
 
     // Define import file path.
     const inputFile = process.env.INPUT_FILE;
-    const outputFolder = process.env.E2G_OUTPUT_FOLDER || "tmp/e2g-output";
+    const outputFolder = process.env.E2G_OUTPUT_FOLDER || "e2g-output";
 
     // Check if the outputFolder exists, if not create it.
     if (!fs.existsSync(outputFolder)) {
