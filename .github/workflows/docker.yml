@@ -21,7 +21,7 @@ jobs:
     env:
       dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
-    if: env.dockerhub_username != '' && env.dockerhub_token != ''
+    
     name: Publish Docker Image
     runs-on: ubuntu-latest
     steps:
@@ -47,10 +47,11 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
+        if: ${{ env.dockerhub_username != '' && dockerhub_token != '' }}
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ env.dockerhub_username }}
+          password: ${{ env.dockerhub_token }}
 
       - name: Determine image version
     #    shell: bash
