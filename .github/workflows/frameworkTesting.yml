@@ -8,7 +8,7 @@ on:
     paths:
       - "src/**"
       - "package.json"
-  pull_request:
+  pull_request_target:
     branches:
       - main
     paths:
