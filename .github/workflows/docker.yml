@@ -64,7 +64,7 @@ jobs:
 
       - name: Build and push (PR)
         uses: docker/build-push-action@v5
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' && env.dockerhub_username != '' && env.dockerhub_token != '' }}
         with:
           push: true
           tags: |
@@ -75,7 +75,7 @@ jobs:
 
       - name: Build and push (main)
         uses: docker/build-push-action@v5
-        if: github.event_name != 'pull_request'
+        if: ${{ github.event_name != 'pull_request' && env.dockerhub_username != '' && env.dockerhub_token != '' }}
         with:
           push: true
           tags: |
