@@ -121,10 +121,6 @@ export class FreetradeConverter extends AbstractConverter {
                 }
 
                 let action: string
-                if (record.type.toLocaleLowerCase() === "dividend") {
-                    action = "dividend";
-                }
-
                 if (record.type.toLocaleLowerCase() === "order") {
                   action = record.buySell.toLocaleLowerCase();
                 }
