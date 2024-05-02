@@ -16,11 +16,12 @@ on:
       - "package.json"
   workflow_dispatch: # Also allow manual triggering
 
+env:
+  dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+  dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+
 jobs:
-  docker:
-    env:
-      dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
-      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+  docker:    
     if: ${{ env.dockerhub_username != '' && env.dockerhub_token != '' }}
     name: Publish Docker Image
     runs-on: ubuntu-latest
