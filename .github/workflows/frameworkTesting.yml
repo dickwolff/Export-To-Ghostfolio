@@ -45,9 +45,8 @@ jobs:
           
       #- name: Write to job summary
       - id: read_md
-        run: cat code-coverage-results.md >> $COV_MD
+        run: echo "COV_MD=$(cat code-coverage-results.md)" >> $GITHUB_OUTPUT
 
-          
       - name: Add code coverage PR comment
         uses: actions/github-script@v6
         with:
