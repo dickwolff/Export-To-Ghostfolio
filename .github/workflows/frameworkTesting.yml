@@ -13,7 +13,6 @@ on:
       - main
     paths:
       - "src/**"
-      - ".github/**" #temp to trigger the PR
       - "package.json"
 
 jobs:
@@ -43,6 +42,7 @@ jobs:
           format: 'markdown'
           output: 'file'
           
+      # Source: https://stackoverflow.com/a/70655285
       - name: Read coverage report to variable
         id: read_md
         run: |
