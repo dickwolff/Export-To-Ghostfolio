@@ -43,20 +43,13 @@ jobs:
           format: 'markdown'
           output: 'file'
           
-      #- name: Write to job summary
-      - id: read_md2
+      - name: Read coverage report to variable
+        id: read_md
         run: |
           echo 'COV_MD<<EOF' >> $GITHUB_OUTPUT
           echo "$(cat code-coverage-results.md)" >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
 
-      - run: echo "${{ steps.read_md2.outputs.COV_MD }}"
-
-      - id: read_md
-        uses: andstor/file-reader-action@v1
-        with:
-          path: code-coverage-results.md
-      
       - name: Add code coverage PR comment
         uses: actions/github-script@v6
         with:
@@ -65,7 +58,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `${{ steps.read_md.outputs.contents }}`
+              body: `${{ steps.read_md.outputs.COV_MD }}`
             })
 
       # - name: Add code coverage PR comment
