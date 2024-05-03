@@ -1,6 +1,7 @@
 import * as cacache from "cacache";
 import yahooFinance from "yahoo-finance2";
 import YahooFinanceRecord from "./models/yahooFinanceRecord";
+import YahooFinanceTestWriter from "./testing/yahooFinanceTestWriter";
 
 const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";
 
@@ -12,7 +13,7 @@ export class YahooFinanceService {
 
     private preferedExchangePostfix: string = null;
 
-    constructor() {
+    constructor(private yahooFinanceTestWriter?: YahooFinanceTestWriter) {
 
         // Override logging, not interested in yahooFinance2 debug logging..
         yahooFinance.setGlobalConfig({
@@ -173,6 +174,7 @@ export class YahooFinanceService {
             {
                 validateResult: false
             });
+        this.yahooFinanceTestWriter?.addSearchResult(query, queryResult);
 
         // Check if no match was found and a name was given (length > 10 so no ISIN).
         // In that case, try and find a partial match by removing a part of the name.
@@ -247,7 +249,7 @@ export class YahooFinanceService {
         let symbolMatch: YahooFinanceRecord;
 
         // When no currency is expected and there are multiple symbols, pick the first.
-        if (!expectedCurrency && symbols.length > 0){
+        if (!expectedCurrency && symbols.length > 0) {
             return symbols[0];
         }
 
@@ -310,9 +312,9 @@ export class YahooFinanceService {
     /* istanbul ignore next */
     private mapReviver(_, value) {
         if (typeof value === 'object' && value !== null) {
-          if (value.dataType === 'Map') {
-            return new Map(value.value);
-          }
+            if (value.dataType === 'Map') {
+                return new Map(value.value);
+            }
         }
 
         return value;
