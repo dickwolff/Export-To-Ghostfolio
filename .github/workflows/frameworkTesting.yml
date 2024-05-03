@@ -45,7 +45,10 @@ jobs:
           
       #- name: Write to job summary
       - id: read_md
-        run: echo "COV_MD=$(cat code-coverage-results.md)" >> $GITHUB_OUTPUT
+        run: |
+          echo 'var<<EOF' >> $GITHUB_OUTPUT
+          echo "COV_MD=$(cat code-coverage-results.md)" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
 
       - name: Add code coverage PR comment
         uses: actions/github-script@v6
