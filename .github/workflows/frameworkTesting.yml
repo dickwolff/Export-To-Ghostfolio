@@ -13,6 +13,7 @@ on:
       - main
     paths:
       - "src/**"
+      - ".github/" #temp to trigger the PR
       - "package.json"
 
 jobs:
@@ -43,11 +44,22 @@ jobs:
           output: 'file'
 
       - name: Add code coverage PR comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
         with:
-          recreate: true
-          path: code-coverage-results.md
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'code-coverage-results.md'
+            })
+
+      # - name: Add code coverage PR comment
+      #   uses: marocchino/sticky-pull-request-comment@v2
+      #   if: github.event_name == 'pull_request'
+      #   with:
+      #     recreate: true
+      #     path: code-coverage-results.md
 
       - name: Write to job summary
         run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
