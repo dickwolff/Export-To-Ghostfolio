@@ -53,7 +53,6 @@ jobs:
       - id: read_md
         uses: andstor/file-reader-action@v1
         with:
-          recreate: true
           path: code-coverage-results.md
       
       - name: Add code coverage PR comment
@@ -64,7 +63,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: steps.read_md.outputs.contents
+              body: ${{ steps.read_md.outputs.contents }}
             })
 
       # - name: Add code coverage PR comment
