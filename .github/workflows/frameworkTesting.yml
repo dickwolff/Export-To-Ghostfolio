@@ -41,13 +41,25 @@ jobs:
           badge: true
           format: 'markdown'
           output: 'file'
+          
+      # Source: https://stackoverflow.com/a/70655285
+      - name: Read coverage report to variable
+        id: read_md
+        run: |
+          echo 'COV_MD<<EOF' >> $GITHUB_OUTPUT
+          echo "$(cat code-coverage-results.md)" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
 
       - name: Add code coverage PR comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
         with:
-          recreate: true
-          path: code-coverage-results.md
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `${{ steps.read_md.outputs.COV_MD }}`
+            })
 
       - name: Write to job summary
         run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
