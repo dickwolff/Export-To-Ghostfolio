@@ -46,8 +46,8 @@ jobs:
       #- name: Write to job summary
       - id: read_md
         run: |
-          echo 'var<<EOF' >> $GITHUB_OUTPUT
-          echo "COV_MD=$(cat code-coverage-results.md)" >> $GITHUB_OUTPUT
+          echo 'COV_MD=<<EOF' >> $GITHUB_OUTPUT
+          echo "$(cat code-coverage-results.md)" >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
 
       - name: Add code coverage PR comment
