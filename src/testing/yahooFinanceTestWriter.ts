@@ -4,8 +4,8 @@ import * as fs from "fs";
 
 export default class YahooFinanceTestWriter {
 
-    private YF_SEARCHRESULTS_FILENAME = "yahooFinanceSearchResults.json";
-    private YF_QUOTESUMMARYRESULTS_FILENAME = "yahooFinanceQuoteSummaryResults.json";
+    private YF_SEARCHRESULTS_FILENAME = "./src/testing/data/yahooFinanceSearchResults.json";
+    private YF_QUOTESUMMARYRESULTS_FILENAME = "./src/testing/data/yahooFinanceQuoteSummaryResults.json";
 
 
     // Local cache of earlier retrieved symbols.
@@ -18,15 +18,15 @@ export default class YahooFinanceTestWriter {
      * This reads the existing test data files.
      */
     public async load() {
-        console.log("AAAAAAA", JSON.stringify(this.yahooFinanceSearchResults));
+
         // Create search results data file if not exists.
         if (!await fs.existsSync(this.YF_SEARCHRESULTS_FILENAME)) {
-            await fs.writeFileSync(this.YF_SEARCHRESULTS_FILENAME, "{}");
+            await fs.writeFileSync(this.YF_SEARCHRESULTS_FILENAME, `{"dataType":"Map","value":[]}`);
         }
 
         // Create quote summary results data file if not exist.
         if (!await fs.existsSync(this.YF_QUOTESUMMARYRESULTS_FILENAME)) {
-            await fs.writeFileSync(this.YF_QUOTESUMMARYRESULTS_FILENAME, "{}");
+            await fs.writeFileSync(this.YF_QUOTESUMMARYRESULTS_FILENAME, `{"dataType":"Map","value":[]}`);
         }
 
         const searchResultContents = await fs.readFileSync(this.YF_SEARCHRESULTS_FILENAME, { encoding: "utf-8" });
@@ -54,7 +54,7 @@ export default class YahooFinanceTestWriter {
         }
 
         console.log(this.yahooFinanceSearchResults)
-        await fs.writeFileSync(this.YF_SEARCHRESULTS_FILENAME, JSON.stringify(this.yahooFinanceSearchResults));
+        await fs.writeFileSync(this.YF_SEARCHRESULTS_FILENAME, JSON.stringify(this.yahooFinanceSearchResults, this.mapReplacer));
     }
 
     /**
@@ -70,7 +70,7 @@ export default class YahooFinanceTestWriter {
         }
         console.log(this.yahooFinanceQuoteSummaryResults)
 
-        await fs.writeFileSync(this.YF_QUOTESUMMARYRESULTS_FILENAME, JSON.stringify(this.yahooFinanceQuoteSummaryResults));
+        await fs.writeFileSync(this.YF_QUOTESUMMARYRESULTS_FILENAME, JSON.stringify(this.yahooFinanceQuoteSummaryResults, this.mapReplacer));
     }
 
     /* istanbul ignore next */
@@ -82,5 +82,17 @@ export default class YahooFinanceTestWriter {
         }
 
         return value;
+    }
+
+    /* istanbul ignore next */
+    private mapReplacer(_, value) {
+        if (value instanceof Map) {
+            return {
+                dataType: 'Map',
+                value: Array.from(value.entries()), // or with spread: value: [...value]
+            };
+        } else {
+            return value;
+        }
     }
 }

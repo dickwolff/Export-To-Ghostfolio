@@ -188,6 +188,7 @@ export class YahooFinanceService {
                 {
                     validateResult: false
                 });
+            this.yahooFinanceTestWriter?.addSearchResult(query.substring(0, 20), queryResult);
         }
 
         const result: YahooFinanceRecord[] = [];
@@ -207,6 +208,7 @@ export class YahooFinanceService {
             let quoteSummaryResult;
             try {
                 quoteSummaryResult = await yahooFinance.quoteSummary(quote.symbol, {}, { validateResult: false });
+                this.yahooFinanceTestWriter?.addQuoteSummaryResult(quote.symbol, quoteSummaryResult);
             }
             catch (err) {
                 this.logDebug(`getSymbolsByQuery(): An error ocurred while retrieving summary for ${quote.symbol}. Skipping..`, progress, true);
@@ -298,6 +300,7 @@ export class YahooFinanceService {
 
     private sink() { }
 
+    /* istanbul ignore next */
     private mapReplacer(_, value) {
         if (value instanceof Map) {
             return {

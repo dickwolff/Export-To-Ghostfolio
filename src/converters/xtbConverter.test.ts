@@ -1,7 +1,6 @@
 import { XtbConverter } from "./xtbConverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
-import YahooFinanceTestWriter from "../testing/yahooFinanceTestWriter";
 
 describe("xtbConverter", () => {
 
@@ -25,9 +24,7 @@ describe("xtbConverter", () => {
   it("should process sample CSV file", async (done) => {
 
     // Arange
-    const testWriter = new YahooFinanceTestWriter();
-    await testWriter.load();
-    const sut = new XtbConverter(new YahooFinanceService(testWriter));
+    const sut = new XtbConverter(new YahooFinanceService());
     const inputFile = "samples/xtb-export.csv";
 
     // Act
