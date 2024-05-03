@@ -42,7 +42,12 @@ jobs:
           badge: true
           format: 'markdown'
           output: 'file'
+          
+      #- name: Write to job summary
+      - id: read_md
+        run: cat code-coverage-results.md >> $COV_MD
 
+          
       - name: Add code coverage PR comment
         uses: actions/github-script@v6
         with:
@@ -51,7 +56,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'code-coverage-results.md'
+              body: '${{ steps.read_md.outputs.COV_MD }}'
             })
 
       # - name: Add code coverage PR comment
