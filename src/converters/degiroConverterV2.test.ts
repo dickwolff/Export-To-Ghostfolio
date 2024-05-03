@@ -7,11 +7,11 @@ describe("degiroConverterV2", () => {
   beforeEach(() => {
    // jest.spyOn(console, "log").mockImplementation(jest.fn());
   });
-  
+
   afterEach(() => {
     jest.clearAllMocks();
   });
-  
+
   it("should construct", () => {
 
     // Act
@@ -25,9 +25,9 @@ describe("degiroConverterV2", () => {
 
     // Arange
     const sut = new DeGiroConverterV2(new YahooFinanceService());
-    const inputFile = "sample-degiro-export.csv";
+    const inputFile = "samples/degiro-export.csv";
 
-    // Act      
+    // Act
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
 
       // Assert
@@ -89,7 +89,7 @@ describe("degiroConverterV2", () => {
       jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
       const sut = new DeGiroConverterV2(yahooFinanceService);
 
-      // Act      
+      // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
 
         // Assert
@@ -117,7 +117,7 @@ describe("degiroConverterV2", () => {
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");
 
-    // Act      
+    // Act
     sut.processFileContents(tempFileContent, () => {
 
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for US9256521090 with currency EUR! Please add this manually..\n");

@@ -25,9 +25,9 @@ describe("etoroConverter", () => {
 
     // Arange
     const sut = new EtoroConverter(new YahooFinanceService());
-    const inputFile = "sample-etoro-export.csv";
+    const inputFile = "samples/etoro-export.csv";
 
-    // Act      
+    // Act
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
 
       // Assert
@@ -88,7 +88,7 @@ describe("etoroConverter", () => {
       jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
       const sut = new EtoroConverter(yahooFinanceService);
 
-      // Act      
+      // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
 
         // Assert
@@ -115,7 +115,7 @@ describe("etoroConverter", () => {
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");
 
-    // Act      
+    // Act
     sut.processFileContents(tempFileContent, () => {
 
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for dividend action for NKE/USD! Please add this manually..\n");

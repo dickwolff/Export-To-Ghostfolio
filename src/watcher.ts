@@ -10,14 +10,14 @@ if (Boolean(process.env.PURGE_CACHE)) {
 
     console.log("[i] Purging cache (PURGE_CACHE set to true)..");
     Promise.all([
-        cacache.rm("tmp/e2g-cache", "isinSymbolCache"),
-        cacache.rm("tmp/e2g-cache", "symbolCache")
+        cacache.rm("/var/tmp/e2g-cache", "isinSymbolCache"),
+        cacache.rm("/var/tmp/e2g-cache", "symbolCache")
     ]).then(() => console.log("[i] Cache purged!"));
 }
 
 // Define input and output.
-const inputFolder = process.env.E2G_INPUT_FOLDER || "/var/e2g-input";
-const outputFolder = process.env.E2G_OUTPUT_FOLDER || "/var/e2g-output";
+const inputFolder = process.env.E2G_INPUT_FOLDER || "/var/tmp/e2g-input";
+const outputFolder = process.env.E2G_OUTPUT_FOLDER || "/var/tmp/e2g-output";
 const usePolling = Boolean(process.env.USE_POLLING) || false;
 
 console.log(`[i] Watching ${inputFolder}${usePolling ? " (using polling)" : ""}..`);
@@ -102,12 +102,13 @@ chokidar
 // Prep header set.
 const headers: Map<string, string> = new Map<string, string>();
 headers.set(`Datum,Tijd,Valutadatum,Product,ISIN,Omschrijving,FX,Mutatie,,Saldo,,Order Id`, "degiro");
+headers.set(`Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA`, "etoro");
 headers.set(`Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Price in CHF";"Cash Flow";Balance`, "finpension");
+headers.set(`Title,Type,Timestamp,Account Currency,Total Amount,Buy / Sell,Ticker,ISIN,Price per Share in Account Currency,Stamp Duty,Quantity,Venue,Order ID,Order Type,Instrument Currency,Total Shares Amount,Price per Share,FX Rate,Base FX Rate,FX Fee (BPS),FX Fee Amount,Dividend Ex Date,Dividend Pay Date,Dividend Eligible Quantity,Dividend Amount Per Share,Dividend Gross Distribution Amount,Dividend Net Distribution Amount,Dividend Withheld Tax Percentage,Dividend Withheld Tax Amount`, "freetrade");
+headers.set(`"Buy/Sell","TradeDate","ISIN","Quantity","TradePrice","TradeMoney","CurrencyPrimary","IBCommission","IBCommissionCurrency"`, "ibkr");
+headers.set(`"Type","SettleDate","ISIN","Description","Amount","CurrencyPrimary"`, "ibkr");
+headers.set(`Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs`, "rabobank");
 headers.set(`Date,Action,Symbol,Description,Quantity,Price,Fees & Comm,Amount`, "schwab");
 headers.set(`Date;Order #;Transaction;Symbol;Name;ISIN;Quantity;Unit price;Costs;Accrued Interest;Net Amount;Balance;Currency`, "swissquote");
 headers.set(`Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee`, "trading212");
-headers.set(`Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA`, "etoro");
-headers.set(`Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs`, "rabobank");
-headers.set(`"Buy/Sell","TradeDate","ISIN","Quantity","TradePrice","TradeMoney","CurrencyPrimary","IBCommission","IBCommissionCurrency"`, "ibkr");
-headers.set(`"Type","SettleDate","ISIN","Description","Amount","CurrencyPrimary"`, "ibkr");
 headers.set(`ID;Type;Time;Symbol;Comment;Amount`, "xtb");

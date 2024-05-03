@@ -25,9 +25,9 @@ describe("IbkrConverter", () => {
     it("with trades", (done) => {
       // Arange
       const sut = new IbkrConverter(new YahooFinanceService());
-      const inputFile = "sample-ibkr-trades-export.csv";
+      const inputFile = "samples/ibkr-trades-export.csv";
 
-      // Act      
+      // Act
       sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
 
         // Assert
@@ -38,13 +38,13 @@ describe("IbkrConverter", () => {
         done();
       }, () => { done.fail("Should not have an error!"); });
     });
-    
+
     it("with dividends", (done) => {
       // Arange
       const sut = new IbkrConverter(new YahooFinanceService());
-      const inputFile = "sample-ibkr-dividends-export.csv";
+      const inputFile = "samples/ibkr-dividends-export.csv";
 
-      // Act      
+      // Act
       sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
 
         // Assert
@@ -106,7 +106,7 @@ describe("IbkrConverter", () => {
       jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
       const sut = new IbkrConverter(yahooFinanceService);
 
-      // Act      
+      // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
 
         // Assert
@@ -133,7 +133,7 @@ describe("IbkrConverter", () => {
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");
 
-    // Act      
+    // Act
     sut.processFileContents(tempFileContent, () => {
 
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for CH0111762537! Please add this manually..\n");

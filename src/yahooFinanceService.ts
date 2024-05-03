@@ -2,7 +2,7 @@ import * as cacache from "cacache";
 import yahooFinance from "yahoo-finance2";
 import YahooFinanceRecord from "./models/yahooFinanceRecord";
 
-const cachePath = process.env.E2G_CACHE_FOLDER || "/var/e2g-cache";
+const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";
 
 export class YahooFinanceService {
 
@@ -33,7 +33,7 @@ export class YahooFinanceService {
 
     /**
      * Get a security.
-     * 
+     *
      * @param isin The isin of the security
      * @param symbol The symbol of the security
      * @param name The name of the security
@@ -43,7 +43,7 @@ export class YahooFinanceService {
      */
     public async getSecurity(isin?, symbol?, name?, expectedCurrency?, progress?): Promise<YahooFinanceRecord> {
 
-        // When isin was given, check wether there is a symbol conversion cached. Then change map. 
+        // When isin was given, check wether there is a symbol conversion cached. Then change map.
         if (isin && this.isinSymbolCache.has(isin)) {
             symbol = this.isinSymbolCache.get(isin);
         }
@@ -78,7 +78,11 @@ export class YahooFinanceService {
 
         // Find a symbol that has the same currency.
         let symbolMatch = this.findSymbolMatchByCurrency(symbols, expectedCurrency);
-console.log()
+        // If not found and the expectedCurrency is GBP, try again with GBp.
+        if (!symbolMatch && expectedCurrency === "GBP") {
+            symbolMatch = this.findSymbolMatchByCurrency(symbols, "GBp");
+        }
+
         // If no match found and no symbol given, take the symbol from the first ISIN match.
         // Split on '.', so BNS.TO becomes BNS (for more matches).
         if (!symbol && symbols.length > 0) {
@@ -111,7 +115,7 @@ console.log()
 
             // If there was an isin given, place it in the isin-symbol mapping cache (if it wasn't there before).
             if (isin && !this.isinSymbolCache.has(isin)) {
-                await this.saveInCache(isin, null, symbolMatch.symbol);                  
+                await this.saveInCache(isin, null, symbolMatch.symbol);
             }
 
             // Store the record in cache by symbol (if it wasn't there before).
@@ -127,26 +131,26 @@ console.log()
 
     /**
      * Load the cache with ISIN and symbols.
-     * 
+     *
      * @returns The size of the loaded cache
      */
     public async loadCache(): Promise<[number, number]> {
 
         // Verify if there is data in the ISIN-Symbol cache. If so, restore to the local variable.
-        const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");        
+        const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");
         if (isinSymbolCacheExist) {
-            const cache = await cacache.get(cachePath, "isinSymbolCache");                        
-            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);    
-            this.isinSymbolCache = cacheAsJson;                     
-        }        
+            const cache = await cacache.get(cachePath, "isinSymbolCache");
+            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);
+            this.isinSymbolCache = cacheAsJson;
+        }
 
         // Verify if there is data in the Symbol cache. If so, restore to the local variable.
-        const symbolCacheExists = await cacache.get.info(cachePath, "symbolCache");        
+        const symbolCacheExists = await cacache.get.info(cachePath, "symbolCache");
         if (symbolCacheExists) {
             const cache = await cacache.get(cachePath, "symbolCache");
-            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);            
+            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);
             this.symbolCache = cacheAsJson;
-        }        
+        }
 
         // Return cache sizes.
         return [this.isinSymbolCache.size, this.symbolCache.size];
@@ -154,12 +158,12 @@ console.log()
 
     /**
      * Get symbols for a security by a given key.
-     * 
+     *
      * @param query The security identification to query by.
      * @returns The symbols that are retrieved from Yahoo Finance, if any.
      */
     private async getSymbolsByQuery(query: string, progress?: any): Promise<YahooFinanceRecord[]> {
-    
+
         // First get quotes for the query.
         let queryResult = await yahooFinance.search(query,
             {
@@ -185,7 +189,7 @@ console.log()
         }
 
         const result: YahooFinanceRecord[] = [];
-        
+
         // Loop through the resulted quotes and retrieve summary data.
         for (let idx = 0; idx < queryResult.quotes.length; idx++) {
             const quote = queryResult.quotes[idx];
@@ -233,7 +237,7 @@ console.log()
 
     /**
      * Find a match by either currency and/or prefered exchange in a list of given symbols.
-     * 
+     *
      * @param symbols The list of symbols to query
      * @param expectedCurrency The expected currency for the symbol
      * @returns A symbol matched by either currency and/or prefered exchange, if any found..
@@ -264,10 +268,10 @@ console.log()
 
         // Save ISIN-value combination to cache if given.
         if (isin && value) {
-            this.isinSymbolCache.set(isin, value);                                    
-            await cacache.put(cachePath, "isinSymbolCache", JSON.stringify(this.isinSymbolCache, this.mapReplacer));            
+            this.isinSymbolCache.set(isin, value);
+            await cacache.put(cachePath, "isinSymbolCache", JSON.stringify(this.isinSymbolCache, this.mapReplacer));
         }
-        
+
         // Save symbol-value combination to cache if given.
         if (symbol && value) {
             this.symbolCache.set(symbol, value);
@@ -302,7 +306,7 @@ console.log()
             return value;
         }
     }
-      
+
     /* istanbul ignore next */
     private mapReviver(_, value) {
         if (typeof value === 'object' && value !== null) {

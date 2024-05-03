@@ -121,10 +121,6 @@ export class FreetradeConverter extends AbstractConverter {
                 }
 
                 let action: string
-                if (record.type.toLocaleLowerCase() === "dividend") {
-                    action = "dividend";
-                }
-
                 if (record.type.toLocaleLowerCase() === "order") {
                   action = record.buySell.toLocaleLowerCase();
                 }
@@ -145,7 +141,7 @@ export class FreetradeConverter extends AbstractConverter {
                         quantity: record.dividendEligibleQuantity,
                         type: GhostfolioOrderType[action],
                         unitPrice: record.dividendAmountPerShare,
-                        currency: record.instrumentCurrency,
+                        currency: security.currency,
                         dataSource: "YAHOO",
                         date: dayjs(record.dividendPayDate).format("YYYY-MM-DDTHH:mm:ssZ"),
                         symbol: security.symbol
@@ -156,15 +152,19 @@ export class FreetradeConverter extends AbstractConverter {
                 }
 
                 // Buy & Sell
-                const feeAmount = record.stampDuty + record.fXFeeAmount;
+                let feeAmount = record.stampDuty + record.fXFeeAmount;
+                let unitPrice = record.pricePerShare;
+                if (security.currency == "GBp") {
+                    unitPrice = record.pricePerShare * 100;
+                }
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: record.title,
                     fee: feeAmount,
                     quantity: record.quantity,
                     type: GhostfolioOrderType[action],
-                    unitPrice: record.pricePerShare,
-                    currency: record.instrumentCurrency,
+                    unitPrice: unitPrice,
+                    currency: security.currency,
                     dataSource: "YAHOO",
                     date: dayjs(record.timestamp).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol

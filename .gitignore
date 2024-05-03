@@ -38,7 +38,7 @@ dist/**/*
 package-lock.json
 
 # Allow sample export files
-!sample-*-export.csv
+!samples/*-export.csv
 
 # Ignore Trading 212 export files (by default name: from_date_to_date_acc.csv)
 from_*.csv
@@ -54,3 +54,6 @@ Finpension.csv
 
 # Ignore export file
 ghostfolio-*.json
+
+# Ignore output folder
+e2g-output

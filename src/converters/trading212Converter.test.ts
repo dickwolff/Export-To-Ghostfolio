@@ -7,7 +7,7 @@ describe("trading212Converter", () => {
   beforeEach(() => {
     jest.spyOn(console, "log").mockImplementation(jest.fn());
   });
-  
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -25,9 +25,9 @@ describe("trading212Converter", () => {
 
     // Arange
     const sut = new Trading212Converter(new YahooFinanceService());
-    const inputFile = "sample-trading212-export.csv";
+    const inputFile = "samples/trading212-export.csv";
 
-    // Act      
+    // Act
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
 
       // Assert
@@ -89,7 +89,7 @@ describe("trading212Converter", () => {
       jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
       const sut = new Trading212Converter(yahooFinanceService);
 
-      // Act      
+      // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
 
         // Assert
@@ -117,7 +117,7 @@ describe("trading212Converter", () => {
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");
 
-    // Act      
+    // Act
     sut.processFileContents(tempFileContent, () => {
 
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for US17275R1023 with currency USD! Please add this manually..\n");
