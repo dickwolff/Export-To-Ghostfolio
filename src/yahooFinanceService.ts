@@ -1,7 +1,7 @@
 import * as cacache from "cacache";
-import yahooFinance from "yahoo-finance2";
 import YahooFinanceRecord from "./models/yahooFinanceRecord";
 import YahooFinanceTestWriter from "./testing/yahooFinanceTestWriter";
+import { YahooFinance } from "./yahooFinance";
 
 const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";
 
@@ -13,10 +13,10 @@ export class YahooFinanceService {
 
     private preferedExchangePostfix: string = null;
 
-    constructor(private yahooFinanceTestWriter?: YahooFinanceTestWriter) {
+    constructor(private yahooFinance: YahooFinance, private yahooFinanceTestWriter?: YahooFinanceTestWriter) {
 
         // Override logging, not interested in yahooFinance2 debug logging..
-        yahooFinance.setGlobalConfig({
+        this.yahooFinance.setGlobalConfig({
             logger: {
                 info: (...args: any[]) => this.sink(),
                 warn: (...args: any[]) => this.sink(),
@@ -166,7 +166,7 @@ export class YahooFinanceService {
     private async getSymbolsByQuery(query: string, progress?: any): Promise<YahooFinanceRecord[]> {
 
         // First get quotes for the query.
-        let queryResult = await yahooFinance.search(query,
+        let queryResult = await this.yahooFinance.search(query,
             {
                 newsCount: 0,
                 quotesCount: 10
@@ -180,7 +180,7 @@ export class YahooFinanceService {
         // In that case, try and find a partial match by removing a part of the name.
         if (queryResult.quotes.length === 0 && query.length > 10) {
             this.logDebug(`getSymbolsByQuery(): No match found when searching by name for ${query}. Trying a partial name match with first 20 characters..`, progress, true);
-            queryResult = await yahooFinance.search(query.substring(0, 20),
+            queryResult = await this.yahooFinance.search(query.substring(0, 20),
                 {
                     newsCount: 0,
                     quotesCount: 10
@@ -207,7 +207,7 @@ export class YahooFinanceService {
             // Put in try-catch, since Yahoo Finance can return faulty data and crash..
             let quoteSummaryResult;
             try {
-                quoteSummaryResult = await yahooFinance.quoteSummary(quote.symbol, {}, { validateResult: false });
+                quoteSummaryResult = await this.yahooFinance.quoteSummary(quote.symbol, {}, { validateResult: false });
                 this.yahooFinanceTestWriter?.addQuoteSummaryResult(quote.symbol, quoteSummaryResult);
             }
             catch (err) {
