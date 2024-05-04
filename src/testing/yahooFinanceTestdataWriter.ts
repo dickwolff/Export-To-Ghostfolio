@@ -12,12 +12,7 @@ class YahooFinanceTestdataWriter {
     private yahooFinanceSearchResults: Map<string, any> = new Map<string, any>();
     private yahooFinanceQuoteSummaryResults: Map<string, any> = new Map<string, any>();
 
-    /**
-     * Load the test writer.
-     * 
-     * This reads the existing test data files.
-     */
-    public load() {
+    constructor() {
 
         // Create search results data file if not exists.
         if (!fs.existsSync(YF_SEARCHRESULTS_FILENAME)) {
@@ -50,7 +45,6 @@ class YahooFinanceTestdataWriter {
             this.yahooFinanceSearchResults.set(query, searchResult);
         }
 
-        console.log(this.yahooFinanceSearchResults)
         fs.writeFileSync(YF_SEARCHRESULTS_FILENAME, JSON.stringify(this.yahooFinanceSearchResults, mapReplacer));
     }
 
@@ -65,7 +59,6 @@ class YahooFinanceTestdataWriter {
         if (!this.yahooFinanceQuoteSummaryResults.has(query)) {
             this.yahooFinanceQuoteSummaryResults.set(query, quoteSummaryResult);
         }
-        console.log(this.yahooFinanceQuoteSummaryResults)
 
         fs.writeFileSync(YF_QUOTESUMMARYRESULTS_FILENAME, JSON.stringify(this.yahooFinanceQuoteSummaryResults, mapReplacer));
     }
