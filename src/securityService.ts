@@ -84,7 +84,7 @@ export class SecurityService {
 
         // Find a symbol that has the same currency.
         let symbolMatch = this.findSymbolMatchByCurrency(symbols, expectedCurrency);
-        
+
         // If not found and the expectedCurrency is GBP, try again with GBp.
         if (!symbolMatch && expectedCurrency === "GBP") {
             symbolMatch = this.findSymbolMatchByCurrency(symbols, "GBp");

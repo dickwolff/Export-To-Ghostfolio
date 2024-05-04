@@ -36,7 +36,7 @@ export default class YahooFinanceServiceMock implements YahooFinance {
             return this.yahooFinanceSearchResults.get(query);
         }
 
-        return null;
+        return { quotes: [] };
     }
 
     /** @inheritdoc */
