@@ -1,6 +1,7 @@
 import { FinpensionConverter } from "./finpensionConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
+import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
 
 describe("finpensionConverter", () => {
 
@@ -15,7 +16,7 @@ describe("finpensionConverter", () => {
   it("should construct", () => {
 
     // Act
-    const sut = new FinpensionConverter(new SecurityService());
+    const sut = new FinpensionConverter(new SecurityService(new YahooFinanceServiceMock()));
 
     // Assert
     expect(sut).toBeTruthy();
@@ -24,7 +25,7 @@ describe("finpensionConverter", () => {
   it("should process sample CSV file", (done) => {
 
     // Arange
-    const sut = new FinpensionConverter(new SecurityService());
+    const sut = new FinpensionConverter(new SecurityService(new YahooFinanceServiceMock()));
     const inputFile = "samples/finpension-export.csv";
 
     // Act
@@ -43,7 +44,7 @@ describe("finpensionConverter", () => {
     it("the input file does not exist", (done) => {
 
       // Arrange
-      const sut = new FinpensionConverter(new SecurityService());
+      const sut = new FinpensionConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileName = "tmp/testinput/finpension-filedoesnotexist.csv";
 
@@ -60,7 +61,7 @@ describe("finpensionConverter", () => {
     it("the input file is empty", (done) => {
 
       // Arrange
-      const sut = new FinpensionConverter(new SecurityService());
+      const sut = new FinpensionConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileContent = "";
       tempFileContent += `Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Price in CHF";"Cash Flow";Balance\n`;
@@ -84,9 +85,9 @@ describe("finpensionConverter", () => {
       tempFileContent += `2023-07-11;Buy;"CSIF (CH) Bond Corporate Global ex CHF Blue ZBH";CH0189956813;0.001000;CHF;1.000000;821.800000;-0.821800;16.484551`;
 
       // Mock Yahoo Finance service to throw error.
-      const securityService = new SecurityService();
-      jest.spyOn(securityService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
-      const sut = new FinpensionConverter(securityService);
+      const yahooFinanceServiceMock = new YahooFinanceServiceMock();
+      jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { throw new Error("Unit test error"); });
+      const sut = new FinpensionConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -108,9 +109,9 @@ describe("finpensionConverter", () => {
     tempFileContent += `2023-07-11;Buy;"CSIF (CH) Bond Corporate Global ex CHF Blue ZBH";CH0189956813;0.001000;CHF;1.000000;821.800000;-0.821800;16.484551`;
 
     // Mock Yahoo Finance service to return null.
-    const securityService = new SecurityService();
-    jest.spyOn(securityService, "getSecurity").mockImplementation(() => { return null });
-    const sut = new FinpensionConverter(securityService);
+    const yahooFinanceServiceMock = new YahooFinanceServiceMock();
+    jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { return Promise.resolve({ quotes: [] }) });
+    const sut = new FinpensionConverter(new SecurityService(yahooFinanceServiceMock));
 
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");
