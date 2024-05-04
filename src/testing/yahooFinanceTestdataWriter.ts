@@ -1,12 +1,12 @@
 /* istanbul ignore file */
 
 import * as fs from "fs";
+import { mapReplacer, mapReviver } from "../helpers/dictionaryHelpers";
 
-export default class YahooFinanceTestdataWriter {
+const YF_SEARCHRESULTS_FILENAME = "./src/testing/data/yahooFinanceSearchResults.json";
+const YF_QUOTESUMMARYRESULTS_FILENAME = "./src/testing/data/yahooFinanceQuoteSummaryResults.json";
 
-    private YF_SEARCHRESULTS_FILENAME = "./src/testing/data/yahooFinanceSearchResults.json";
-    private YF_QUOTESUMMARYRESULTS_FILENAME = "./src/testing/data/yahooFinanceQuoteSummaryResults.json";
-
+class YahooFinanceTestdataWriter {
 
     // Local cache of earlier retrieved symbols.
     private yahooFinanceSearchResults: Map<string, any> = new Map<string, any>();
@@ -17,28 +17,25 @@ export default class YahooFinanceTestdataWriter {
      * 
      * This reads the existing test data files.
      */
-    public async load() {
+    public load() {
 
         // Create search results data file if not exists.
-        if (!await fs.existsSync(this.YF_SEARCHRESULTS_FILENAME)) {
-            await fs.writeFileSync(this.YF_SEARCHRESULTS_FILENAME, `{"dataType":"Map","value":[]}`);
+        if (!fs.existsSync(YF_SEARCHRESULTS_FILENAME)) {
+            fs.writeFileSync(YF_SEARCHRESULTS_FILENAME, `{"dataType":"Map","value":[]}`);
         }
 
         // Create quote summary results data file if not exist.
-        if (!await fs.existsSync(this.YF_QUOTESUMMARYRESULTS_FILENAME)) {
-            await fs.writeFileSync(this.YF_QUOTESUMMARYRESULTS_FILENAME, `{"dataType":"Map","value":[]}`);
+        if (!fs.existsSync(YF_QUOTESUMMARYRESULTS_FILENAME)) {
+            fs.writeFileSync(YF_QUOTESUMMARYRESULTS_FILENAME, `{"dataType":"Map","value":[]}`);
         }
 
-        const searchResultContents = await fs.readFileSync(this.YF_SEARCHRESULTS_FILENAME, { encoding: "utf-8" });
-        const searchResultContentsData = JSON.parse(searchResultContents, this.mapReviver);
+        const searchResultContents = fs.readFileSync(YF_SEARCHRESULTS_FILENAME, { encoding: "utf-8" });
+        const searchResultContentsData = JSON.parse(searchResultContents, mapReviver);
         this.yahooFinanceSearchResults = searchResultContentsData;
 
-        const quoteSummaryContents = await fs.readFileSync(this.YF_QUOTESUMMARYRESULTS_FILENAME, { encoding: "utf-8" });
-        const quoteSummaryContentsData = JSON.parse(quoteSummaryContents, this.mapReviver);
+        const quoteSummaryContents = fs.readFileSync(YF_QUOTESUMMARYRESULTS_FILENAME, { encoding: "utf-8" });
+        const quoteSummaryContentsData = JSON.parse(quoteSummaryContents, mapReviver);
         this.yahooFinanceQuoteSummaryResults = quoteSummaryContentsData;
-
-        console.log(this.yahooFinanceSearchResults)
-        console.log(this.yahooFinanceQuoteSummaryResults)
     }
 
     /**
@@ -47,14 +44,14 @@ export default class YahooFinanceTestdataWriter {
      * @param query The key for this result
      * @param searchResult The search result to add
      */
-    public async addSearchResult(query: string, searchResult: any) {
+    public addSearchResult(query: string, searchResult: any) {
 
         if (!this.yahooFinanceSearchResults.has(query)) {
             this.yahooFinanceSearchResults.set(query, searchResult);
         }
 
         console.log(this.yahooFinanceSearchResults)
-        await fs.writeFileSync(this.YF_SEARCHRESULTS_FILENAME, JSON.stringify(this.yahooFinanceSearchResults, this.mapReplacer));
+        fs.writeFileSync(YF_SEARCHRESULTS_FILENAME, JSON.stringify(this.yahooFinanceSearchResults, mapReplacer));
     }
 
     /**
@@ -63,36 +60,19 @@ export default class YahooFinanceTestdataWriter {
      * @param query The key for this result
      * @param quoteSummaryResult The quote summary result to add
      */
-    public async addQuoteSummaryResult(query: string, quoteSummaryResult: any) {
+    public addQuoteSummaryResult(query: string, quoteSummaryResult: any) {
 
         if (!this.yahooFinanceQuoteSummaryResults.has(query)) {
             this.yahooFinanceQuoteSummaryResults.set(query, quoteSummaryResult);
         }
         console.log(this.yahooFinanceQuoteSummaryResults)
 
-        await fs.writeFileSync(this.YF_QUOTESUMMARYRESULTS_FILENAME, JSON.stringify(this.yahooFinanceQuoteSummaryResults, this.mapReplacer));
+        fs.writeFileSync(YF_QUOTESUMMARYRESULTS_FILENAME, JSON.stringify(this.yahooFinanceQuoteSummaryResults, mapReplacer));
     }
+}
 
-    /* istanbul ignore next */
-    private mapReviver(_, value) {
-        if (typeof value === 'object' && value !== null) {
-            if (value.dataType === 'Map') {
-                return new Map(value.value);
-            }
-        }
-
-        return value;
-    }
-
-    /* istanbul ignore next */
-    private mapReplacer(_, value) {
-        if (value instanceof Map) {
-            return {
-                dataType: 'Map',
-                value: Array.from(value.entries()), // or with spread: value: [...value]
-            };
-        } else {
-            return value;
-        }
-    }
+export {
+    YF_SEARCHRESULTS_FILENAME,
+    YF_QUOTESUMMARYRESULTS_FILENAME,
+    YahooFinanceTestdataWriter
 }

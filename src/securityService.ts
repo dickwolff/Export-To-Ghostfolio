@@ -1,6 +1,7 @@
 import * as cacache from "cacache";
 import YahooFinanceRecord from "./models/yahooFinanceRecord";
 import { YahooFinance, YahooFinanceService } from "./yahooFinance";
+import { mapReplacer, mapReviver } from "./helpers/dictionaryHelpers";
 
 const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";
 
@@ -83,6 +84,7 @@ export class SecurityService {
 
         // Find a symbol that has the same currency.
         let symbolMatch = this.findSymbolMatchByCurrency(symbols, expectedCurrency);
+        
         // If not found and the expectedCurrency is GBP, try again with GBp.
         if (!symbolMatch && expectedCurrency === "GBP") {
             symbolMatch = this.findSymbolMatchByCurrency(symbols, "GBp");
@@ -145,7 +147,7 @@ export class SecurityService {
         const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");
         if (isinSymbolCacheExist) {
             const cache = await cacache.get(cachePath, "isinSymbolCache");
-            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);
+            const cacheAsJson = JSON.parse(cache.data.toString(), mapReviver);
             this.isinSymbolCache = cacheAsJson;
         }
 
@@ -153,7 +155,7 @@ export class SecurityService {
         const symbolCacheExists = await cacache.get.info(cachePath, "symbolCache");
         if (symbolCacheExists) {
             const cache = await cacache.get(cachePath, "symbolCache");
-            const cacheAsJson = JSON.parse(cache.data.toString(), this.mapReviver);
+            const cacheAsJson = JSON.parse(cache.data.toString(), mapReviver);
             this.symbolCache = cacheAsJson;
         }
 
@@ -274,13 +276,13 @@ export class SecurityService {
         // Save ISIN-value combination to cache if given.
         if (isin && value) {
             this.isinSymbolCache.set(isin, value);
-            await cacache.put(cachePath, "isinSymbolCache", JSON.stringify(this.isinSymbolCache, this.mapReplacer));
+            await cacache.put(cachePath, "isinSymbolCache", JSON.stringify(this.isinSymbolCache, mapReplacer));
         }
 
         // Save symbol-value combination to cache if given.
         if (symbol && value) {
             this.symbolCache.set(symbol, value);
-            await cacache.put(cachePath, "symbolCache", JSON.stringify(this.symbolCache, this.mapReplacer));
+            await cacache.put(cachePath, "symbolCache", JSON.stringify(this.symbolCache, mapReplacer));
         }
     }
 
@@ -300,27 +302,4 @@ export class SecurityService {
     }
 
     private sink() { }
-
-    /* istanbul ignore next */
-    private mapReplacer(_, value) {
-        if (value instanceof Map) {
-            return {
-                dataType: 'Map',
-                value: Array.from(value.entries()), // or with spread: value: [...value]
-            };
-        } else {
-            return value;
-        }
-    }
-
-    /* istanbul ignore next */
-    private mapReviver(_, value) {
-        if (typeof value === 'object' && value !== null) {
-            if (value.dataType === 'Map') {
-                return new Map(value.value);
-            }
-        }
-
-        return value;
-    }
 }
