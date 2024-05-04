@@ -53,7 +53,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
             console.log(`[i] Finished validation. ${validationResult ? 'Export was valid!' : 'Export was not valid!'}`);
         }
         else {
-            console.log('[i] You can now automatically validate the generated file with Ghostfolio. Set GHOSTFOLIO_VALIDATE=true in your environment variables!');
+            console.log('[i] You can now automatically validate the generated file against Ghostfolio. Set GHOSTFOLIO_VALIDATE=true in your environment variables to enable this feature.');
         }
 
         // When automatic import is enabled, do this.
@@ -64,7 +64,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
             console.log(`[i] Finished importing. ${importResult > 0 ? `Succesfully imported ${importResult} activities!` : 'Import failed!'}`);
         }
         else {
-            console.log('[i] You can now automatically import the generated file with Ghostfolio. Set GHOSTFOLIO_IMPORT=true in your environment variables!');
+            console.log('[i] You can now automatically import the generated file into Ghostfolio. Set GHOSTFOLIO_IMPORT=true in your environment variables to enable this feature');
             console.log('[i] THIS IS AN EXPERIMENTAL FEATURE!! Use this at your own risk!');
         }
 
