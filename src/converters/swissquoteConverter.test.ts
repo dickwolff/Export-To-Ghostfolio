@@ -1,6 +1,7 @@
 import { SwissquoteConverter } from "./swissquoteConverter";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import { SecurityService } from "../securityService";
+import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
 
 describe("swissquoteConverter", () => {
 
@@ -15,7 +16,7 @@ describe("swissquoteConverter", () => {
   it("should construct", () => {
 
     // Act
-    const sut = new SwissquoteConverter(new SecurityService());
+    const sut = new SwissquoteConverter(new SecurityService(new YahooFinanceServiceMock()));
 
     // Assert
     expect(sut).toBeTruthy();
@@ -24,7 +25,7 @@ describe("swissquoteConverter", () => {
   it("should process sample CSV file", (done) => {
 
     // Act
-    const sut = new SwissquoteConverter(new SecurityService());
+    const sut = new SwissquoteConverter(new SecurityService(new YahooFinanceServiceMock()));
     const inputFile = "samples/swissquote-export.csv";
 
     // Act
@@ -43,7 +44,7 @@ describe("swissquoteConverter", () => {
     it("the input file does not exist", (done) => {
 
       // Act
-      const sut = new SwissquoteConverter(new SecurityService());
+      const sut = new SwissquoteConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileName = "tmp/testinput/swissquote-filedoesnotexist.csv";
 
@@ -60,7 +61,7 @@ describe("swissquoteConverter", () => {
     it("the input file is empty", (done) => {
 
       // Act
-      const sut = new SwissquoteConverter(new SecurityService());
+      const sut = new SwissquoteConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       // Create temp file.
       let tempFileContent = "";
@@ -77,24 +78,51 @@ describe("swissquoteConverter", () => {
       });
     });
 
-    it("Yahoo Finance got empty input for query", (done) => {
+    it("Yahoo Finance throws an error", (done) => {
 
-      // Act
-      const sut = new SwissquoteConverter(new SecurityService());
-
-      // Create temp file.
+      // Arrange
       let tempFileContent = "";
       tempFileContent += "Date;Order #;Transaction;Symbol;Name;ISIN;Quantity;Unit price;Costs;Accrued Interest;Net Amount;Balance;Currency\n";
-      tempFileContent += "10-08-2022 15:30:02;113947121;Buy;;;;200.0;19.85;5.96;0.00;-3975.96;168660.08;USD";
+      tempFileContent += "16-06-2022 13:14:35;110152600;Sell;VEUD;VANGUARD FTSE EUROPE UCITS ETF;IE00B945VV12;709.0;32.37;115.28;0.00;22835.05;111207.71;USD";
+
+      // Mock Yahoo Finance service to throw error.
+      const yahooFinanceServiceMock = new YahooFinanceServiceMock();
+      jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { throw new Error("Unit test error"); });
+      const sut = new SwissquoteConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
-      sut.processFileContents(tempFileContent, () => { fail("Should not succeed!"); }, (err) => {
+      sut.processFileContents(tempFileContent, (e) => { done.fail("Should not succeed!"); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
+        expect(err.message).toContain("Unit test error");
 
         done();
       });
     });
+  });
+
+  it("should log when Yahoo Finance returns no symbol", (done) => {
+
+    // Arrange
+    let tempFileContent = "";
+    tempFileContent += "Date;Order #;Transaction;Symbol;Name;ISIN;Quantity;Unit price;Costs;Accrued Interest;Net Amount;Balance;Currency\n";
+    tempFileContent += "16-06-2022 13:14:35;110152600;Sell;VEUD;VANGUARD FTSE EUROPE UCITS ETF;IE00B945VV12;709.0;32.37;115.28;0.00;22835.05;111207.71;USD";
+
+    // Mock Yahoo Finance service to return null.
+    const yahooFinanceServiceMock = new YahooFinanceServiceMock();
+    jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { return Promise.resolve({ quotes: [] }) });
+    const sut = new SwissquoteConverter(new SecurityService(yahooFinanceServiceMock));
+
+    // Bit hacky, but it works.
+    const consoleSpy = jest.spyOn((sut as any).progress, "log");
+
+    // Act
+    sut.processFileContents(tempFileContent, () => {
+
+      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for sell action for IE00B945VV12 with currency USD! Please add this manually..\n");
+
+      done();
+    }, () => done.fail("Should not have an error!"));
   });
 });
