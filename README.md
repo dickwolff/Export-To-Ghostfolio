@@ -120,11 +120,14 @@ The following parameters can be given to the Docker run command.
 | `--env DEBUG_LOGGING=true` | Y | When set to true, the container will show logs in more detail, useful for error tracing. |
 | `--env FORCE_DEGIRO_V2=true` | Y | When set to true, the converter will use the DEGIRO V2 converter (currently in beta) when a DEGIRO file was found. |
 | `--env PURGE_CACHE=true` | Y | When set to true, the file cache will be purged on start. |
+| `--env GHOSTFOLIO_VALIDATE=true` | Y | When set to true, the tool with automatically validate the generated file with Ghostfolio. |
+| `--env GHOSTFOLIO_IMPORT=true` | Y | When set to true, the tool will try to automatically import the generated file with Ghostfolio. |
+| `--env GHOSTFOLIO_URL=http://xxxxxxx` | Y | The endpoint of your **local** Ghostfolio instance. E.g. `http://192.168.1.15:3333`. **Use ONLY with a local Ghostfolio instance!** |
+| `--env GHOSTFOLIO_SECRET=xxxxxxx` | Y | The credentials of your Ghostfolio user. Used to authenticate with the `import` API endpoint. **Use ONLY with a local Ghostfolio instance!** |
 
 [^1]: You can retrieve your Ghostfolio account ID by going to Accounts > Edit for your account and copying the Account ID field 
 
 ![image](assets/account_settings.png)
-
 
 ### How to use by generating your own image
 
