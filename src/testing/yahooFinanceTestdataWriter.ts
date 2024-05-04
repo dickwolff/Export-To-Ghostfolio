@@ -2,7 +2,7 @@
 
 import * as fs from "fs";
 
-export default class YahooFinanceTestWriter {
+export default class YahooFinanceTestdataWriter {
 
     private YF_SEARCHRESULTS_FILENAME = "./src/testing/data/yahooFinanceSearchResults.json";
     private YF_QUOTESUMMARYRESULTS_FILENAME = "./src/testing/data/yahooFinanceQuoteSummaryResults.json";

@@ -1,7 +1,6 @@
 import * as cacache from "cacache";
 import YahooFinanceRecord from "./models/yahooFinanceRecord";
-import YahooFinanceTestWriter from "./testing/yahooFinanceTestWriter";
-import { YahooFinance } from "./models/yahooFinance";
+import { YahooFinance, YahooFinanceService } from "./yahooFinance";
 
 const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";
 
@@ -13,7 +12,12 @@ export class SecurityService {
 
     private preferedExchangePostfix: string = null;
 
-    constructor(private yahooFinance: YahooFinance, private yahooFinanceTestWriter?: YahooFinanceTestWriter) {
+    /**
+     * Default constructor.
+     * 
+     * @param yahooFinance Service that sends requests to Yahoo Finance. Creates default instance of YahooFinanceService
+     */
+    constructor(private yahooFinance: YahooFinance = new YahooFinanceService()) {
 
         // Override logging, not interested in yahooFinance2 debug logging..
         this.yahooFinance.setGlobalConfig({
@@ -174,7 +178,6 @@ export class SecurityService {
             {
                 validateResult: false
             });
-        this.yahooFinanceTestWriter?.addSearchResult(query, queryResult);
 
         // Check if no match was found and a name was given (length > 10 so no ISIN).
         // In that case, try and find a partial match by removing a part of the name.
@@ -188,7 +191,6 @@ export class SecurityService {
                 {
                     validateResult: false
                 });
-            this.yahooFinanceTestWriter?.addSearchResult(query.substring(0, 20), queryResult);
         }
 
         const result: YahooFinanceRecord[] = [];
@@ -208,7 +210,6 @@ export class SecurityService {
             let quoteSummaryResult;
             try {
                 quoteSummaryResult = await this.yahooFinance.quoteSummary(quote.symbol, {}, { validateResult: false });
-                this.yahooFinanceTestWriter?.addQuoteSummaryResult(quote.symbol, quoteSummaryResult);
             }
             catch (err) {
                 this.logDebug(`getSymbolsByQuery(): An error ocurred while retrieving summary for ${quote.symbol}. Skipping..`, progress, true);

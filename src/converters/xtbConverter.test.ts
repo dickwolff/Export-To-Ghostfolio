@@ -21,7 +21,7 @@ describe("xtbConverter", () => {
     expect(sut).toBeTruthy();
   });
 
-  it("should process sample CSV file", async (done) => {
+  it("should process sample CSV file", (done) => {
 
     // Arange
     const sut = new XtbConverter(new SecurityService());
