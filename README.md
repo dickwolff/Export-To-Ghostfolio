@@ -174,11 +174,15 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | Exporter    | Run command                         |
 | ----------- | ----------------------------------- |
 | DEGIRO      | `run start degiro`                  |
+| eToro       | `run start etoro`                   |
 | Finpension  | `run start finpension` (or `fp`)    |
 | Freetrade   | `run start freetrade`  (or `ft`)    |
-| Swissquote  | `run start swissquote` (or `sq`)    |
+| IBKR        | `run start ibkr`                    |
+| Rabobank    | `run start rabobank`                |
 | Schwab      | `run start schwab`                  |
+| Swissquote  | `run start swissquote` (or `sq`)    |
 | Trading 212 | `run start trading212` (or `t212`)  |
+| XTB         | `run start xtb`                     |
 
 ### Caching
 
