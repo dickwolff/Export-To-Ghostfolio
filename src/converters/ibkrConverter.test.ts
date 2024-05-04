@@ -126,7 +126,7 @@ describe("IbkrConverter", () => {
     tempFileContent += `"Buy/Sell","TradeDate","ISIN","Quantity","TradePrice","TradeMoney","CurrencyPrimary","IBCommission","IBCommissionCurrency"\n`;
     tempFileContent += `"BUY","20230522","CH0111762537","7","282.7","1978.9","CHF","-5","CHF"`;
 
-    // Mock Yahoo Finance service to return null.
+    // Mock Yahoo Finance service to return no quotes.
     const yahooFinanceServiceMock = new YahooFinanceServiceMock();
     jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { return Promise.resolve({ quotes: [] }) });
     const sut = new IbkrConverter(new SecurityService(yahooFinanceServiceMock));

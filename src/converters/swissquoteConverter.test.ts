@@ -109,7 +109,7 @@ describe("swissquoteConverter", () => {
     tempFileContent += "Date;Order #;Transaction;Symbol;Name;ISIN;Quantity;Unit price;Costs;Accrued Interest;Net Amount;Balance;Currency\n";
     tempFileContent += "16-06-2022 13:14:35;110152600;Sell;VEUD;VANGUARD FTSE EUROPE UCITS ETF;IE00B945VV12;709.0;32.37;115.28;0.00;22835.05;111207.71;USD";
 
-    // Mock Yahoo Finance service to return null.
+    // Mock Yahoo Finance service to return no quotes.
     const yahooFinanceServiceMock = new YahooFinanceServiceMock();
     jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { return Promise.resolve({ quotes: [] }) });
     const sut = new SwissquoteConverter(new SecurityService(yahooFinanceServiceMock));

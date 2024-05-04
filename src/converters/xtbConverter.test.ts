@@ -108,7 +108,7 @@ describe("xtbConverter", () => {
     tempFileContent += "ID;Type;Time;Symbol;Comment;Amount\n";
     tempFileContent += `513492358;Stocks/ETF purchase;11.03.2024 10:05:05;SPYL.DE;OPEN BUY 8 @ 11.2835;-90.27`;
 
-    // Mock Yahoo Finance service to return null.
+    // Mock Yahoo Finance service to return no quotes.
     const yahooFinanceServiceMock = new YahooFinanceServiceMock();
     jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { return Promise.resolve({ quotes: [] }) });
     const sut = new XtbConverter(new SecurityService(yahooFinanceServiceMock));

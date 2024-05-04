@@ -109,7 +109,7 @@ describe("freetradeConverter", () => {
     tempFileContent += "Title,Type,Timestamp,Account Currency,Total Amount,Buy / Sell,Ticker,ISIN,Price per Share in Account Currency,Stamp Duty,Quantity,Venue,Order ID,Order Type,Instrument Currency,Total Shares Amount,Price per Share,FX Rate,Base FX Rate,FX Fee (BPS),FX Fee Amount,Dividend Ex Date,Dividend Pay Date,Dividend Eligible Quantity,Dividend Amount Per Share,Dividend Gross Distribution Amount,Dividend Net Distribution Amount,Dividend Withheld Tax Percentage,Dividend Withheld Tax Amount\n";
     tempFileContent += `Cisco,ORDER,2024-03-04T11:01:19.356Z,GBP,992.50,BUY,,US17275R1023,99.25000000,0.00,10.00000000,London Stock Exchange,DJXPPWUNIUCR,BASIC,USD,992.50,99.25000000,,,0,,,,,,,,,`
 
-    // Mock Yahoo Finance service to return null.
+    // Mock Yahoo Finance service to return no quotes.
     const yahooFinanceServiceMock = new YahooFinanceServiceMock();
     jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { return Promise.resolve({ quotes: [] }) });
     const sut = new FreetradeConverter(new SecurityService(yahooFinanceServiceMock));

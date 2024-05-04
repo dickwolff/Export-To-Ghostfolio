@@ -110,7 +110,7 @@ describe("schwabConverter", () => {
     tempFileContent += `08/22/2023,Sell,FIHBX,FEDERATED HERMES INSTL HIGH YIELD BD IS,592.199,$8.46,$10.00,"$5,000.00"\n`;
     tempFileContent += `Transactions Total,,,,,,,"-$26,582.91"`;
 
-    // Mock Yahoo Finance service to return null.
+    // Mock Yahoo Finance service to return no quotes.
     const yahooFinanceServiceMock = new YahooFinanceServiceMock();
     jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { return Promise.resolve({ quotes: [] }) });
     const sut = new SchwabConverter(new SecurityService(yahooFinanceServiceMock));
