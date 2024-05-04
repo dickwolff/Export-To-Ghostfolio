@@ -1,6 +1,8 @@
 import path from "path";
 import * as fs from "fs";
 import dayjs from "dayjs";
+import { SecurityService } from "./securityService";
+import GhostfolioService from "./ghostfolioService";
 import { AbstractConverter } from "./converters/abstractconverter";
 import { DeGiroConverter } from "./converters/degiroConverter";
 import { DeGiroConverterV2 } from "./converters/degiroConverterV2";
@@ -14,7 +16,6 @@ import { SchwabConverter } from "./converters/schwabConverter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { XtbConverter } from "./converters/xtbConverter";
-import { SecurityService } from "./securityService";
 
 async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
@@ -24,7 +25,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
     }
 
     // If DEBUG_LOGGING is enabled, set spaces to 2 else null for easier to read JSON output.
-    const spaces = (Boolean(process.env.DEBUG_LOGGING) == true) ? 2 : null;
+    const spaces = process.env.DEBUG_LOGGING === "true" ? 2 : null;
 
     const converterTypeLc = converterType.toLocaleLowerCase();
 
@@ -32,7 +33,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
     const converter = await createConverter(converterTypeLc);
 
     // Map the file to a Ghostfolio import.
-    converter.readAndProcessFile(inputFilePath, (result: GhostfolioExport) => {
+    converter.readAndProcessFile(inputFilePath, async (result: GhostfolioExport) => {
 
         console.log("[i] Processing complete, writing to file..")
 
@@ -42,6 +43,8 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
         fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
 
         console.log(`[i] Wrote data to '${outputFileName}'!`);
+
+        await tryAutomaticValidationAndImport(outputFileName);
 
         completionCallback();
 
@@ -118,6 +121,38 @@ async function createConverter(converterType: string): Promise<AbstractConverter
     }
 
     return converter;
+}
+
+async function tryAutomaticValidationAndImport(outputFileName: string) {
+    
+    try {
+        const ghostfolioService = new GhostfolioService();
+
+        // When automatic validation is enabled, do this.
+        if (process.env.GHOSTFOLIO_VALIDATE === "true") {
+            console.log('[i] Automatic validation is allowed. Start validating..');
+            const validationResult = await ghostfolioService.validate(outputFileName);
+            console.log(`[i] Finished validation. ${validationResult ? 'Export was valid!' : 'Export was not valid!'}`);
+        }
+        else {
+            console.log('[i] You can now automatically validate the generated file against Ghostfolio. Set GHOSTFOLIO_VALIDATE=true in your environment variables to enable this feature.');
+        }
+
+        // When automatic import is enabled, do this.
+        if (process.env.GHOSTFOLIO_IMPORT === "true") {
+            console.log('[i] Automatic import is allowed. Start importing..');
+            console.log('[i] THIS IS AN EXPERIMENTAL FEATURE!! Use this at your own risk!');
+            const importResult = await ghostfolioService.import(outputFileName);
+            console.log(`[i] Finished importing. ${importResult > 0 ? `Succesfully imported ${importResult} activities!` : 'Import failed!'}`);
+        }
+        else {
+            console.log('[i] You can now automatically import the generated file into Ghostfolio. Set GHOSTFOLIO_IMPORT=true in your environment variables to enable this feature');
+            console.log('[i] THIS IS AN EXPERIMENTAL FEATURE!! Use this at your own risk!');
+        }
+    }
+    catch (e) {
+        console.log(`[e] Did not complete automatic import & validation due to errors: ${e}`);
+    }
 }
 
 export {
