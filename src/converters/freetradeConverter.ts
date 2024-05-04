@@ -30,6 +30,9 @@ export class FreetradeConverter extends AbstractConverter {
                     if (action.indexOf("interest_from_cash") > -1) {
                         return "interest";
                     }
+                    else if (action.indexOf("dividend") > -1) {
+                        return "dividend";
+                    }
                 }
 
                 if (context.column == "totalAmount" ||
@@ -48,11 +51,12 @@ export class FreetradeConverter extends AbstractConverter {
                     context.column == "dividendNetDistributionAmount" ||
                     context.column == "dividendWithheldTaxPercentage" ||
                     context.column == "dividendWithheldTaxAmount"
-                  ) {
-                      if (columnValue === null || columnValue === "") {
+                ) {
+                    if (columnValue === null || columnValue === "") {
                         columnValue = "0";
-                      }
-                      return parseFloat(columnValue);
+                    }
+
+                    return parseFloat(columnValue);
                 }
 
                 return columnValue;
@@ -122,7 +126,9 @@ export class FreetradeConverter extends AbstractConverter {
 
                 let action: string
                 if (record.type.toLocaleLowerCase() === "order") {
-                  action = record.buySell.toLocaleLowerCase();
+                    action = record.buySell.toLocaleLowerCase();
+                } else {
+                    action = record.type.toLocaleLowerCase();
                 }
 
                 // Log whenever there was no match found.
@@ -132,8 +138,9 @@ export class FreetradeConverter extends AbstractConverter {
                     continue;
                 }
 
-                // Add record to export.
+                // If action was dividend, add to export and continue.
                 if (action === "dividend") {
+
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                         comment: record.title,
@@ -151,12 +158,13 @@ export class FreetradeConverter extends AbstractConverter {
                     continue;
                 }
 
-                // Buy & Sell
+                // Add buy & sell records.
                 let feeAmount = record.stampDuty + record.fXFeeAmount;
                 let unitPrice = record.pricePerShare;
                 if (security.currency == "GBp") {
                     unitPrice = record.pricePerShare * 100;
                 }
+
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: record.title,
