@@ -44,6 +44,7 @@ jobs:
           
       # Source: https://stackoverflow.com/a/70655285
       - name: Read coverage report to variable
+        if: github.event_name == 'pull_request'
         id: read_md
         run: |
           echo 'COV_MD<<EOF' >> $GITHUB_OUTPUT
@@ -52,6 +53,7 @@ jobs:
 
       - name: Add code coverage PR comment
         uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
         with:
           script: |
             github.rest.issues.createComment({
