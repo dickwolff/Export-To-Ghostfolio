@@ -25,7 +25,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
     }
 
     // If DEBUG_LOGGING is enabled, set spaces to 2 else null for easier to read JSON output.
-    const spaces = (Boolean(process.env.DEBUG_LOGGING) == true) ? 2 : null;
+    const spaces = process.env.DEBUG_LOGGING === "true" ? 2 : null;
 
     const converterTypeLc = converterType.toLocaleLowerCase();
 
@@ -44,28 +44,33 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
 
         console.log(`[i] Wrote data to '${outputFileName}'!`);
 
-        const ghostfolioService = new GhostfolioService();
+        try {
+            const ghostfolioService = new GhostfolioService();
 
-        // When automatic validation is enabled, do this.
-        if (process.env.GHOSTFOLIO_VALIDATE === "true") {
-            console.log('[i] Automatic validation is allowed. Start validating..');
-            const validationResult = await ghostfolioService.validate(outputFileName);
-            console.log(`[i] Finished validation. ${validationResult ? 'Export was valid!' : 'Export was not valid!'}`);
-        }
-        else {
-            console.log('[i] You can now automatically validate the generated file against Ghostfolio. Set GHOSTFOLIO_VALIDATE=true in your environment variables to enable this feature.');
-        }
+            // When automatic validation is enabled, do this.
+            if (process.env.GHOSTFOLIO_VALIDATE === "true") {
+                console.log('[i] Automatic validation is allowed. Start validating..');
+                const validationResult = await ghostfolioService.validate(outputFileName);
+                console.log(`[i] Finished validation. ${validationResult ? 'Export was valid!' : 'Export was not valid!'}`);
+            }
+            else {
+                console.log('[i] You can now automatically validate the generated file against Ghostfolio. Set GHOSTFOLIO_VALIDATE=true in your environment variables to enable this feature.');
+            }
 
-        // When automatic import is enabled, do this.
-        if (process.env.GHOSTFOLIO_IMPORT === "true") {
-            console.log('[i] Automatic import is allowed. Start importing..');
-            console.log('[i] THIS IS AN EXPERIMENTAL FEATURE!! Use this at your own risk!');
-            const importResult = await ghostfolioService.import(outputFileName);
-            console.log(`[i] Finished importing. ${importResult > 0 ? `Succesfully imported ${importResult} activities!` : 'Import failed!'}`);
+            // When automatic import is enabled, do this.
+            if (process.env.GHOSTFOLIO_IMPORT === "true") {
+                console.log('[i] Automatic import is allowed. Start importing..');
+                console.log('[i] THIS IS AN EXPERIMENTAL FEATURE!! Use this at your own risk!');
+                const importResult = await ghostfolioService.import(outputFileName);
+                console.log(`[i] Finished importing. ${importResult > 0 ? `Succesfully imported ${importResult} activities!` : 'Import failed!'}`);
+            }
+            else {
+                console.log('[i] You can now automatically import the generated file into Ghostfolio. Set GHOSTFOLIO_IMPORT=true in your environment variables to enable this feature');
+                console.log('[i] THIS IS AN EXPERIMENTAL FEATURE!! Use this at your own risk!');
+            }
         }
-        else {
-            console.log('[i] You can now automatically import the generated file into Ghostfolio. Set GHOSTFOLIO_IMPORT=true in your environment variables to enable this feature');
-            console.log('[i] THIS IS AN EXPERIMENTAL FEATURE!! Use this at your own risk!');
+        catch (e) {
+            console.log(`[e] Did not complete automatic import & validation due to errors: ${e}`);
         }
 
         completionCallback();
