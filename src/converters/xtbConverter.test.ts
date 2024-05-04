@@ -1,5 +1,5 @@
 import { XtbConverter } from "./xtbConverter";
-import { YahooFinanceService } from "../yahooFinanceService";
+import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 
 describe("xtbConverter", () => {
@@ -15,7 +15,7 @@ describe("xtbConverter", () => {
   it("should construct", () => {
 
     // Act
-    const sut = new XtbConverter(new YahooFinanceService());
+    const sut = new XtbConverter(new SecurityService());
 
     // Assert
     expect(sut).toBeTruthy();
@@ -24,7 +24,7 @@ describe("xtbConverter", () => {
   it("should process sample CSV file", async (done) => {
 
     // Arange
-    const sut = new XtbConverter(new YahooFinanceService());
+    const sut = new XtbConverter(new SecurityService());
     const inputFile = "samples/xtb-export.csv";
 
     // Act
@@ -43,7 +43,7 @@ describe("xtbConverter", () => {
     it("the input file does not exist", (done) => {
 
       // Arrange
-      const sut = new XtbConverter(new YahooFinanceService());
+      const sut = new XtbConverter(new SecurityService());
 
       let tempFileName = "tmp/testinput/xtb-filedoesnotexist.csv";
 
@@ -60,7 +60,7 @@ describe("xtbConverter", () => {
     it("the input file is empty", (done) => {
 
       // Arrange
-      const sut = new XtbConverter(new YahooFinanceService());
+      const sut = new XtbConverter(new SecurityService());
 
       let tempFileContent = "";
       tempFileContent += "ID;Type;Time;Symbol;Comment;Amount\n";
@@ -85,9 +85,9 @@ describe("xtbConverter", () => {
       tempFileContent += `513492358;Stocks/ETF purchase;11.03.2024 10:05:05;SPYL.DE;OPEN BUY 8 @ 11.2835;-90.27`;
 
       // Mock Yahoo Finance service to throw error.
-      const yahooFinanceService = new YahooFinanceService();
-      jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
-      const sut = new XtbConverter(yahooFinanceService);
+      const securityService = new SecurityService();
+      jest.spyOn(securityService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
+      const sut = new XtbConverter(securityService);
 
       // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -110,9 +110,9 @@ describe("xtbConverter", () => {
     tempFileContent += `513492358;Stocks/ETF purchase;11.03.2024 10:05:05;SPYL.DE;OPEN BUY 8 @ 11.2835;-90.27`;
 
     // Mock Yahoo Finance service to return null.
-    const yahooFinanceService = new YahooFinanceService();
-    jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { return null });
-    const sut = new XtbConverter(yahooFinanceService);
+    const securityService = new SecurityService();
+    jest.spyOn(securityService, "getSecurity").mockImplementation(() => { return null });
+    const sut = new XtbConverter(securityService);
 
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");

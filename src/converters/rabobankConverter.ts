@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { AbstractConverter } from "./abstractconverter";
 import { RabobankRecord } from "../models/rabobankRecord";
-import { YahooFinanceService } from "../yahooFinanceService";
+import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -10,8 +10,8 @@ import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class RabobankConverter extends AbstractConverter {
 
-    constructor(yahooFinanceService: YahooFinanceService) {
-        super(yahooFinanceService);
+    constructor(securityService: SecurityService) {
+        super(securityService);
 
         dayjs.extend(customParseFormat);
     }
@@ -122,7 +122,7 @@ export class RabobankConverter extends AbstractConverter {
 
                 let security: YahooFinanceRecord;
                 try {
-                    security = await this.yahooFinanceService.getSecurity(
+                    security = await this.securityService.getSecurity(
                         record.isin,
                         null,
                         record.name,

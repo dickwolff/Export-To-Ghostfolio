@@ -1,5 +1,5 @@
 import { IbkrConverter } from "./ibkrConverter";
-import { YahooFinanceService } from "../yahooFinanceService";
+import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 
 describe("IbkrConverter", () => {
@@ -15,7 +15,7 @@ describe("IbkrConverter", () => {
   it("should construct", () => {
 
     // Act
-    const sut = new IbkrConverter(new YahooFinanceService());
+    const sut = new IbkrConverter(new SecurityService());
 
     // Assert
     expect(sut).toBeTruthy();
@@ -24,7 +24,7 @@ describe("IbkrConverter", () => {
   describe("should process sample CSV file", () => {
     it("with trades", (done) => {
       // Arange
-      const sut = new IbkrConverter(new YahooFinanceService());
+      const sut = new IbkrConverter(new SecurityService());
       const inputFile = "samples/ibkr-trades-export.csv";
 
       // Act
@@ -41,7 +41,7 @@ describe("IbkrConverter", () => {
 
     it("with dividends", (done) => {
       // Arange
-      const sut = new IbkrConverter(new YahooFinanceService());
+      const sut = new IbkrConverter(new SecurityService());
       const inputFile = "samples/ibkr-dividends-export.csv";
 
       // Act
@@ -61,7 +61,7 @@ describe("IbkrConverter", () => {
     it("the input file does not exist", (done) => {
 
       // Arrange
-      const sut = new IbkrConverter(new YahooFinanceService());
+      const sut = new IbkrConverter(new SecurityService());
 
       let tempFileName = "tmp/testinput/ibkr-filedoesnotexist.csv";
 
@@ -78,7 +78,7 @@ describe("IbkrConverter", () => {
     it("the input file is empty", (done) => {
 
       // Arrange
-      const sut = new IbkrConverter(new YahooFinanceService());
+      const sut = new IbkrConverter(new SecurityService());
 
       let tempFileContent = "";
       tempFileContent += `"Buy/Sell","TradeDate","ISIN","Quantity","TradePrice","TradeMoney","CurrencyPrimary","IBCommission","IBCommissionCurrency"\n`;
@@ -102,9 +102,9 @@ describe("IbkrConverter", () => {
       tempFileContent += `"BUY","20230522","CH0111762537","7","282.7","1978.9","CHF","-5","CHF"`;
 
       // Mock Yahoo Finance service to throw error.
-      const yahooFinanceService = new YahooFinanceService();
-      jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
-      const sut = new IbkrConverter(yahooFinanceService);
+      const securityService = new SecurityService();
+      jest.spyOn(securityService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
+      const sut = new IbkrConverter(securityService);
 
       // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -126,9 +126,9 @@ describe("IbkrConverter", () => {
     tempFileContent += `"BUY","20230522","CH0111762537","7","282.7","1978.9","CHF","-5","CHF"`;
 
     // Mock Yahoo Finance service to return null.
-    const yahooFinanceService = new YahooFinanceService();
-    jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { return null });
-    const sut = new IbkrConverter(yahooFinanceService);
+    const securityService = new SecurityService();
+    jest.spyOn(securityService, "getSecurity").mockImplementation(() => { return null });
+    const sut = new IbkrConverter(securityService);
 
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");

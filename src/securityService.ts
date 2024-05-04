@@ -1,11 +1,11 @@
 import * as cacache from "cacache";
 import YahooFinanceRecord from "./models/yahooFinanceRecord";
 import YahooFinanceTestWriter from "./testing/yahooFinanceTestWriter";
-import { YahooFinance } from "./yahooFinance";
+import { YahooFinance } from "./models/yahooFinance";
 
 const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";
 
-export class YahooFinanceService {
+export class SecurityService {
 
     // Local cache of earlier retrieved symbols.
     private isinSymbolCache: Map<string, string> = new Map<string, string>();

@@ -1,6 +1,6 @@
 import { SwissquoteConverter } from "./swissquoteConverter";
 import { GhostfolioExport } from "../models/ghostfolioExport";
-import { YahooFinanceService } from "../yahooFinanceService";
+import { SecurityService } from "../securityService";
 
 describe("swissquoteConverter", () => {
 
@@ -15,7 +15,7 @@ describe("swissquoteConverter", () => {
   it("should construct", () => {
 
     // Act
-    const sut = new SwissquoteConverter(new YahooFinanceService());
+    const sut = new SwissquoteConverter(new SecurityService());
 
     // Assert
     expect(sut).toBeTruthy();
@@ -24,7 +24,7 @@ describe("swissquoteConverter", () => {
   it("should process sample CSV file", (done) => {
 
     // Act
-    const sut = new SwissquoteConverter(new YahooFinanceService());
+    const sut = new SwissquoteConverter(new SecurityService());
     const inputFile = "samples/swissquote-export.csv";
 
     // Act
@@ -43,7 +43,7 @@ describe("swissquoteConverter", () => {
     it("the input file does not exist", (done) => {
 
       // Act
-      const sut = new SwissquoteConverter(new YahooFinanceService());
+      const sut = new SwissquoteConverter(new SecurityService());
 
       let tempFileName = "tmp/testinput/swissquote-filedoesnotexist.csv";
 
@@ -60,7 +60,7 @@ describe("swissquoteConverter", () => {
     it("the input file is empty", (done) => {
 
       // Act
-      const sut = new SwissquoteConverter(new YahooFinanceService());
+      const sut = new SwissquoteConverter(new SecurityService());
 
       // Create temp file.
       let tempFileContent = "";
@@ -80,7 +80,7 @@ describe("swissquoteConverter", () => {
     it("Yahoo Finance got empty input for query", (done) => {
 
       // Act
-      const sut = new SwissquoteConverter(new YahooFinanceService());
+      const sut = new SwissquoteConverter(new SecurityService());
 
       // Create temp file.
       let tempFileContent = "";

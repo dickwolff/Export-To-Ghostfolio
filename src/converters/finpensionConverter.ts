@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { AbstractConverter } from "./abstractconverter";
-import { YahooFinanceService } from "../yahooFinanceService";
+import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { FinpensionRecord } from "../models/finpensionRecord";
@@ -9,8 +9,8 @@ import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class FinpensionConverter extends AbstractConverter {
 
-    constructor(yahooFinanceService: YahooFinanceService) {
-        super(yahooFinanceService);
+    constructor(securityService: SecurityService) {
+        super(securityService);
     }
 
     /**
@@ -107,7 +107,7 @@ export class FinpensionConverter extends AbstractConverter {
 
                 let security: YahooFinanceRecord;
                 try {
-                    security = await this.yahooFinanceService.getSecurity(
+                    security = await this.securityService.getSecurity(
                         record.isin,
                         null,
                         record.assetName,

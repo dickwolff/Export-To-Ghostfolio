@@ -1,5 +1,5 @@
 import { SchwabConverter } from "./schwabConverter";
-import { YahooFinanceService } from "../yahooFinanceService";
+import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 
 describe("schwabConverter", () => {
@@ -15,7 +15,7 @@ describe("schwabConverter", () => {
   it("should construct", () => {
 
     // Act
-    const sut = new SchwabConverter(new YahooFinanceService());
+    const sut = new SchwabConverter(new SecurityService());
 
     // Assert
     expect(sut).toBeTruthy();
@@ -24,7 +24,7 @@ describe("schwabConverter", () => {
   it("should process sample CSV file", (done) => {
 
     // Arange
-    const sut = new SchwabConverter(new YahooFinanceService());
+    const sut = new SchwabConverter(new SecurityService());
     const inputFile = "samples/schwab-export.csv";
 
     // Act
@@ -43,7 +43,7 @@ describe("schwabConverter", () => {
     it("the input file does not exist", (done) => {
 
       // Arrange
-      const sut = new SchwabConverter(new YahooFinanceService());
+      const sut = new SchwabConverter(new SecurityService());
 
       let tempFileName = "tmp/testinput/schwab-filedoesnotexist.csv";
 
@@ -60,7 +60,7 @@ describe("schwabConverter", () => {
     it("the input file is empty", (done) => {
 
       // Arrange
-      const sut = new SchwabConverter(new YahooFinanceService());
+      const sut = new SchwabConverter(new SecurityService());
 
       let tempFileContent = "";
       tempFileContent += `Date,Action,Symbol,Description,Quantity,Price,Fees & Comm,Amount\n`;
@@ -85,9 +85,9 @@ describe("schwabConverter", () => {
       tempFileContent += `Transactions Total,,,,,,,"-$26,582.91"`;
 
       // Mock Yahoo Finance service to throw error.
-      const yahooFinanceService = new YahooFinanceService();
-      jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
-      const sut = new SchwabConverter(yahooFinanceService);
+      const securityService = new SecurityService();
+      jest.spyOn(securityService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
+      const sut = new SchwabConverter(securityService);
 
       // Act
       sut.processFileContents(tempFileContent, (e) => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -110,9 +110,9 @@ describe("schwabConverter", () => {
     tempFileContent += `Transactions Total,,,,,,,"-$26,582.91"`;
 
     // Mock Yahoo Finance service to return null.
-    const yahooFinanceService = new YahooFinanceService();
-    jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { return null });
-    const sut = new SchwabConverter(yahooFinanceService);
+    const securityService = new SecurityService();
+    jest.spyOn(securityService, "getSecurity").mockImplementation(() => { return null });
+    const sut = new SchwabConverter(securityService);
 
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");
