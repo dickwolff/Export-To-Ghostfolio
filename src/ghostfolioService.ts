@@ -35,7 +35,7 @@ class GhostfolioService implements Ghostfolio {
     }
 
     /** @inheritdoc */
-    public async validate(path: string, progress?: any, retryCount: number = 0): Promise<boolean> {
+    public async validate(path: string, retryCount: number = 0): Promise<boolean> {
 
         // Check wether validation is allowed.
         if (!process.env.GHOSTFOLIO_VALIDATE) {
@@ -47,19 +47,21 @@ class GhostfolioService implements Ghostfolio {
             throw new Error("Failed to validate export file because of authentication error..")
         }
 
+        // Read file and prepare request body.
         const fileToValidate = fs.readFileSync(path, { encoding: "utf-8" });
+        const requestBody = {
+            activities: JSON.parse(fileToValidate).activities
+        }
 
         // Try validation.
         const validationResult = await fetch(`${process.env.GHOSTFOLIO_URL}/api/v1/import?dryRun=true`, {
             method: "POST",
-            headers: [["Authorization", `Bearer ${this.cachedBearerToken}`]],
-            body: JSON.stringify(fileToValidate)
+            headers: [["Authorization", `Bearer ${this.cachedBearerToken}`], ["Content-Type", "application/json"]],
+            body: JSON.stringify(requestBody)
         });
 
         // Check if response was unauthorized. If so, refresh token and try again.
         if (validationResult.status === 401) {
-
-            progress?.log(`[i] Ghostfolio access token is not valid! Retrying...\n`);
 
             await this.authenticate(true);
             return await this.validate(path, retryCount++);
@@ -69,22 +71,21 @@ class GhostfolioService implements Ghostfolio {
         // Look in response for reasons and log those.
         if (validationResult.status === 400) {
 
-            progress?.log(`[e] Validation failed!\n`);
+            console.log(`[e] Validation failed!`);
 
             var response = await validationResult.json();
             response.message.forEach(message => {
-                progress?.log(`[e]\t${message}\n`);
+                console.log(`[e]\t${message}`);
             });
 
             return false;
         }
 
-        progress?.log(`[i] Validation was succesful!\n`);
         return validationResult.status === 201;
     }
 
     /** @inheritdoc */
-    public async import(path: string, progress?: any, retryCount: number = 0): Promise<number> {
+    public async import(path: string, retryCount: number = 0): Promise<number> {
 
         // Check wether validation is allowed.
         if (!process.env.GHOSTFOLIO_IMPORT) {
@@ -96,41 +97,42 @@ class GhostfolioService implements Ghostfolio {
             throw new Error("Failed to automatically import export file because of authentication error..")
         }
 
+        // Read file and prepare request body.
         const fileToValidate = fs.readFileSync(path, { encoding: "utf-8" });
+        const requestBody = {
+            activities: JSON.parse(fileToValidate).activities
+        }
 
         // Try import.
-        const validationResult = await fetch(`${process.env.GHOSTFOLIO_URL}/api/v1/import?dryRun=false`, {
+        const importResult = await fetch(`${process.env.GHOSTFOLIO_URL}/api/v1/import?dryRun=false`, {
             method: "POST",
-            headers: [["Authorization", `Bearer ${this.cachedBearerToken}`]],
-            body: JSON.stringify(fileToValidate)
+            headers: [["Authorization", `Bearer ${this.cachedBearerToken}`], ["Content-Type", "application/json"]],
+            body: JSON.stringify(requestBody)
         });
 
         // Check if response was unauthorized. If so, refresh token and try again.
-        if (validationResult.status === 401) {
-       
-            progress?.log(`[i] Ghostfolio access token is not valid! Retrying...\n`);
+        if (importResult.status === 401) {
 
             await this.authenticate(true);
             return await this.import(path, retryCount++);
         }
 
-        var response = await validationResult.json();
+        var response = await importResult.json();
 
         // If status is 400, then import failed. 
         // Look in response for reasons and log those.
-        if (validationResult.status === 400) {
-       
-            progress?.log(`[e] Import failed!\n`);
+        if (importResult.status === 400) {
+
+            console.log(`[e] Import failed!`);
 
             response.message.forEach(message => {
-                progress?.log(`[e]\t${message}\n`);
+                console.log(`[e]\t${message}`);
             });
 
             // It failed, so throw erro and stop.
             throw new Error("Automatic import failed! See the logs for more details.");
         }
 
-        progress?.log(`[i] Import was succesful!\n`);
         return response.activities.length;
     }
 
