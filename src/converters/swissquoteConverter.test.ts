@@ -43,7 +43,7 @@ describe("swissquoteConverter", () => {
   describe("should throw an error if", () => {
     it("the input file does not exist", (done) => {
 
-      // Act
+      // Arrange
       const sut = new SwissquoteConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileName = "tmp/testinput/swissquote-filedoesnotexist.csv";
@@ -60,7 +60,7 @@ describe("swissquoteConverter", () => {
 
     it("the input file is empty", (done) => {
 
-      // Act
+      // Arrange
       const sut = new SwissquoteConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       // Create temp file.
