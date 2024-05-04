@@ -1,6 +1,6 @@
 import * as cacache from "cacache";
 import YahooFinanceRecord from "./models/yahooFinanceRecord";
-import { YahooFinance, YahooFinanceService } from "./yahooFinance";
+import { YahooFinance, YahooFinanceService } from "./yahooFinanceService";
 import { mapReplacer, mapReviver } from "./helpers/dictionaryHelpers";
 
 const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";

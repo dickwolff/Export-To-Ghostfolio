@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 
 import * as fs from "fs";
-import { YahooFinance } from "../yahooFinance";
+import { YahooFinance } from "../yahooFinanceService";
 import { mapReviver } from "../helpers/dictionaryHelpers";
 import { SearchOptions } from "yahoo-finance2/dist/esm/src/modules/search";
 import { YahooFinanceOptions } from "yahoo-finance2/dist/esm/src/lib/options";

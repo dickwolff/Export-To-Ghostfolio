@@ -6,7 +6,12 @@ import { mapReplacer, mapReviver } from "../helpers/dictionaryHelpers";
 const YF_SEARCHRESULTS_FILENAME = "./src/testing/data/yahooFinanceSearchResults.json";
 const YF_QUOTESUMMARYRESULTS_FILENAME = "./src/testing/data/yahooFinanceQuoteSummaryResults.json";
 
-class YahooFinanceTestdataWriter {
+interface YahooFinanceTestdata {
+    addSearchResult(query: string, searchResult: any);
+    addQuoteSummaryResult(symbol: string, quoteSummaryResult: any);
+}
+
+class YahooFinanceTestdataWriter implements YahooFinanceTestdata {
 
     // Local cache of earlier retrieved symbols.
     private yahooFinanceSearchResults: Map<string, any> = new Map<string, any>();
@@ -51,13 +56,13 @@ class YahooFinanceTestdataWriter {
     /**
      * Add a Yahoo Finance quote summary result (if it does not already exist).
      * 
-     * @param query The key for this result
+     * @param symbol The key for this result
      * @param quoteSummaryResult The quote summary result to add
      */
-    public addQuoteSummaryResult(query: string, quoteSummaryResult: any) {
+    public addQuoteSummaryResult(symbol: string, quoteSummaryResult: any) {
 
-        if (!this.yahooFinanceQuoteSummaryResults.has(query)) {
-            this.yahooFinanceQuoteSummaryResults.set(query, quoteSummaryResult);
+        if (!this.yahooFinanceQuoteSummaryResults.has(symbol)) {
+            this.yahooFinanceQuoteSummaryResults.set(symbol, quoteSummaryResult);
         }
 
         fs.writeFileSync(YF_QUOTESUMMARYRESULTS_FILENAME, JSON.stringify(this.yahooFinanceQuoteSummaryResults, mapReplacer));
@@ -67,5 +72,6 @@ class YahooFinanceTestdataWriter {
 export {
     YF_SEARCHRESULTS_FILENAME,
     YF_QUOTESUMMARYRESULTS_FILENAME,
+    YahooFinanceTestdata,
     YahooFinanceTestdataWriter
 }
