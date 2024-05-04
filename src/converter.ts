@@ -2,7 +2,7 @@ import path from "path";
 import * as fs from "fs";
 import dayjs from "dayjs";
 import { SecurityService } from "./securityService";
-import { GhostfolioService } from "./ghostfolioService";
+import GhostfolioService from "./ghostfolioService";
 import { AbstractConverter } from "./converters/abstractconverter";
 import { DeGiroConverter } from "./converters/degiroConverter";
 import { DeGiroConverterV2 } from "./converters/degiroConverterV2";
@@ -51,7 +51,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
             console.log('[i] Automatic validation is allowed. Start validating..');
             const validationResult = await ghostfolioService.validate(outputFileName);
             console.log(`[i] Finished validation. ${validationResult ? 'Export was valid!' : 'Export was not valid!'}`);
-        } 
+        }
         else {
             console.log('[i] You can now automatically validate the generated file with Ghostfolio. Set GHOSTFOLIO_VALIDATE=true in your environment variables!');
         }

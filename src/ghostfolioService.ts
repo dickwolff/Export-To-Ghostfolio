@@ -1,25 +1,8 @@
+/* istanbul ignore file */
+
 import * as fs from "fs";
 
-interface Ghostfolio {
-
-    /**
-     * Validate an export file to Ghostfolio
-     * 
-     * @param path The path to the Ghostfolio export file.
-     * @returns Wether the export file is valid and can be processed by Ghostfolio.
-     */
-    validate(path: string): Promise<boolean>;
-
-    /**
-     * Import an export file into Ghostfolio
-     * 
-     * @param path The path to the Ghostfolio export file.
-     * @returns The amount of records imported.
-     */
-    import(path: string): Promise<number>;
-}
-
-class GhostfolioService implements Ghostfolio {
+export default class GhostfolioService {
 
     private cachedBearerToken: string;
 
@@ -34,7 +17,12 @@ class GhostfolioService implements Ghostfolio {
         }
     }
 
-    /** @inheritdoc */
+    /**
+     * Validate an export file to Ghostfolio
+     * 
+     * @param path The path to the Ghostfolio export file.
+     * @returns Wether the export file is valid and can be processed by Ghostfolio.
+     */
     public async validate(path: string, retryCount: number = 0): Promise<boolean> {
 
         // Check wether validation is allowed.
@@ -84,7 +72,12 @@ class GhostfolioService implements Ghostfolio {
         return validationResult.status === 201;
     }
 
-    /** @inheritdoc */
+    /**
+     * Import an export file into Ghostfolio
+     * 
+     * @param path The path to the Ghostfolio export file.
+     * @returns The amount of records imported.
+     */
     public async import(path: string, retryCount: number = 0): Promise<number> {
 
         // Check wether validation is allowed.
@@ -148,9 +141,4 @@ class GhostfolioService implements Ghostfolio {
             return;
         }
     }
-}
-
-export {
-    Ghostfolio,
-    GhostfolioService
 }
