@@ -107,7 +107,6 @@ describe("IbkrConverter", () => {
       jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { throw new Error("Unit test error"); });
       const sut = new IbkrConverter(new SecurityService(yahooFinanceServiceMock));
 
-
       // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
 

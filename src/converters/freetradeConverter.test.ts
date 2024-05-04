@@ -81,7 +81,6 @@ describe("freetradeConverter", () => {
     it("Yahoo Finance throws an error", (done) => {
 
       // Arrange
-
       let tempFileContent = "";
       tempFileContent += "Title,Type,Timestamp,Account Currency,Total Amount,Buy / Sell,Ticker,ISIN,Price per Share in Account Currency,Stamp Duty,Quantity,Venue,Order ID,Order Type,Instrument Currency,Total Shares Amount,Price per Share,FX Rate,Base FX Rate,FX Fee (BPS),FX Fee Amount,Dividend Ex Date,Dividend Pay Date,Dividend Eligible Quantity,Dividend Amount Per Share,Dividend Gross Distribution Amount,Dividend Net Distribution Amount,Dividend Withheld Tax Percentage,Dividend Withheld Tax Amount\n";
       tempFileContent += `Apple,DIVIDEND,2024-02-15T17:39:00.000Z,GBP,6.78,,AAPL,US0378331005,,,41.83076059,,,,USD,,,,0.79485569,0,0.00,2024-02-09,2024-02-15,41.83076059,0.24000000,10.04,8.53,15,1.51`;
