@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { AbstractConverter } from "./abstractconverter";
-import { YahooFinanceService } from "../yahooFinanceService";
+import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import { Trading212Record } from "../models/trading212Record";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
@@ -9,8 +9,8 @@ import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class Trading212Converter extends AbstractConverter {
 
-    constructor(yahooFinanceService: YahooFinanceService) {
-        super(yahooFinanceService);
+    constructor(securityService: SecurityService) {
+        super(securityService);
     }
 
     /**
@@ -115,7 +115,7 @@ export class Trading212Converter extends AbstractConverter {
 
                 let security: YahooFinanceRecord;
                 try {
-                    security = await this.yahooFinanceService.getSecurity(
+                    security = await this.securityService.getSecurity(
                         record.isin,
                         record.ticker,
                         record.name,

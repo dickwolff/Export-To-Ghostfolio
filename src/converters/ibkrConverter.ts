@@ -3,7 +3,7 @@ import { parse } from "csv-parse";
 import { IbkrRecord } from "../models/ibkrRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { IbkrTradeRecord } from "../models/ibkrTradeRecord";
-import { YahooFinanceService } from "../yahooFinanceService";
+import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { IbkrDividendRecord } from "../models/ibkrDividendRecord";
@@ -12,8 +12,8 @@ import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class IbkrConverter extends AbstractConverter {
 
-    constructor(yahooFinanceService: YahooFinanceService) {
-        super(yahooFinanceService);
+    constructor(securityService: SecurityService) {
+        super(securityService);
     }
 
     /**
@@ -98,7 +98,7 @@ export class IbkrConverter extends AbstractConverter {
 
                 let security: YahooFinanceRecord;
                 try {
-                    security = await this.yahooFinanceService.getSecurity(
+                    security = await this.securityService.getSecurity(
                         record.isin,
                         null,
                         null,

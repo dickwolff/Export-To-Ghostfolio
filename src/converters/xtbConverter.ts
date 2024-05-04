@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { XtbRecord } from "../models/xtbRecord";
 import { AbstractConverter } from "./abstractconverter";
-import { YahooFinanceService } from "../yahooFinanceService";
+import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -10,8 +10,8 @@ import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class XtbConverter extends AbstractConverter {
 
-    constructor(yahooFinanceService: YahooFinanceService) {
-        super(yahooFinanceService);
+    constructor(securityService: SecurityService) {
+        super(securityService);
 
         dayjs.extend(customParseFormat);
     }
@@ -60,7 +60,7 @@ export class XtbConverter extends AbstractConverter {
             }
 
             // If records is empty, parsing failed..
-            if (records === undefined || records.length === 0) {                    
+            if (records === undefined || records.length === 0) {
                 return errorCallback(new Error("An error ocurred while parsing!"));
             }
 
@@ -114,7 +114,7 @@ export class XtbConverter extends AbstractConverter {
 
                 let security: YahooFinanceRecord;
                 try {
-                    security = await this.yahooFinanceService.getSecurity(
+                    security = await this.securityService.getSecurity(
                         null,
                         record.symbol,
                         null,
@@ -122,7 +122,7 @@ export class XtbConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.comment, idx + 2);        
+                    this.logQueryError(record.comment, idx + 2);
                     return errorCallback(err);
                 }
 
@@ -132,7 +132,7 @@ export class XtbConverter extends AbstractConverter {
                     bar1.increment();
                     continue;
                 }
-                
+
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,

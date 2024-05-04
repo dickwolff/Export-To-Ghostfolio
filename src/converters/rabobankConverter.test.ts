@@ -1,6 +1,7 @@
 import { RabobankConverter } from "./rabobankConverter";
-import { YahooFinanceService } from "../yahooFinanceService";
+import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
+import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
 
 describe("rabobankConverter", () => {
 
@@ -15,7 +16,7 @@ describe("rabobankConverter", () => {
   it("should construct", () => {
 
     // Act
-    const sut = new RabobankConverter(new YahooFinanceService());
+    const sut = new RabobankConverter(new SecurityService(new YahooFinanceServiceMock()));
 
     // Assert
     expect(sut).toBeTruthy();
@@ -24,7 +25,7 @@ describe("rabobankConverter", () => {
   it("should process sample CSV file", (done) => {
 
     // Arange
-    const sut = new RabobankConverter(new YahooFinanceService());
+    const sut = new RabobankConverter(new SecurityService(new YahooFinanceServiceMock()));
     const inputFile = "samples/rabobank-export.csv";
 
     // Act
@@ -43,7 +44,7 @@ describe("rabobankConverter", () => {
     it("the input file does not exist", (done) => {
 
       // Arrange
-      const sut = new RabobankConverter(new YahooFinanceService());
+      const sut = new RabobankConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileName = "tmp/testinput/rabobank-filedoesnotexist.csv";
 
@@ -60,7 +61,7 @@ describe("rabobankConverter", () => {
     it("the input file is empty", (done) => {
 
       // Arrange
-      const sut = new RabobankConverter(new YahooFinanceService());
+      const sut = new RabobankConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileContent = "";
       tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
@@ -84,9 +85,9 @@ describe("rabobankConverter", () => {
       tempFileContent += `12345678;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima`;
 
       // Mock Yahoo Finance service to throw error.
-      const yahooFinanceService = new YahooFinanceService();
-      jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
-      const sut = new RabobankConverter(yahooFinanceService);
+      const yahooFinanceServiceMock = new YahooFinanceServiceMock();
+      jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { throw new Error("Unit test error"); });
+      const sut = new RabobankConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -107,10 +108,10 @@ describe("rabobankConverter", () => {
     tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
     tempFileContent += `12345678;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima`;
 
-    // Mock Yahoo Finance service to return null.
-    const yahooFinanceService = new YahooFinanceService();
-    jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { return null });
-    const sut = new RabobankConverter(yahooFinanceService);
+    // Mock Yahoo Finance service to return no quotes.
+    const yahooFinanceServiceMock = new YahooFinanceServiceMock();
+    jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { return Promise.resolve({ quotes: [] }) });
+    const sut = new RabobankConverter(new SecurityService(yahooFinanceServiceMock));
 
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");

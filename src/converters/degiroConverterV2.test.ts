@@ -1,11 +1,12 @@
 import { DeGiroConverterV2 } from "./degiroConverterV2";
-import { YahooFinanceService } from "../yahooFinanceService";
+import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
+import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
 
 describe("degiroConverterV2", () => {
 
   beforeEach(() => {
-   // jest.spyOn(console, "log").mockImplementation(jest.fn());
+    jest.spyOn(console, "log").mockImplementation(jest.fn());
   });
 
   afterEach(() => {
@@ -15,7 +16,7 @@ describe("degiroConverterV2", () => {
   it("should construct", () => {
 
     // Act
-    const sut = new DeGiroConverterV2(new YahooFinanceService());
+    const sut = new DeGiroConverterV2(new SecurityService(new YahooFinanceServiceMock()));
 
     // Assert
     expect(sut).toBeTruthy();
@@ -24,7 +25,7 @@ describe("degiroConverterV2", () => {
   it("should process sample CSV file", (done) => {
 
     // Arange
-    const sut = new DeGiroConverterV2(new YahooFinanceService());
+    const sut = new DeGiroConverterV2(new SecurityService(new YahooFinanceServiceMock()));
     const inputFile = "samples/degiro-export.csv";
 
     // Act
@@ -43,7 +44,7 @@ describe("degiroConverterV2", () => {
     it("the input file does not exist", (done) => {
 
       // Arrange
-      const sut = new DeGiroConverterV2(new YahooFinanceService());
+      const sut = new DeGiroConverterV2(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileName = "tmp/testinput/degiro-filedoesnotexist.csv";
 
@@ -60,7 +61,7 @@ describe("degiroConverterV2", () => {
     it("the input file is empty", (done) => {
 
       // Arrange
-      const sut = new DeGiroConverterV2(new YahooFinanceService());
+      const sut = new DeGiroConverterV2(new SecurityService());
 
       let tempFileContent = "";
       tempFileContent += "Datum,Tijd,Valutadatum,Product,ISIN,Omschrijving,FX,Mutatie,,Saldo,,Order Id\n";
@@ -85,9 +86,9 @@ describe("degiroConverterV2", () => {
       tempFileContent += `15-12-2022,16:55,15-12-2022,VICI PROPERTIES INC. C,US9256521090,"Koop 1 @ 33,9 USD",,USD,"-33,90",USD,"-33,90",5925d76b-eb36-46e3-b017-a61a6d03c3e7`;
 
       // Mock Yahoo Finance service to throw error.
-      const yahooFinanceService = new YahooFinanceService();
-      jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { throw new Error("Unit test error"); });
-      const sut = new DeGiroConverterV2(yahooFinanceService);
+      const yahooFinanceServiceMock = new YahooFinanceServiceMock();
+      jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { throw new Error("Unit test error"); });
+      const sut = new DeGiroConverterV2(new SecurityService(yahooFinanceServiceMock));
 
       // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -109,10 +110,10 @@ describe("degiroConverterV2", () => {
     tempFileContent += `15-12-2022,16:55,15-12-2022,VICI PROPERTIES INC. C,US9256521090,DEGIRO Transactiekosten en/of kosten van derden,,EUR,"-1,00",EUR,"31,98",5925d76b-eb36-46e3-b017-a61a6d03c3e7\n`;
     tempFileContent += `15-12-2022,16:55,15-12-2022,VICI PROPERTIES INC. C,US9256521090,"Koop 1 @ 33,9 USD",,USD,"-33,90",USD,"-33,90",5925d76b-eb36-46e3-b017-a61a6d03c3e7`;
 
-    // Mock Yahoo Finance service to return null.
-    const yahooFinanceService = new YahooFinanceService();
-    jest.spyOn(yahooFinanceService, "getSecurity").mockImplementation(() => { return null });
-    const sut = new DeGiroConverterV2(yahooFinanceService);
+    // Mock Yahoo Finance service to return no quotes.
+    const yahooFinanceServiceMock = new YahooFinanceServiceMock();
+    jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { return Promise.resolve({ quotes: [] }) });
+    const sut = new DeGiroConverterV2(new SecurityService(yahooFinanceServiceMock));
 
     // Bit hacky, but it works.
     const consoleSpy = jest.spyOn((sut as any).progress, "log");

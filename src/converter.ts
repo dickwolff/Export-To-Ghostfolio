@@ -14,7 +14,7 @@ import { SchwabConverter } from "./converters/schwabConverter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { XtbConverter } from "./converters/xtbConverter";
-import { YahooFinanceService } from "./yahooFinanceService";
+import { SecurityService } from "./securityService";
 
 async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
@@ -50,9 +50,9 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
 
 async function createConverter(converterType: string): Promise<AbstractConverter> {
 
-    const yahooFinanceService = new YahooFinanceService();
+    const securityService = new SecurityService();
 
-    const cacheSize = await yahooFinanceService.loadCache();
+    const cacheSize = await securityService.loadCache();
     console.log(`[i] Restored ${cacheSize[0]} ISIN-symbol pairs and ${cacheSize[1]} symbols from cache..`);
 
     let converter: AbstractConverter;
@@ -65,53 +65,53 @@ async function createConverter(converterType: string): Promise<AbstractConverter
             console.log("[i] The new converter has multiple record parsing improvements and also supports platform fees.");
             console.log("[i] The new converter is currently in beta and we're looking for your feedback!");
             console.log("[i] You can run the beta converter with the command 'npm run start degiro-v2'.");
-            converter = new DeGiroConverter(yahooFinanceService);
+            converter = new DeGiroConverter(securityService);
             break;
         case "degiro-v2":
             console.log("[i] Processing file using DeGiro converter (V2 Beta)");
             console.log("[i] NOTE: You are running a converter that is currently in beta.");
             console.log("[i] If you have any issues, please report them on GitHub. Many thanks!");
-            converter = new DeGiroConverterV2(yahooFinanceService);
+            converter = new DeGiroConverterV2(securityService);
             break;
         case "etoro":
             console.log("[i] Processing file using Etoro converter");
-            converter = new EtoroConverter(yahooFinanceService);
+            converter = new EtoroConverter(securityService);
             break;
         case "fp":
         case "finpension":
             console.log("[i] Processing file using Finpension converter");
-            converter = new FinpensionConverter(yahooFinanceService);
+            converter = new FinpensionConverter(securityService);
             break;
         case "ft":
         case "freetrade":
             console.log("[i] Processing file using Freetrade converter");
-            converter = new FreetradeConverter(yahooFinanceService);
+            converter = new FreetradeConverter(securityService);
             break;
         case "ibkr":
             console.log("[i] Processing file using IBKR converter");
-            converter = new IbkrConverter(yahooFinanceService);
+            converter = new IbkrConverter(securityService);
             break;
         case "rabobank":
             console.log("[i] Processing file using Rabobank converter");
-            converter = new RabobankConverter(yahooFinanceService);
+            converter = new RabobankConverter(securityService);
             break;
         case "schwab":
             console.log("[i] Processing file using Schwab converter");
-            converter = new SchwabConverter(yahooFinanceService);
+            converter = new SchwabConverter(securityService);
             break;
         case "sq":
         case "swissquote":
             console.log("[i] Processing file using Swissquote converter");
-            converter = new SwissquoteConverter(yahooFinanceService);
+            converter = new SwissquoteConverter(securityService);
             break;
         case "t212":
         case "trading212":
             console.log("[i] Processing file using Trading212 converter");
-            converter = new Trading212Converter(yahooFinanceService);
+            converter = new Trading212Converter(securityService);
             break;
         case "xtb":
             console.log("[i] Processing file using XTB converter");
-            converter = new XtbConverter(yahooFinanceService);
+            converter = new XtbConverter(securityService);
             break;
         default:
             throw new Error(`Unknown converter '${converterType}' provided`);
