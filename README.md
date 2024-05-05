@@ -118,7 +118,6 @@ The following parameters can be given to the Docker run command.
 | `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx` | N | Your Ghostolio account ID [^1] |
 | `--env USE_POLLING=true` | Y | When set to true, the container will continously look for new files to process and the container will not stop. |
 | `--env DEBUG_LOGGING=true` | Y | When set to true, the container will show logs in more detail, useful for error tracing. |
-| `--env FORCE_DEGIRO_V2=true` | Y | When set to true, the converter will use the DEGIRO V2 converter (currently in beta) when a DEGIRO file was found. |
 | `--env PURGE_CACHE=true` | Y | When set to true, the file cache will be purged on start. |
 | `--env GHOSTFOLIO_VALIDATE=true` | Y | When set to true, the tool with automatically validate the generated file against Ghostfolio. |
 | `--env GHOSTFOLIO_IMPORT=true` | Y | When set to true, the tool will try to automatically import the generated file into Ghostfolio. |

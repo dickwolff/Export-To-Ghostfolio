@@ -62,18 +62,13 @@ async function createConverter(converterType: string): Promise<AbstractConverter
 
     switch (converterType) {
 
-        case "degiro":
-            console.log("[i] Processing file using DeGiro converter");
-            console.log("[i] NOTE: There is a new version available of the DeGiro converter");
-            console.log("[i] The new converter has multiple record parsing improvements and also supports platform fees.");
-            console.log("[i] The new converter is currently in beta and we're looking for your feedback!");
-            console.log("[i] You can run the beta converter with the command 'npm run start degiro-v2'.");
+        case "degiro-v1":
+            console.log("[i] Processing file using DeGiro converter (V1)");
+            console.log("[i] NOTE: This version of the DeGiro converter is deprecated and will no longer receive updates.");
             converter = new DeGiroConverter(securityService);
             break;
-        case "degiro-v2":
-            console.log("[i] Processing file using DeGiro converter (V2 Beta)");
-            console.log("[i] NOTE: You are running a converter that is currently in beta.");
-            console.log("[i] If you have any issues, please report them on GitHub. Many thanks!");
+        case "degiro":
+            console.log("[i] Processing file using DeGiro converter");
             converter = new DeGiroConverterV2(securityService);
             break;
         case "etoro":
