@@ -5,7 +5,7 @@ import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
-import customParseFormat from "dayjs/plugin/customParseFormat";
+import customParseFormat from "dayjs/plugin/customParseFormat.js";
 import { GhostfolioActivity } from "../models/ghostfolioActivity";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
@@ -55,7 +55,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
       for (let idx = 0; idx < records.length; idx++) {
         const record = records[idx];
 
-        // Check if the record should be ignored. 
+        // Check if the record should be ignored.
         if (this.isIgnoredRecord(record)) {
           bar1.increment();
           continue;

@@ -5,7 +5,7 @@ import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
-import customParseFormat from "dayjs/plugin/customParseFormat";
+import customParseFormat from "dayjs/plugin/customParseFormat.js";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class SchwabConverter extends AbstractConverter {
@@ -34,7 +34,7 @@ export class SchwabConverter extends AbstractConverter {
                 if (context.column === "action") {
                     const action = columnValue.toLocaleLowerCase();
 
-                    // Schwab supports dividend reinvest. 
+                    // Schwab supports dividend reinvest.
                     // These transactions are exported as separate transactions.
                     // "Reinvest shares" actions should be interpreted as "buy".
                     if (action.indexOf("buy") > -1 ||
@@ -75,7 +75,7 @@ export class SchwabConverter extends AbstractConverter {
         }, async (_, records: SchwabRecord[]) => {
 
             // If records is empty, parsing failed..
-            if (records === undefined || records.length === 0) {                    
+            if (records === undefined || records.length === 0) {
                 return errorCallback(new Error("An error ocurred while parsing!"));
             }
 
@@ -87,14 +87,14 @@ export class SchwabConverter extends AbstractConverter {
                 },
                 activities: []
             }
-            
+
             // Populate the progress bar.
             const bar1 = this.progress.create(records.length - 1, 0);
 
             // Skip last line of export (stats).
             for (let idx = 0; idx < records.length - 1; idx++) {
                 const record = records[idx];
-             
+
                 // Skip administrative deposit/withdraw transactions.
                 if (this.isIgnoredRecord(record)) {
                     bar1.increment();
@@ -136,7 +136,7 @@ export class SchwabConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.symbol || record.description, idx + 2);    
+                    this.logQueryError(record.symbol || record.description, idx + 2);
                     return errorCallback(err);
                 }
 
@@ -198,7 +198,7 @@ export class SchwabConverter extends AbstractConverter {
 
       if (!ignore) {
         ignore = record.date.toString().toLocaleLowerCase() === "transactions total";
-      } 
+      }
 
       return ignore;
     }

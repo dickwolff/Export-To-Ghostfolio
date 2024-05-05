@@ -7,7 +7,7 @@ import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
-import customParseFormat from "dayjs/plugin/customParseFormat";
+import customParseFormat from "dayjs/plugin/customParseFormat.js";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class DeGiroConverter extends AbstractConverter {
@@ -142,7 +142,7 @@ export class DeGiroConverter extends AbstractConverter {
           const numberSharesFromDescription = description.match(/([\d*\.?\,?\d*]+)/)[0];
           numberShares = parseFloat(numberSharesFromDescription);
 
-          // For buy/sale records, only the total amount is recorded. So the unit price needs to be calculated.        
+          // For buy/sale records, only the total amount is recorded. So the unit price needs to be calculated.
           const totalAmount = parseFloat(record.amount.replace(",", "."));
           unitPrice = parseFloat((Math.abs(totalAmount) / numberShares).toFixed(3));
 
@@ -172,7 +172,7 @@ export class DeGiroConverter extends AbstractConverter {
             }
           } else {
 
-            // Amount is positive, so money is received, thus it's a sell record.                    
+            // Amount is positive, so money is received, thus it's a sell record.
             orderType = GhostfolioOrderType.sell;
 
             // For a Sale record, the preceding record should be "txfees". This means the sale had a transaction fee associated.

@@ -5,7 +5,7 @@ import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
-import customParseFormat from "dayjs/plugin/customParseFormat";
+import customParseFormat from "dayjs/plugin/customParseFormat.js";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class EtoroConverter extends AbstractConverter {
@@ -49,7 +49,7 @@ export class EtoroConverter extends AbstractConverter {
                 }
 
                 // Parse numbers to floats (from string).
-                if (context.column === "amount" || 
+                if (context.column === "amount" ||
                     context.column === "units") {
 
                     if (context.column === "units" && columnValue === "-") {
@@ -64,7 +64,7 @@ export class EtoroConverter extends AbstractConverter {
         }, async (_, records: EtoroRecord[]) => {
 
             // If records is empty, parsing failed..
-            if (records === undefined || records.length === 0) {                    
+            if (records === undefined || records.length === 0) {
                 return errorCallback(new Error("An error ocurred while parsing!"));
             }
 
@@ -104,7 +104,7 @@ export class EtoroConverter extends AbstractConverter {
                         quantity: 1,
                         type: GhostfolioOrderType[record.type],
                         unitPrice: feeAmount,
-                        currency: "USD", 
+                        currency: "USD",
                         dataSource: "MANUAL",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                         symbol: ""
@@ -128,7 +128,7 @@ export class EtoroConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.details, idx + 2);        
+                    this.logQueryError(record.details, idx + 2);
                     return errorCallback(err);
                 }
 

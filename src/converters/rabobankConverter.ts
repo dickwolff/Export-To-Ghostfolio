@@ -5,7 +5,7 @@ import { RabobankRecord } from "../models/rabobankRecord";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
-import customParseFormat from "dayjs/plugin/customParseFormat";
+import customParseFormat from "dayjs/plugin/customParseFormat.js";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class RabobankConverter extends AbstractConverter {
