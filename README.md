@@ -194,9 +194,21 @@ The tool uses `cacache` to store data retrieved from Yahoo Finance on disk. This
 
 ## Import to Ghostfolio
 
+### Manually
+
 The export file can now be imported in Ghostfolio by going to Portfolio > Activities and pressing the 3 dots at the top right of the table. Since Ghostfolio 1.221.0, you can now preview the import and validate the data has been converted correctly. When it is to your satisfaction, press import to add the activities to your portfolio.
 
 ![image](https://user-images.githubusercontent.com/5620002/203356387-1f42ca31-7cff-44a5-8f6c-84045cf7101e.png)
+
+### Automatically (experimental)
+
+There is an experimental feature (since 0.12.0) with which you can automatically validate and import the generated file into Ghostfolio! To use this, set the corresponding environment variables:
+| Variable | Description |
+| --- | --- |
+| `--env GHOSTFOLIO_VALIDATE=true` | When set to true, the tool with automatically validate the generated file against Ghostfolio. |
+| `--env GHOSTFOLIO_IMPORT=true` | When set to true, the tool will try to automatically import the generated file into Ghostfolio. |
+| `--env GHOSTFOLIO_URL=http://xxxxxxx` | The endpoint of your **local** Ghostfolio instance. E.g. `http://192.168.1.15:3333`. **Use ONLY with a local Ghostfolio instance!** |
+| `--env GHOSTFOLIO_SECRET=xxxxxxx` | The credentials of your Ghostfolio user. Used to authenticate with the `import` API endpoint. **Use ONLY with a local Ghostfolio instance!** |
 
 ---
 
