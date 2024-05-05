@@ -19,13 +19,13 @@ export default class GhostfolioService {
 
     /**
      * Validate an export file to Ghostfolio
-     * 
+     *
      * @param path The path to the Ghostfolio export file.
-     * @returns Wether the export file is valid and can be processed by Ghostfolio.
+     * @returns Whether the export file is valid and can be processed by Ghostfolio.
      */
     public async validate(path: string, retryCount: number = 0): Promise<boolean> {
 
-        // Check wether validation is allowed.
+        // Check whether validation is allowed.
         if (!process.env.GHOSTFOLIO_VALIDATE) {
             throw new Error("Validate is not allowed by config!");
         }
@@ -55,7 +55,7 @@ export default class GhostfolioService {
             return await this.validate(path, retryCount++);
         }
 
-        // If status is 400, then import failed. 
+        // If status is 400, then import failed.
         // Look in response for reasons and log those.
         if (validationResult.status === 400) {
 
@@ -74,13 +74,13 @@ export default class GhostfolioService {
 
     /**
      * Import an export file into Ghostfolio
-     * 
+     *
      * @param path The path to the Ghostfolio export file.
      * @returns The amount of records imported.
      */
     public async import(path: string, retryCount: number = 0): Promise<number> {
 
-        // Check wether validation is allowed.
+        // Check whether validation is allowed.
         if (!process.env.GHOSTFOLIO_IMPORT) {
             throw new Error("Auto import is not allowed by config!");
         }
@@ -112,7 +112,7 @@ export default class GhostfolioService {
 
         var response = await importResult.json();
 
-        // If status is 400, then import failed. 
+        // If status is 400, then import failed.
         // Look in response for reasons and log those.
         if (importResult.status === 400) {
 
