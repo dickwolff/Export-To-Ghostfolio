@@ -7,6 +7,7 @@
 
 This tool allows you to convert a multiple transaction exports (CSV) to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for:
 
+- [Bitvavo](https://bitvavo.com)
 - [DEGIRO](https://degiro.com)
 - [eToro](https://www.etoro.com/)
 - [Finpension](https://finpension.ch)
@@ -26,6 +27,12 @@ See the transaction export instructions for each of the supported brokers below.
 
 <details>
 <summary>View transaction export instructions</summary>
+
+### Bitvavo
+
+Login to your Bitvavo account and click on your name at the top-right. Next, click "Transaction history". Click the blue "Export" button at the to to create an export. Select one of the CSv options and again click "Export".
+
+![Export instructions for DEGIRO](./assets/export-bitvavo.jpg)
 
 ### DEGIRO
 
