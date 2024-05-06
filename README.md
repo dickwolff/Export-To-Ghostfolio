@@ -182,6 +182,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 
 | Exporter    | Run command                         |
 | ----------- | ----------------------------------- |
+| Bitvavo     | `run start bitvavo` (or `bv`)       |
 | DEGIRO      | `run start degiro`                  |
 | eToro       | `run start etoro`                   |
 | Finpension  | `run start finpension` (or `fp`)    |
