@@ -16,6 +16,7 @@ import { SchwabConverter } from "./converters/schwabConverter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { XtbConverter } from "./converters/xtbConverter";
+import { BitvavoConverter } from "./converters/bitvavoConverter";
 
 async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
@@ -62,6 +63,11 @@ async function createConverter(converterType: string): Promise<AbstractConverter
 
     switch (converterType) {
 
+        case "bv":
+        case "bitvavo":
+            console.log("[i] Processing file using Bitvavo converter");
+            converter = new BitvavoConverter(securityService);
+            break;
         case "degiro-v1":
             console.log("[i] Processing file using DeGiro converter (V1)");
             console.log("[i] NOTE: This version of the DeGiro converter is deprecated and will no longer receive updates.");
@@ -119,7 +125,7 @@ async function createConverter(converterType: string): Promise<AbstractConverter
 }
 
 async function tryAutomaticValidationAndImport(outputFileName: string) {
-    
+
     try {
         const ghostfolioService = new GhostfolioService();
 
