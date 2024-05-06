@@ -1,11 +1,10 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
-import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
-import { GhostfolioExport } from "../models/ghostfolioExport";
-import YahooFinanceRecord from "../models/yahooFinanceRecord";
-import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 import { BitvavoRecord } from "../models/bitvavoRecord";
+import { AbstractConverter } from "./abstractconverter";
+import { GhostfolioExport } from "../models/ghostfolioExport";
+import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class BitvavoConverter extends AbstractConverter {
 
@@ -48,7 +47,7 @@ export class BitvavoConverter extends AbstractConverter {
                     context.column === "amountReceivedPaid" ||
                     context.column === "feeAmount") {
 
-                    return Math.abs(parseFloat(columnValue));
+                    return Math.abs(parseFloat(columnValue) || 0);
                 }
 
                 return columnValue;
@@ -81,42 +80,24 @@ export class BitvavoConverter extends AbstractConverter {
                     bar1.increment();
                     continue;
                 }
-console.log(record)
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        `${record.currency}-${record.feeCurrency}`,
-                        null,
-                        null,
-                        null,
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.currency, idx + 2);
-                    return errorCallback(err);
-                }
-console.log(security)
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${record.type} action for ${record.currency}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
+
+                // Bitvavo is EUR only. Staking does not have a feeCurrency attached. In that case, make it EUR by default.
+                let symbol = `${record.currency}-${record.type === "interest" ? "EUR" : record.feeCurrency}`
 
                 const date = dayjs(`${record.date} ${record.time}`, "YYYY-MM-DD HH:mm:ss");
-
+                
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: "",
-                    fee: 0,
+                    fee: record.feeAmount,
                     quantity: record.amount,
                     type: GhostfolioOrderType[record.type],
                     unitPrice: record.price,
-                    currency: security.symbol,
+                    currency: "EUR",
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
+                    symbol: symbol
                 });
 
                 bar1.increment();
@@ -126,6 +107,30 @@ console.log(security)
 
             successCallback(result);
         });
+    }
+    
+    /**
+      * @inheritdoc
+      */
+    protected processHeaders(_: string): string[] {
+
+        // Generic header mapping from the DEGIRO CSV export.
+        const csvHeaders = [
+            "timezone",
+            "date",
+            "time",
+            "type",
+            "currency",
+            "amount",
+            "price",
+            "amountReceivedPaid",
+            "feeCurrency",
+            "feeAmount",
+            "status",
+            "transactionId",
+            "address"];
+
+        return csvHeaders;
     }
 
     /**
