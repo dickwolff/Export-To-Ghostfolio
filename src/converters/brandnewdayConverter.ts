@@ -1,17 +1,18 @@
+import '@ungap/with-resolvers';
 import * as fs from "fs";
 import dayjs from "dayjs";
-import { parse } from "csv-parse";
 import { AbstractConverter } from "./abstractconverter";
 import { YahooFinanceService } from "../yahooFinanceService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioActivity } from "../models/ghostfolioActivity";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+
 // import { PdfReader } from "pdfreader";
 import { AbstractPdfConverter } from "./abstractPdfConverter";
 
-import { getDocument } from "pdfjs-dist";
-import { TextItem } from "pdfjs-dist/types/src/display/api";
+import { PDFPageProxy, getDocument } from "pdfjs-dist";
+import { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
 
 export class BrandNewDayConverter extends AbstractPdfConverter {
 
@@ -27,6 +28,7 @@ export class BrandNewDayConverter extends AbstractPdfConverter {
         if (!fs.existsSync(filename)) {
             return errorCallback(new Error(`File ${filename} does not exist!`));
         }
+        //                                           ^ Property 'withResolvers' does not exist on type 'PromiseConstructor'.(2339)
         // const items = [];
         // new PdfReader({}).parseFileItems(filename, (err, item) => {
         //     if (err) errorCallback(err);
@@ -96,5 +98,21 @@ export class BrandNewDayConverter extends AbstractPdfConverter {
      */
     public isIgnoredRecord(record: any): boolean {
         throw new Error("Method not implemented.");
+    }
+
+
+    private async extractTextFromPage(page: PDFPageProxy, sep: string) {
+        const content = await page.getTextContent();
+        return this.getTextItems(content.items)
+            .map((item) => item.str)
+            .join(sep);
+    }
+
+    private getTextItems(items: Array<TextItem | TextMarkedContent>): TextItem[] {
+        return items.filter((item: any) => typeof (item as TextItem).str === 'string') as TextItem[];
+    }
+
+    private getStringOptionOrDefault(option: string | undefined, optionDefault: string) {
+        return typeof option === 'string' ? option : optionDefault;
     }
 }
