@@ -81,6 +81,8 @@ export class BitvavoConverter extends AbstractConverter {
                     continue;
                 }
 
+                // There is no need to query Yahoo Finance for Bitvavo exports as the information can be extracted wholly from the export.
+
                 // Bitvavo is EUR only. Staking does not have a feeCurrency attached. In that case, make it EUR by default.
                 let symbol = `${record.currency}-${record.type === "interest" ? "EUR" : record.feeCurrency}`
 
