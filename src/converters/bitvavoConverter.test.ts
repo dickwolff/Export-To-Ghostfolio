@@ -26,7 +26,7 @@ describe("bitvavoConverter", () => {
 
     // Arange
     const sut = new BitvavoConverter(new SecurityService(new YahooFinanceServiceMock()));
-    const inputFile = "samples/degiro-bitvavo.csv";
+    const inputFile = "samples/bitvavo-export.csv";
 
     // Act
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
@@ -34,7 +34,7 @@ describe("bitvavoConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(16);
+      expect(actualExport.activities.length).toBe(21);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
