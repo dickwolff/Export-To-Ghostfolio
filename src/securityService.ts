@@ -291,7 +291,7 @@ export class SecurityService {
 
         const messageToLog = (additionalTabs ? '\t' : '') + `\t${message}`
 
-        if (Boolean(process.env.DEBUG_LOGGING) == true) {
+        if (process.env.DEBUG_LOGGING === "true") {
             if (!progress) {
                 console.log(`[d] ${messageToLog}`);
             }
