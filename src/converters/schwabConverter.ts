@@ -192,7 +192,7 @@ export class SchwabConverter extends AbstractConverter {
         return true;
       }
 
-      const ignoredRecordTypes = ["credit", "journal"];
+      const ignoredRecordTypes = ["credit", "journal", "transfer"];
 
       let ignore = ignoredRecordTypes.some(t => record.action.toLocaleLowerCase().indexOf(t) > -1);
 
