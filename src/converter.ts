@@ -18,12 +18,16 @@ import { Trading212Converter } from "./converters/trading212Converter";
 import { XtbConverter } from "./converters/xtbConverter";
 import { BitvavoConverter } from "./converters/bitvavoConverter";
 
+import packageInfo from "../package.json";
+
 async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
 
     // Verify if Ghostolio account ID is set (because without it there can be no valid output).
     if (!process.env.GHOSTFOLIO_ACCOUNT_ID) {
         return errorCallback(new Error("Environment variable GHOSTFOLIO_ACCOUNT_ID not set!"));
     }
+    
+    console.log(`[i] Starting Export to Ghostfolio v${packageInfo.version}`);
 
     // If DEBUG_LOGGING is enabled, set spaces to 2 else null for easier to read JSON output.
     const spaces = process.env.DEBUG_LOGGING === "true" ? 2 : null;
