@@ -1,18 +1,11 @@
-import yahooFinance from "yahoo-finance2";
-import { YahooFinanceService } from "./yahooFinanceService";
-import { YahooFinanceTestdata } from "./testing/yahooFinanceTestdataWriter";
+import * as cacache from "cacache";
 import { SecurityService } from "./securityService";
 import YahooFinanceServiceMock from "./testing/yahooFinanceServiceMock";
-
-class YahooFinanceTestdataWriterMock implements YahooFinanceTestdata {
-    addSearchResult(_, __) { }
-    addQuoteSummaryResult(_, __) { }
-}
 
 describe("securityService", () => {
 
     beforeEach(() => {
-        // jest.spyOn(console, "log").mockImplementation(jest.fn());
+        jest.spyOn(console, "log").mockImplementation(jest.fn());
     });
 
     afterEach(() => {
@@ -487,6 +480,23 @@ describe("securityService", () => {
                 expect(searchSpy).toHaveBeenCalledTimes(1);
                 expect(quoteSummarySpy).toHaveBeenCalledTimes(1);
             });
+        });
+    });
+
+    describe("loadCache()", () => {
+
+        it("having no initial cache, does not restore", async () => {
+
+            // Arrange
+            const yahooFinanceMock = new YahooFinanceServiceMock();
+            const sut = new SecurityService(yahooFinanceMock);
+
+            // Act
+            const cache = await sut.loadCache();
+
+            // Assert
+            expect(cache[0]).toBe(0);
+            expect(cache[1]).toBe(0);
         });
     });
 });
