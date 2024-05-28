@@ -298,6 +298,131 @@ describe("securityService", () => {
                 expect(searchSpy).toHaveBeenCalledTimes(1);
                 expect(quoteSummarySpy).toHaveBeenCalledTimes(1);
             });
+
+            it("and YahooFinance does not find a full match, so a partial match is searched and found, should return symbol", async () => {
+
+                // Arrange
+                const yahooFinanceMock = new YahooFinanceServiceMock();
+                const searchSpy = jest.spyOn(yahooFinanceMock, "search")
+                    .mockResolvedValueOnce({
+                        quotes: []
+                    })
+                    .mockResolvedValueOnce({
+                        quotes: [
+                            {
+                                symbol: "FIHBX"
+                            }
+                        ]
+                    });
+                const quoteSummarySpy = jest.spyOn(yahooFinanceMock, "quoteSummary").mockResolvedValue({
+                    price: {
+                        regularMarketPrice: 100,
+                        currency: "USD",
+                        exchange: "NDQ",
+                        symbol: "FIHBX"
+                    }
+                });
+
+                // Act
+                const sut = new SecurityService(yahooFinanceMock);
+                await sut.getSecurity(null, null, "FEDERATED HERMES INSTL HIGH YIELD BD IS", null);
+
+                // Assert
+                expect(searchSpy).toHaveBeenCalledTimes(2);
+                expect(quoteSummarySpy).toHaveBeenCalledTimes(1);
+            });
+        });
+
+        describe("having Yahoo Finance returns invalid data", () => {
+            it("with search result without a symbol, skips", async () => {
+
+                // Arrange
+                const yahooFinanceMock = new YahooFinanceServiceMock();
+                const searchSpy = jest.spyOn(yahooFinanceMock, "search")
+                    .mockResolvedValue({
+                        quotes: [
+                            {
+                                symbol: null,
+                            },
+                            {
+                                symbol: "VWRL.AS"
+                            },
+                        ]
+                    });
+                const quoteSummarySpy = jest.spyOn(yahooFinanceMock, "quoteSummary")
+                    .mockResolvedValue({
+                        price: {
+                            regularMarketPrice: 100,
+                            currency: "EUR",
+                            exchange: "EMA",
+                            symbol: "VWRL"
+                        }
+                    });
+
+                // Act
+                const sut = new SecurityService(yahooFinanceMock);
+                await sut.getSecurity(null, "VWRL", null, null);
+
+                // Assert
+                expect(searchSpy).toHaveBeenCalledTimes(1);
+                expect(quoteSummarySpy).toHaveBeenCalledTimes(1);
+            });
+
+            it("and throws an error for quoteSummary, skips", async () => {
+
+                // Arrange
+                const yahooFinanceMock = new YahooFinanceServiceMock();
+                const searchSpy = jest.spyOn(yahooFinanceMock, "search")
+                    .mockResolvedValue({
+                        quotes: [
+                            {
+                                symbol: "VWRL.AS"
+                            },
+                        ]
+                    });
+                const quoteSummarySpy = jest.spyOn(yahooFinanceMock, "quoteSummary")
+                    .mockImplementationOnce(() => { throw new Error("Unit test") })
+                    .mockResolvedValue({
+                        price: {
+                            regularMarketPrice: 100,
+                            currency: "EUR",
+                            exchange: "EMA",
+                            symbol: "VWRL"
+                        }
+                    });
+
+                // Act
+                const sut = new SecurityService(yahooFinanceMock);
+                await sut.getSecurity(null, "VWRL", null, null);
+
+                // Assert
+                expect(searchSpy).toHaveBeenCalledTimes(1);
+                expect(quoteSummarySpy).toHaveBeenCalledTimes(2);
+            });
+
+            it("with quoteSummary result without a price, skips", async () => {
+
+                // Arrange
+                const yahooFinanceMock = new YahooFinanceServiceMock();
+                const searchSpy = jest.spyOn(yahooFinanceMock, "search")
+                    .mockResolvedValue({
+                        quotes: [
+                            {
+                                symbol: "VWRL.AS"
+                            },
+                        ]
+                    });
+                const quoteSummarySpy = jest.spyOn(yahooFinanceMock, "quoteSummary")
+                    .mockResolvedValue({});
+
+                // Act
+                const sut = new SecurityService(yahooFinanceMock);
+                await sut.getSecurity(null, "VWRL", null, null);
+
+                // Assert
+                expect(searchSpy).toHaveBeenCalledTimes(1);
+                expect(quoteSummarySpy).toHaveBeenCalledTimes(2);
+            });
         });
     });
 });

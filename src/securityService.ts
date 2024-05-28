@@ -170,7 +170,7 @@ export class SecurityService {
      * @returns The symbols that are retrieved from Yahoo Finance, if any.
      */
     private async getSymbolsByQuery(query: string, progress?: any): Promise<YahooFinanceRecord[]> {
-console.log("AAA",query)
+
         // If query is empty, don't bother searching.
         if (!query) {
             this.logDebug("getSymbolsByQuery(): Query was empty, so no search was done with Yahoo Finance", true);
@@ -186,7 +186,7 @@ console.log("AAA",query)
             {
                 validateResult: false
             });
-console.log("BBB", queryResult)
+
         // Check if no match was found and a name was given (length > 12 so no ISIN).
         // In that case, try and find a partial match by removing a part of the name.
         if (queryResult.quotes.length === 0 && query.length > 12) {
