@@ -202,7 +202,7 @@ export class SecurityService {
         }
 
         const result: YahooFinanceRecord[] = [];
-        
+
         // Loop through the resulted quotes and retrieve summary data.
         for (let idx = 0; idx < queryResult.quotes.length; idx++) {
             const quote = queryResult.quotes[idx];
@@ -307,5 +307,6 @@ export class SecurityService {
         }
     }
 
+    /* istanbul ignore next */
     private sink() { }
 }
