@@ -170,6 +170,12 @@ export class SecurityService {
      * @returns The symbols that are retrieved from Yahoo Finance, if any.
      */
     private async getSymbolsByQuery(query: string, progress?: any): Promise<YahooFinanceRecord[]> {
+console.log("AAA",query)
+        // If query is empty, don't bother searching.
+        if (!query) {
+            this.logDebug("getSymbolsByQuery(): Query was empty, so no search was done with Yahoo Finance", true);
+            return [];
+        }
 
         // First get quotes for the query.
         let queryResult = await this.yahooFinance.search(query,
@@ -180,10 +186,10 @@ export class SecurityService {
             {
                 validateResult: false
             });
-
-        // Check if no match was found and a name was given (length > 10 so no ISIN).
+console.log("BBB", queryResult)
+        // Check if no match was found and a name was given (length > 12 so no ISIN).
         // In that case, try and find a partial match by removing a part of the name.
-        if (queryResult.quotes.length === 0 && query.length > 10) {
+        if (queryResult.quotes.length === 0 && query.length > 12) {
             this.logDebug(`getSymbolsByQuery(): No match found when searching by name for ${query}. Trying a partial name match with first 20 characters..`, progress, true);
             queryResult = await this.yahooFinance.search(query.substring(0, 20),
                 {
@@ -196,7 +202,7 @@ export class SecurityService {
         }
 
         const result: YahooFinanceRecord[] = [];
-
+        
         // Loop through the resulted quotes and retrieve summary data.
         for (let idx = 0; idx < queryResult.quotes.length; idx++) {
             const quote = queryResult.quotes[idx];
