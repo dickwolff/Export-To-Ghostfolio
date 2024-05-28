@@ -44,6 +44,9 @@ export class SchwabConverter extends AbstractConverter {
                     else if (action.indexOf("sell") > -1) {
                         return "sell";
                     }
+                    else if (action.indexOf("non-qual") > -1) {
+                        return "cash";
+                    }
                     else if (action.indexOf("dividend") > -1 ||
                         action.indexOf("qual") > -1 ||
                         action.endsWith("reinvest")) {
@@ -101,8 +104,9 @@ export class SchwabConverter extends AbstractConverter {
                     continue;
                 }
 
-                // Custody fees or interest do not have a security, so add those immediately.
+                // Custody fees, cash or interest do not have a security, so add those immediately.
                 if (record.action.toLocaleLowerCase() === "fee" ||
+                    record.action.toLocaleLowerCase() === "cash" ||
                     record.action.toLocaleLowerCase() === "interest") {
 
                     const feeAmount = Math.abs(record.amount);

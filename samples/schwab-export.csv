@@ -101,4 +101,5 @@ Date,Action,Symbol,Description,Quantity,Price,Fees & Comm,Amount
 "10/18/2023","Wire Sent","","WIRED FUNDS DISBURSED","","","","-$100000.00"
 "04/08/2024","MoneyLink Transfer","","Tfr BANK OF AMERICA, N, XXXX YYYYYY ZZZ","","","","-$30.00"
 "11/07/2023","Internal Transfer","","TDA TO DW&O TRANSFER","","","","$7.06"
+"11/07/2023","Non-Qualified Div","","TDA TRAN - NON-TAXABLE DIVIDENDS (CMF)","","","","$72.06"
 Transactions Total,,,,,,,"-$26,582.91"
