@@ -20,7 +20,8 @@ export class SecurityService {
      */
     constructor(private yahooFinance: YahooFinance = new YahooFinanceService()) {
 
-        // Override logging, not interested in yahooFinance2 debug logging..
+        // Override logging, not interested in yahooFinance2 debug logging..        
+        /* istanbul ignore next */
         this.yahooFinance.setGlobalConfig({
             logger: {
                 info: (...args: any[]) => this.sink(),

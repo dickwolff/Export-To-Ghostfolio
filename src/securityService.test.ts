@@ -21,19 +21,6 @@ describe("securityService", () => {
         expect(sut).toBeTruthy();
     });
 
-    it("setGlobalConfig() should call yahoo-finance2", () => {
-
-        // Arrange
-        const yahooFinanceMock = new YahooFinanceServiceMock();
-        const yahooFinance2Spy = jest.spyOn(yahooFinanceMock, "setGlobalConfig").mockImplementation();
-
-        // Act
-        new SecurityService(yahooFinanceMock);
-
-        // Assert
-        expect(yahooFinance2Spy).toHaveBeenCalledTimes(1);
-    });
-
     describe("getSecurity()", () => {
         describe("having no symbols in cache", () => {
             describe("having ISIN", () => {
@@ -485,6 +472,11 @@ describe("securityService", () => {
 
     describe("loadCache()", () => {
 
+        beforeEach(async () => {
+            await cacache.rm("/var/tmp/e2g-cache-unittest", "isinSymbolCache");
+            await cacache.rm("/var/tmp/e2g-cache-unittest", "symbolCache");
+        });
+
         it("having no initial cache, does not restore", async () => {
 
             // Arrange
@@ -497,6 +489,43 @@ describe("securityService", () => {
             // Assert
             expect(cache[0]).toBe(0);
             expect(cache[1]).toBe(0);
+        });
+
+        it("after retrieving a symbol for the first time, does restore it from cache a second time", async () => {
+
+            // Arrange
+            const yahooFinanceMock = new YahooFinanceServiceMock();
+            jest.spyOn(yahooFinanceMock, "search").mockResolvedValue({
+                quotes: [
+                    {
+                        symbol: "AAPL"
+                    }
+                ]
+            });
+            jest.spyOn(yahooFinanceMock, "quoteSummary").mockResolvedValue({
+                price: {
+                    regularMarketPrice: 100,
+                    currency: "USD",
+                    exchange: "NMS",
+                    symbol: "AAPL"
+                }
+            });
+
+            // Act I
+            const sut = new SecurityService(yahooFinanceMock);
+            let cache = await sut.loadCache();
+
+            // Assert I
+            expect(cache[0]).toBe(0);
+            expect(cache[1]).toBe(0);
+            
+            // Act II
+            await sut.getSecurity("US0378331005", null, null, null);
+            cache = await sut.loadCache();
+
+            // Assert II
+            expect(cache[0]).toBe(1);
+            expect(cache[1]).toBe(1);
         });
     });
 });
