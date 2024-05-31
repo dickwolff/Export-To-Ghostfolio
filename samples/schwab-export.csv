@@ -99,4 +99,7 @@ Date,Action,Symbol,Description,Quantity,Price,Fees & Comm,Amount
 01/03/2023,Reinvest Shares,TCPC,BLACKROCK TCP CAPITAL CO,10.0443,$13.17,,-$132.25
 "09/08/2023","Sell","SNAXX","SCHWAB VALUE ADVANTAGE MONEY ULTRA","500,135","$1.00","","$500135.00"
 "10/18/2023","Wire Sent","","WIRED FUNDS DISBURSED","","","","-$100000.00"
+"04/08/2024","MoneyLink Transfer","","Tfr BANK OF AMERICA, N, XXXX YYYYYY ZZZ","","","","-$30.00"
+"11/07/2023","Internal Transfer","","TDA TO DW&O TRANSFER","","","","$7.06"
+"11/07/2023","Non-Qualified Div","","TDA TRAN - NON-TAXABLE DIVIDENDS (CMF)","","","","$72.06"
 Transactions Total,,,,,,,"-$26,582.91"
