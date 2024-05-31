@@ -16,7 +16,7 @@ export abstract class AbstractConverter {
             {
                 stopOnComplete: true,
                 forceRedraw: true,
-                format: "{bar} {percentage}% | ETA {eta}s | Duration: {duration}s | {value}/{total}"
+                format: "[i] {bar} {percentage}% | ETA {eta}s | Duration: {duration}s | {value}/{total}"
             },
             cliProgress.Presets.shades_classic);
     }

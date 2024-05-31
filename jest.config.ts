@@ -14,7 +14,8 @@ const config: Config.InitialOptions = {
     '/src/manual.ts',
     '/src/watcher.ts',
     '/src/converter.ts'],
-  coverageReporters: ['text', 'cobertura', 'html']
+  coverageReporters: ['text', 'cobertura', 'html'],
+  setupFiles: ["<rootDir>/src/testing/testEnvVars.js"]
 };
 
 export default config;
