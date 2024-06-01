@@ -217,11 +217,11 @@ export class SecurityService {
             // Get quote summary details (containing currency, price, etc).
             // Put in try-catch, since Yahoo Finance can return faulty data and crash..
             let quoteSummaryResult;
-            try {
+            try {                
                 quoteSummaryResult = await this.yahooFinance.quoteSummary(quote.symbol, {}, { validateResult: false });
             }
             catch (err) {
-                this.logDebug(`getSymbolsByQuery(): An error ocurred while retrieving summary for ${quote.symbol}. Skipping..`, progress, true);
+                this.logDebug(`getSymbolsByQuery(): An error ocurred while retrieving summary for ${quote.symbol}. ${err}. Skipping..`, progress, true);
                 continue;
             }
 
