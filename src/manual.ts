@@ -25,8 +25,9 @@ else {
         inputFile,
         outputFolder,
         () => { process.exit(0); },
-        (error) => {
-            console.log(`[e] Error details: ${error}`);
+        (err) => {
+            console.log("[e] An error ocurred while processing.");
+            console.log(`[e] ${err}`);
             process.exit(99);
         }
     );

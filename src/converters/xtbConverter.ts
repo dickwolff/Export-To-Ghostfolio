@@ -55,13 +55,15 @@ export class XtbConverter extends AbstractConverter {
             }
         }, async (err, records: XtbRecord[]) => {
 
-            if (err) {
-                console.log(err);
-            }
+            // Check if parsing failed..
+            if (err || records === undefined || records.length === 0) {
+                let errorMsg = "An error ocurred while parsing!";
 
-            // If records is empty, parsing failed..
-            if (records === undefined || records.length === 0) {
-                return errorCallback(new Error("An error ocurred while parsing!"));
+                if (err) {
+                    errorMsg += ` Details: ${err.message}`
+                }
+
+                return errorCallback(new Error(errorMsg))
             }
 
             console.log("[i] Read CSV file. Start processing..");
