@@ -3,6 +3,7 @@ import YahooFinanceRecord from "./models/yahooFinanceRecord";
 import { YahooFinance, YahooFinanceService } from "./yahooFinanceService";
 import { mapReplacer, mapReviver } from "./helpers/dictionaryHelpers";
 
+/* istanbul ignore next */
 const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";
 
 export class SecurityService {
