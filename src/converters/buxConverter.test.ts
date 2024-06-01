@@ -34,7 +34,7 @@ describe("buxConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(14);
+      expect(actualExport.activities.length).toBe(15);
 
       done();
     }, () => { done.fail("Should not have an error!"); });

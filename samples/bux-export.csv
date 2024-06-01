@@ -17,3 +17,4 @@ Transaction Time (CET),Transaction Category,Transaction Type,Asset Id,Asset Name
 2023-11-05 07:05:37.311000,interest,Interest Payment,,,,EUR,,,0.11,,,,50.82,,
 2024-01-19 17:15:46.543000,deposits,Sepa Deposit,,,,EUR,,,10,,,,55.07,,
 2024-05-14 13:57:08.427000,withdrawals,Sepa Withdrawal,,,,EUR,,,-1200,,,,1293.6,,
+2023-03-21 13:37:29.384000,trades,Sell Trade,NL0011821202,ING,EUR,EUR,EUREUR,1,-7.08,7.0800092,11.08,0.638989,39.91,,
