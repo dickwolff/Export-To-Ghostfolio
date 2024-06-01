@@ -77,6 +77,26 @@ describe("finpensionConverter", () => {
       });
     });
 
+    it("the header and row column count doesn't match", (done) => {
+
+      // Arrange
+      const sut = new FinpensionConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+      let tempFileContent = "";
+      tempFileContent += `Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Price in CHF";"Cash Flow";Balance\n`;
+      tempFileContent += `2023-07-11;Buy;"CSIF (CH) Bond Corporate Global ex CHF Blue ZBH";CH0189956813;0.001000;CHF;1.000000;821.800000;-0.821800;16.484551;;`;
+
+      // Act
+      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+
+        // Assert
+        expect(err).toBeTruthy();
+        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 10, got 12 on line 2");
+
+        done();
+      });
+    });
+
     it("Yahoo Finance throws an error", (done) => {
 
       // Arrange

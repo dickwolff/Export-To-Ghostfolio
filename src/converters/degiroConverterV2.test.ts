@@ -77,6 +77,26 @@ describe("degiroConverterV2", () => {
       });
     });
 
+    it("the header and row column count doesn't match", (done) => {
+
+      // Arrange
+      const sut = new DeGiroConverterV2(new SecurityService());
+
+      let tempFileContent = "";
+      tempFileContent += "Datum,Tijd,Valutadatum,Product,ISIN,Omschrijving,FX,Mutatie,,Saldo,,Order Id\n";
+      tempFileContent += `15-12-2022,16:55,15-12-2022,VICI PROPERTIES INC. C,US9256521090,DEGIRO Transactiekosten en/of kosten van derden,,EUR,"-1,00",EUR,"31,98",5925d76b-eb36-46e3-b017-a61a6d03c3e7,,\n`;
+
+      // Act
+      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+
+        // Assert
+        expect(err).toBeTruthy();
+        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 12, got 14 on line 2");
+
+        done();
+      });
+    });
+
     it("Yahoo Finance throws an error", (done) => {
 
       // Arrange
