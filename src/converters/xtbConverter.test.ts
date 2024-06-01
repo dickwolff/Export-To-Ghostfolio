@@ -76,6 +76,27 @@ describe("xtbConverter", () => {
         done();
       });
     });
+    
+    it("the header and row column count doesn't match", (done) => {
+
+      // Arrange
+      const sut = new XtbConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+      let tempFileContent = "";
+      tempFileContent += "ID;Type;Time;Symbol;Comment;Amount\n";
+      
+      tempFileContent += `513492358;Stocks/ETF purchase;11.03.2024 10:05:05;SPYL.DE;OPEN BUY 8 @ 11.2835;-90.27;;`;
+
+      // Act
+      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+
+        // Assert
+        expect(err).toBeTruthy();
+        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 6, got 8 on line 2");
+
+        done();
+      });
+    });
 
     it("Yahoo Finance throws an error", (done) => {
 

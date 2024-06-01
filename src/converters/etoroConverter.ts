@@ -49,7 +49,7 @@ export class EtoroConverter extends AbstractConverter {
                 }
 
                 // Parse numbers to floats (from string).
-                if (context.column === "amount" || 
+                if (context.column === "amount" ||
                     context.column === "units") {
 
                     if (context.column === "units" && columnValue === "-") {
@@ -61,11 +61,17 @@ export class EtoroConverter extends AbstractConverter {
 
                 return columnValue;
             }
-        }, async (_, records: EtoroRecord[]) => {
+        }, async (err, records: EtoroRecord[]) => {
 
-            // If records is empty, parsing failed..
-            if (records === undefined || records.length === 0) {                    
-                return errorCallback(new Error("An error ocurred while parsing!"));
+            // Check if parsing failed..
+            if (err || records === undefined || records.length === 0) {
+                let errorMsg = "An error ocurred while parsing!";
+
+                if (err) {
+                    errorMsg += ` Details: ${err.message}`
+                }
+
+                return errorCallback(new Error(errorMsg))
             }
 
             console.log("[i] Read CSV file. Start processing..");
@@ -104,7 +110,7 @@ export class EtoroConverter extends AbstractConverter {
                         quantity: 1,
                         type: GhostfolioOrderType[record.type],
                         unitPrice: feeAmount,
-                        currency: "USD", 
+                        currency: "USD",
                         dataSource: "MANUAL",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                         symbol: ""
@@ -128,7 +134,7 @@ export class EtoroConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.details, idx + 2);        
+                    this.logQueryError(record.details, idx + 2);
                     return errorCallback(err);
                 }
 

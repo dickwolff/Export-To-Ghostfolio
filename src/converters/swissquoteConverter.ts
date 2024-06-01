@@ -62,13 +62,19 @@ export class SwissquoteConverter extends AbstractConverter {
 
                 return columnValue;
             }
-        }, async (_, records: SwissquoteRecord[]) => {
+        }, async (err, records: SwissquoteRecord[]) => {
 
-            // If records is empty, parsing failed..
-            if (records === undefined || records.length === 0) {                    
-                return errorCallback(new Error("An error ocurred while parsing!"));
+            // Check if parsing failed..
+            if (err || records === undefined || records.length === 0) {
+                let errorMsg = "An error ocurred while parsing!";
+
+                if (err) {
+                    errorMsg += ` Details: ${err.message}`
+                }
+
+                return errorCallback(new Error(errorMsg))
             }
-            
+
             console.log("Read CSV file. Start processing..");
             const result: GhostfolioExport = {
                 meta: {
@@ -80,10 +86,10 @@ export class SwissquoteConverter extends AbstractConverter {
 
             // Populate the progress bar.
             const bar1 = this.progress.create(records.length, 0);
-            
+
             for (let idx = 0; idx < records.length; idx++) {
                 const record = records[idx];
-            
+
                 // Check if the record should be ignored.
                 if (this.isIgnoredRecord(record)) {
                     bar1.increment();
@@ -125,7 +131,7 @@ export class SwissquoteConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.isin || record.symbol || record.name, idx + 2);                                                                   
+                    this.logQueryError(record.isin || record.symbol || record.name, idx + 2);
                     return errorCallback(err);
                 }
 
@@ -158,7 +164,7 @@ export class SwissquoteConverter extends AbstractConverter {
             this.progress.stop()
 
             successCallback(result);
-        });      
+        });
     }
 
     /**

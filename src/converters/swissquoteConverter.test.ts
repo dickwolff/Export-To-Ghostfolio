@@ -77,6 +77,27 @@ describe("swissquoteConverter", () => {
         done();
       });
     });
+    
+    it("the header and row column count doesn't match", (done) => {
+
+      // Arrange
+      const sut = new SwissquoteConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+      // Create temp file.
+      let tempFileContent = "";
+      tempFileContent += "Date;Order #;Transaction;Symbol;Name;ISIN;Quantity;Unit price;Costs;Accrued Interest;Net Amount;Balance;Currency\n";
+      tempFileContent += "16-06-2022 13:14:35;110152600;Sell;VEUD;VANGUARD FTSE EUROPE UCITS ETF;IE00B945VV12;709.0;32.37;115.28;0.00;22835.05;111207.71;USD;;";
+
+      // Act
+      sut.processFileContents(tempFileContent, () => { fail("Should not succeed!"); }, (err: Error) => {
+
+        // Assert
+        expect(err).toBeTruthy();
+        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 13, got 15 on line 2");
+
+        done();
+      });
+    });
 
     it("Yahoo Finance throws an error", (done) => {
 

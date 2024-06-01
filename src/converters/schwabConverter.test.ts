@@ -77,6 +77,26 @@ describe("schwabConverter", () => {
       });
     });
 
+    it("the header and row column count doesn't match", (done) => {
+
+      // Arrange
+      const sut = new SchwabConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+      let tempFileContent = "";
+      tempFileContent += `Date,Action,Symbol,Description,Quantity,Price,Fees & Comm,Amount\n`;
+      tempFileContent += `Transactions Total,,,,,,,"-$26,582.91",,`;
+
+      // Act
+      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+
+        // Assert
+        expect(err).toBeTruthy();
+        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 8, got 10 on line 2");
+
+        done();
+      });
+    });
+
     it("Yahoo Finance throws an error", (done) => {
 
       // Arrange
