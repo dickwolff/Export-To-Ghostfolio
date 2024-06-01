@@ -77,6 +77,26 @@ describe("etoroConverter", () => {
       });
     });
 
+    it("the header and row column count doesn't match", (done) => {
+
+      // Arrange
+      const sut = new EtoroConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+      let tempFileContent = "";
+      tempFileContent += "Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA\n";
+      tempFileContent += `02/01/2024 00:10:33,Dividend,NKE/USD,0.17,-,0.17,"4,581.91",99.60,2272508626,Stocks,0.00,,`;
+
+      // Act
+      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+
+        // Assert
+        expect(err).toBeTruthy();
+        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 11, got 13 on line 2");
+
+        done();
+      });
+    });
+
     it("Yahoo Finance throws an error", (done) => {
 
       // Arrange

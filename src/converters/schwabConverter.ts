@@ -75,11 +75,17 @@ export class SchwabConverter extends AbstractConverter {
 
                 return columnValue;
             }
-        }, async (_, records: SchwabRecord[]) => {
+        }, async (err, records: SchwabRecord[]) => {
 
-            // If records is empty, parsing failed..
-            if (records === undefined || records.length === 0) {                    
-                return errorCallback(new Error("An error ocurred while parsing!"));
+            // Check if parsing failed..
+            if (err || records === undefined || records.length === 0) {
+                let errorMsg = "An error ocurred while parsing!";
+
+                if (err) {
+                    errorMsg += ` Details: ${err.message}`
+                }
+
+                return errorCallback(new Error(errorMsg))
             }
 
             console.log("[i] Read CSV file. Start processing..");
@@ -90,14 +96,14 @@ export class SchwabConverter extends AbstractConverter {
                 },
                 activities: []
             }
-            
+
             // Populate the progress bar.
             const bar1 = this.progress.create(records.length - 1, 0);
 
             // Skip last line of export (stats).
             for (let idx = 0; idx < records.length - 1; idx++) {
                 const record = records[idx];
-             
+
                 // Skip administrative deposit/withdraw transactions.
                 if (this.isIgnoredRecord(record)) {
                     bar1.increment();
@@ -140,7 +146,7 @@ export class SchwabConverter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.symbol || record.description, idx + 2);    
+                    this.logQueryError(record.symbol || record.description, idx + 2);
                     return errorCallback(err);
                 }
 
@@ -192,18 +198,18 @@ export class SchwabConverter extends AbstractConverter {
      */
     public isIgnoredRecord(record: SchwabRecord): boolean {
 
-      if (record.description === "" || record.action.toLocaleLowerCase().startsWith("wire")) {
-        return true;
-      }
+        if (record.description === "" || record.action.toLocaleLowerCase().startsWith("wire")) {
+            return true;
+        }
 
-      const ignoredRecordTypes = ["credit", "journal", "transfer"];
+        const ignoredRecordTypes = ["credit", "journal", "transfer"];
 
-      let ignore = ignoredRecordTypes.some(t => record.action.toLocaleLowerCase().indexOf(t) > -1);
+        let ignore = ignoredRecordTypes.some(t => record.action.toLocaleLowerCase().indexOf(t) > -1);
 
-      if (!ignore) {
-        ignore = record.date.toString().toLocaleLowerCase() === "transactions total";
-      } 
+        if (!ignore) {
+            ignore = record.date.toString().toLocaleLowerCase() === "transactions total";
+        }
 
-      return ignore;
+        return ignore;
     }
 }

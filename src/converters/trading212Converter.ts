@@ -62,11 +62,17 @@ export class Trading212Converter extends AbstractConverter {
 
                 return columnValue;
             }
-        }, async (_, records: Trading212Record[]) => {
+        }, async (err, records: Trading212Record[]) => {
 
-            // If records is empty, parsing failed..
-            if (records === undefined || records.length === 0) {                    
-                return errorCallback(new Error("An error ocurred while parsing!"));
+            // Check if parsing failed..
+            if (err || records === undefined || records.length === 0) {
+                let errorMsg = "An error ocurred while parsing!";
+
+                if (err) {
+                    errorMsg += ` Details: ${err.message}`
+                }
+
+                return errorCallback(new Error(errorMsg))
             }
 
             console.log("[i] Read CSV file. Start processing..");
@@ -123,7 +129,7 @@ export class Trading212Converter extends AbstractConverter {
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.isin || record.ticker || record.name, idx + 2);        
+                    this.logQueryError(record.isin || record.ticker || record.name, idx + 2);
                     return errorCallback(err);
                 }
 

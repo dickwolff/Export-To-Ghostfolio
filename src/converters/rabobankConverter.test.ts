@@ -76,6 +76,26 @@ describe("rabobankConverter", () => {
         done();
       });
     });
+    
+    it("the header and row column count doesn't match", (done) => {
+
+      // Arrange
+      const sut = new RabobankConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+      let tempFileContent = "";
+      tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
+      tempFileContent += `12345678;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima;;`;
+
+      // Act
+      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+
+        // Assert
+        expect(err).toBeTruthy();
+        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 14, got 16 on line 2");
+
+        done();
+      });
+    });
 
     it("Yahoo Finance throws an error", (done) => {
 
