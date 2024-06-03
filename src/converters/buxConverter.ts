@@ -110,7 +110,7 @@ export class BuxConverter extends AbstractConverter {
                         unitPrice: feeAmount,
                         currency: record.transactionCurrency,
                         dataSource: "MANUAL",
-                        date: dayjs(record.transactionTime).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
                         symbol: record.assetName
                     });
 
@@ -148,7 +148,7 @@ export class BuxConverter extends AbstractConverter {
                     quantity = record.tradeQuantity;
                     unitPrice = record.tradePrice;
                 }
-
+console.log(record)
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
@@ -159,7 +159,7 @@ export class BuxConverter extends AbstractConverter {
                     unitPrice: unitPrice,
                     currency: record.transactionCurrency,
                     dataSource: "YAHOO",
-                    date: dayjs(record.transactionTime).format("YYYY-MM-DDTHH:mm:ssZ"),
+                    date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
                 });
 

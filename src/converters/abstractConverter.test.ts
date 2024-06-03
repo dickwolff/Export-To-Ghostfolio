@@ -49,7 +49,7 @@ describe("abstractConverter", () => {
 
     // Arrange
     let tempFileContent = "";
-    tempFileContent += "Type,ISIN,PriceInEUR,PriceInCHF\n";
+    tempFileContent += "Type,ISIN,PriceInEUR,PriceInCHF,TransactionTimeCET\n";
 
     const sut = new TestAbstractConverter(new SecurityService(new YahooFinanceServiceMock()));
 
@@ -57,10 +57,11 @@ describe("abstractConverter", () => {
     const headers = sut.processHeadersTest(tempFileContent, ",");
 
     // Assert
-    expect(headers.length).toBe(4);
+    expect(headers.length).toBe(5);
     expect(headers[1]).toBe("isin");
     expect(headers[2]).toBe("priceInEur");
     expect(headers[3]).toBe("priceInChf");
+    expect(headers[4]).toBe("transactionTimeCet");
   });
 
   describe("logQueryError()", () => {

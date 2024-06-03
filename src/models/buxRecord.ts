@@ -1,5 +1,5 @@
 export class BuxRecord {
-    transactionTime: Date;
+    transactionTimeCet: Date;
     transactionCategory: string;
     transactionType: string;
     assetId: string;

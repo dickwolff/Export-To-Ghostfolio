@@ -88,6 +88,8 @@ export abstract class AbstractConverter {
                 col = col.slice(0, -3) + "Eur";
             } else if (col.endsWith("CHF")) {
                 col = col.slice(0, -3) + "Chf";
+            } else if (col.endsWith("CET")) {
+                col = col.slice(0, -3) + "Cet";
             }
 
             csvHeaders.push(col);
