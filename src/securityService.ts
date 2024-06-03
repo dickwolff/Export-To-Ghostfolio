@@ -105,6 +105,14 @@ export class SecurityService {
             symbolMatch = this.findSymbolMatchByCurrency(queryBySymbol, expectedCurrency);
         }
 
+        // If still no match has been found and the symbol contains a dot ('.'), take the part before the dot and search again.
+        if (!symbolMatch && symbol && symbol.indexOf(".") > -1) {
+            const symbolSplit = symbol.split(".");
+            this.logDebug(`getSecurity(): No match found for ${symbol}, trying to symbol ${symbolSplit[0]}`, progress);
+            const queryBySymbol = await this.getSymbolsByQuery(symbolSplit[0], progress);
+            symbolMatch = this.findSymbolMatchByCurrency(queryBySymbol, expectedCurrency);
+        }
+
         // If no name was given, take name from the first ISIN match.
         if (!name && symbols.length > 0) {
             name = symbols[0].name;

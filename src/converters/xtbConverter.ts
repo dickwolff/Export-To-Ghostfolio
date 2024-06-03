@@ -35,10 +35,10 @@ export class XtbConverter extends AbstractConverter {
                 if (context.column === "type") {
                     const type = columnValue.toLocaleLowerCase();
 
-                    if (type.indexOf("stocks/etf purchase") > -1) {
+                    if (type.indexOf("stocks/etf purchase") > -1 || type.indexOf("ações/etf compra") > -1) {
                         return "buy";
                     }
-                    else if (type.indexOf("stocks/etf sale") > -1) {
+                    else if (type.indexOf("stocks/etf sale") > -1 || type.indexOf("ações/etf vende") > -1) {
                         return "sell";
                     }
                     else if (type.indexOf("free funds interests") > -1) {
@@ -163,7 +163,7 @@ export class XtbConverter extends AbstractConverter {
      */
     public isIgnoredRecord(record: XtbRecord): boolean {
         let ignoredRecordTypes = ["deposit"];
-
+console.log(record)
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
     }
 }
