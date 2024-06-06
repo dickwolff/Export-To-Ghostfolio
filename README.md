@@ -8,6 +8,7 @@
 This tool allows you to convert a multiple transaction exports (CSV) to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for:
 
 - [Bitvavo](https://bitvavo.com)
+- [BUX](https://bux.com)
 - [DEGIRO](https://degiro.com)
 - [eToro](https://www.etoro.com/)
 - [Finpension](https://finpension.ch)
@@ -32,7 +33,12 @@ See the transaction export instructions for each of the supported brokers below.
 
 Login to your Bitvavo account and click on your name at the top-right. Next, click "Transaction history". Click the blue "Export" button at the to to create an export. Select one of the CSv options and again click "Export".
 
-![Export instructions for DEGIRO](./assets/export-bitvavo.jpg)
+![Export instructions for Bitvavo](./assets/export-bitvavo.jpg)
+
+## BUX
+Open the app and go to "Account Value", and then "View History". Click the download icon in the top right corner to download your transaction history. The export will be sent to your email address. 
+
+_Due to limitations by BUX, you can request up to 3 CSV exports per month!_.
 
 ### DEGIRO
 
@@ -183,6 +189,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | Exporter    | Run command                         |
 | ----------- | ----------------------------------- |
 | Bitvavo     | `run start bitvavo` (or `bv`)       |
+| BUX         | `run start bux`                     |
 | DEGIRO      | `run start degiro`                  |
 | eToro       | `run start etoro`                   |
 | Finpension  | `run start finpension` (or `fp`)    |
