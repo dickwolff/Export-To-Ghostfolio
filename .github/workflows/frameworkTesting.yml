@@ -42,7 +42,7 @@ jobs:
           format: 'markdown'
           output: 'file'
       
-      - name: Add code coverage PR comment
+      - name: Add code coverage PR comment (if owner)
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dickwolff'
         with:

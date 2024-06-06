@@ -169,6 +169,45 @@ describe("securityService", () => {
                     expect(searchSpy).toHaveBeenCalledTimes(1);
                     expect(quoteSummarySpy).toHaveBeenCalledTimes(1);
                 });
+
+                it("which contains a dot, split the symbol and search again, should return symbol", async () => {
+
+                    // Arrange
+                    const yahooFinanceMock = new YahooFinanceServiceMock();
+                    const searchSpy = jest.spyOn(yahooFinanceMock, "search")
+                    .mockResolvedValueOnce({
+                        quotes: [
+                            {
+                                symbol: "GOOGL.US"
+                            }
+                        ]
+                    })
+                    .mockResolvedValueOnce({
+                        quotes: [
+                            {
+                                symbol: "GOOGL"
+                            }
+                        ]
+                    });
+                    const quoteSummarySpy = jest.spyOn(yahooFinanceMock, "quoteSummary")
+                        .mockResolvedValueOnce({})
+                        .mockResolvedValueOnce({
+                            price: {
+                                regularMarketPrice: 100,
+                                currency: "USD",
+                                exchange: "NMS",
+                                symbol: "GOOGL"
+                            }
+                        });
+
+                    // Act
+                    const sut = new SecurityService(yahooFinanceMock);
+                    await sut.getSecurity(null, "GOOGL.US", null, null);
+
+                    // Assert
+                    expect(searchSpy).toHaveBeenCalledTimes(2);
+                    expect(quoteSummarySpy).toHaveBeenCalledTimes(2);
+                });
             });
 
             describe("having expected currency", () => {

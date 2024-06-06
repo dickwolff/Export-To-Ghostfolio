@@ -1,19 +1,16 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
-import { XtbRecord } from "../models/xtbRecord";
+import { BuxRecord } from "../models/buxRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
-import customParseFormat from "dayjs/plugin/customParseFormat";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
-export class XtbConverter extends AbstractConverter {
+export class BuxConverter extends AbstractConverter {
 
     constructor(securityService: SecurityService) {
         super(securityService);
-
-        dayjs.extend(customParseFormat);
     }
 
     /**
@@ -23,37 +20,47 @@ export class XtbConverter extends AbstractConverter {
 
         // Parse the CSV and convert to Ghostfolio import format.
         parse(input, {
-            delimiter: ";",
+            delimiter: ",",
             fromLine: 2,
-            skip_empty_lines: true,
-            columns: this.processHeaders(input, ";"),
+            columns: this.processHeaders(input),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
 
-                // Convert type to Ghostfolio type.
-                if (context.column === "type") {
-                    const type = columnValue.toLocaleLowerCase();
+                // Convert actions to Ghostfolio type.
+                if (context.column === "transactionType") {
+                    const action = columnValue.toLocaleLowerCase();
 
-                    if (type.indexOf("stocks/etf purchase") > -1 || type.indexOf("ações/etf compra") > -1) {
+                    if (action.indexOf("buy") > -1) {
                         return "buy";
                     }
-                    else if (type.indexOf("stocks/etf sale") > -1 || type.indexOf("ações/etf vende") > -1) {
+                    else if (action.indexOf("sell") > -1) {
                         return "sell";
                     }
-                    else if (type.indexOf("free funds interests") > -1) {
+                    else if (action.indexOf("dividend") > -1) {
+                        return "dividend";
+                    }
+                    else if (action.indexOf("interest") > -1) {
                         return "interest";
+                    }
+                    else if (action.indexOf("fee") > -1) {
+                        return "fee";
                     }
                 }
 
                 // Parse numbers to floats (from string).
-                if (context.column === "amount") {
+                if (context.column === "exchangeRate" ||
+                    context.column === "transactionAmount" ||
+                    context.column === "tradeAmount" ||
+                    context.column === "tradePrice" ||
+                    context.column === "tradeQuantity" ||
+                    context.column === "cashBalanceAmount") {
                     return parseFloat(columnValue);
                 }
 
                 return columnValue;
             }
-        }, async (err, records: XtbRecord[]) => {
+        }, async (err, records: BuxRecord[]) => {
 
             // Check if parsing failed..
             if (err || records === undefined || records.length === 0) {
@@ -65,7 +72,7 @@ export class XtbConverter extends AbstractConverter {
 
                 return errorCallback(new Error(errorMsg))
             }
-
+            
             console.log("[i] Read CSV file. Start processing..");
             const result: GhostfolioExport = {
                 meta: {
@@ -87,66 +94,73 @@ export class XtbConverter extends AbstractConverter {
                     continue;
                 }
 
-                const date = dayjs(`${record.time}`, "DD.MM.YYYY HH:mm:ss");
+                // Interest and fees do not have a security, so add those immediately.
+                if (record.transactionType.toLocaleLowerCase() === "interest" ||
+                    record.transactionType.toLocaleLowerCase() === "fee") {
 
-                // Interest does not have a security, so add those immediately.
-                if (record.type.toLocaleLowerCase() === "interest") {
+                    const feeAmount = Math.abs(record.transactionAmount);
 
-                    // Add interest record to export.
+                    // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: record.comment,
-                        fee: 0,
+                        comment: `Bux ${record.transactionType.toLocaleLowerCase()}`,
+                        fee: feeAmount,
                         quantity: 1,
-                        type: GhostfolioOrderType[record.type],
-                        unitPrice: record.amount,
-                        currency: process.env.XTB_ACCOUNT_CURRENCY || "EUR",
+                        type: GhostfolioOrderType[record.transactionType],
+                        unitPrice: feeAmount,
+                        currency: record.transactionCurrency,
                         dataSource: "MANUAL",
-                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: record.comment,
+                        date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: `Bux ${record.transactionType.toLocaleLowerCase()}`
                     });
 
                     bar1.increment();
                     continue;
                 }
 
-                const match = record.comment.match(/(?:OPEN|CLOSE) BUY (\d+|(?:[0-9]*[.])?[0-9]+)(?:\/(?:[0-9]*[.])?[0-9]+)? @ ((?:[0-9]*[.])?[0-9]+)/)
-                const quantity = parseFloat(match[1]);
-                const unitPrice = parseFloat(match[2]);
-
                 let security: YahooFinanceRecord;
                 try {
                     security = await this.securityService.getSecurity(
+                        record.assetId,
                         null,
-                        record.symbol,
-                        null,
-                        null,
+                        record.assetName,
+                        record.assetCurrency,
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.comment, idx + 2);
+                    this.logQueryError(record.assetId || record.assetName, idx + 2);
                     return errorCallback(err);
                 }
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`[i] No result found for action ${record.type}, symbol ${record.symbol} and comment ${record.comment}! Please add this manually..\n`);
+                    this.progress.log(`[i] No result found for ${record.transactionType} action for ${record.assetId || record.assetName} with currency ${record.assetCurrency}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
+                }
+
+                let quantity, unitPrice;
+
+                if (record.transactionType === "dividend") {
+                    quantity = 1;
+                    unitPrice = Math.abs(record.transactionAmount);
+                } else {
+                    quantity = record.tradeQuantity;
+                    unitPrice = record.tradePrice;
                 }
 
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: record.comment,
+                    comment: "",
                     fee: 0,
                     quantity: quantity,
-                    type: GhostfolioOrderType[record.type],
+                    type: GhostfolioOrderType[record.transactionType],
                     unitPrice: unitPrice,
-                    currency: security.currency,
+                    currency: record.transactionCurrency,
                     dataSource: "YAHOO",
-                    date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol,
+                    date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
+                    symbol: security.symbol
                 });
 
                 bar1.increment();
@@ -161,9 +175,9 @@ export class XtbConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    public isIgnoredRecord(record: XtbRecord): boolean {
-        let ignoredRecordTypes = ["deposit"];
-console.log(record)
-        return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
+    public isIgnoredRecord(record: BuxRecord): boolean {
+        let ignoredRecordTypes = ["deposit", "withdrawal"];
+
+        return ignoredRecordTypes.some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)
     }
 }
