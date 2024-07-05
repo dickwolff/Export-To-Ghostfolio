@@ -5,7 +5,8 @@
   "description": "Convert multiple broker exports to Ghostfolio import",
   "scripts": {
     "start": "tsx ./src/manual.ts",
-    "watch": "tsx ./src/watcher.ts",
+    "watch": "tsx ./src/fileWatcher.ts",
+    "cron": "tsx ./src/cronRunner.ts",
     "test": "jest --coverage"
   },
   "author": "Dick Wolff",
@@ -32,6 +33,7 @@
     "csv-parse": "^5.5.6",
     "dayjs": "^1.11.11",
     "dotenv": "^16.4.5",
+    "node-cron": "^3.0.3",
     "yahoo-finance2": "^2.11.3"
   }
 }

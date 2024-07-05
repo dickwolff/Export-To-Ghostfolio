@@ -75,92 +75,97 @@ export class Trading212Converter extends AbstractConverter {
                 return errorCallback(new Error(errorMsg))
             }
 
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
+            await this.processRecords(records, successCallback, errorCallback);
+        });
+    }
+
+    public async processRecords(records: Trading212Record[], successCallback: any, errorCallback: any): Promise<void> {
+
+        console.log("[i] Read CSV file. Start processing..");
+        const result: GhostfolioExport = {
+            meta: {
+                date: new Date(),
+                version: "v0"
+            },
+            activities: []
+        }
+
+        // Populate the progress bar.
+        const bar1 = this.progress.create(records.length, 0);
+
+        for (let idx = 0; idx < records.length; idx++) {
+            const record = records[idx];
+
+            // Check if the record should be ignored.
+            if (this.isIgnoredRecord(record)) {
+                bar1.increment();
+                continue;
             }
 
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
+            // Interest does not have a security, so add those immediately.
+            if (record.action.toLocaleLowerCase() === "interest") {
 
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
+                const feeAmount = Math.abs(record.total);
 
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
-                    bar1.increment();
-                    continue;
-                }
-
-                // Interest does not have a security, so add those immediately.
-                if (record.action.toLocaleLowerCase() === "interest") {
-
-                    const feeAmount = Math.abs(record.total);
-
-                    // Add fees record to export.
-                    result.activities.push({
-                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: "",
-                        fee: feeAmount,
-                        quantity: 1,
-                        type: GhostfolioOrderType[record.action],
-                        unitPrice: feeAmount,
-                        currency: record.currencyTotal,
-                        dataSource: "MANUAL",
-                        date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: record.notes
-                    });
-
-                    bar1.increment();
-                    continue;
-                }
-
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        record.isin,
-                        record.ticker,
-                        record.name,
-                        record.currencyPriceShare,
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.isin || record.ticker || record.name, idx + 2);
-                    return errorCallback(err);
-                }
-
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${record.action} action for ${record.isin || record.ticker || record.name} with currency ${record.currencyPriceShare}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                // Add record to export.
+                // Add fees record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: "",
-                    fee: 0,
-                    quantity: record.noOfShares,
+                    fee: feeAmount,
+                    quantity: 1,
                     type: GhostfolioOrderType[record.action],
-                    unitPrice: record.priceShare,
-                    currency: record.currencyPriceShare,
-                    dataSource: "YAHOO",
+                    unitPrice: feeAmount,
+                    currency: record.currencyTotal,
+                    dataSource: "MANUAL",
                     date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
+                    symbol: record.notes
                 });
 
                 bar1.increment();
+                continue;
             }
 
-            this.progress.stop()
+            let security: YahooFinanceRecord;
+            try {
+                security = await this.securityService.getSecurity(
+                    record.isin,
+                    record.ticker,
+                    record.name,
+                    record.currencyPriceShare,
+                    this.progress);
+            }
+            catch (err) {
+                this.logQueryError(record.isin || record.ticker || record.name, idx + 2);
+                return errorCallback(err);
+            }
 
-            successCallback(result);
-        });
+            // Log whenever there was no match found.
+            if (!security) {
+                this.progress.log(`[i] No result found for ${record.action} action for ${record.isin || record.ticker || record.name} with currency ${record.currencyPriceShare}! Please add this manually..\n`);
+                bar1.increment();
+                continue;
+            }
+
+            // Add record to export.
+            result.activities.push({
+                accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                comment: "",
+                fee: 0,
+                quantity: record.noOfShares,
+                type: GhostfolioOrderType[record.action],
+                unitPrice: record.priceShare,
+                currency: record.currencyPriceShare,
+                dataSource: "YAHOO",
+                date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
+                symbol: security.symbol
+            });
+
+            bar1.increment();
+        }
+
+        this.progress.stop()
+
+        successCallback(result);
     }
 
     /**
