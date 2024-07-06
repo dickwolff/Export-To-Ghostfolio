@@ -17,6 +17,7 @@ import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { XtbConverter } from "./converters/xtbConverter";
 import { BitvavoConverter } from "./converters/bitvavoConverter";
+import { InvestimentalConverter } from "./converters/investimentalConverter";
 
 import packageInfo from "../package.json";
 
@@ -121,6 +122,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
             console.log("[i] Processing file using XTB converter");
             converter = new XtbConverter(securityService);
             break;
+        case "investimental":
+                console.log("[i] Processing file using Investimental converter");
+                converter = new InvestimentalConverter(securityService);
+                break;
         default:
             throw new Error(`Unknown converter '${converterType}' provided`);
     }
