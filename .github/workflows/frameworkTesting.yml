@@ -41,27 +41,13 @@ jobs:
           badge: true
           format: 'markdown'
           output: 'file'
-          
-      # Source: https://stackoverflow.com/a/70655285
-      - name: Read coverage report to variable
-        if: github.event_name == 'pull_request'
-        id: read_md
-        run: |
-          echo 'COV_MD<<EOF' >> $GITHUB_OUTPUT
-          echo "$(cat code-coverage-results.md)" >> $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
-
-      - name: Add code coverage PR comment
-        uses: actions/github-script@v6
-        if: github.event_name == 'pull_request'
+      
+      - name: Add code coverage PR comment (if owner)
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dickwolff'
         with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `${{ steps.read_md.outputs.COV_MD }}`
-            })
+          recreate: true
+          path: code-coverage-results.md      
 
       - name: Write to job summary
         run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY

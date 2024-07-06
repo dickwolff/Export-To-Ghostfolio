@@ -88,6 +88,8 @@ export abstract class AbstractConverter {
                 col = col.slice(0, -3) + "Eur";
             } else if (col.endsWith("CHF")) {
                 col = col.slice(0, -3) + "Chf";
+            } else if (col.endsWith("CET")) {
+                col = col.slice(0, -3) + "Cet";
             }
 
             csvHeaders.push(col);
@@ -102,7 +104,7 @@ export abstract class AbstractConverter {
      * @param query The query that was looked for.
      * @param index The index of the line in the input file.
      */
-    protected logQueryError(query: string, index: number) {
+    protected logQueryError(query: string | undefined, index: number) {
         
         let message = `\n[e] An error ocurred while trying to retrieve {query} (line ${index + 2})!\n`;
         

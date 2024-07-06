@@ -3,6 +3,7 @@ import YahooFinanceRecord from "./models/yahooFinanceRecord";
 import { YahooFinance, YahooFinanceService } from "./yahooFinanceService";
 import { mapReplacer, mapReviver } from "./helpers/dictionaryHelpers";
 
+/* istanbul ignore next */
 const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";
 
 export class SecurityService {
@@ -101,6 +102,14 @@ export class SecurityService {
         if (!symbolMatch && symbol) {
             this.logDebug(`getSecurity(): No initial match found, trying by symbol ${symbol}`, progress);
             const queryBySymbol = await this.getSymbolsByQuery(symbol, progress);
+            symbolMatch = this.findSymbolMatchByCurrency(queryBySymbol, expectedCurrency);
+        }
+
+        // If still no match has been found and the symbol contains a dot ('.'), take the part before the dot and search again.
+        if (!symbolMatch && symbol && symbol.indexOf(".") > -1) {
+            const symbolSplit = symbol.split(".");
+            this.logDebug(`getSecurity(): No match found for ${symbol}, trying to symbol ${symbolSplit[0]}`, progress);
+            const queryBySymbol = await this.getSymbolsByQuery(symbolSplit[0], progress);
             symbolMatch = this.findSymbolMatchByCurrency(queryBySymbol, expectedCurrency);
         }
 
@@ -217,11 +226,11 @@ export class SecurityService {
             // Get quote summary details (containing currency, price, etc).
             // Put in try-catch, since Yahoo Finance can return faulty data and crash..
             let quoteSummaryResult;
-            try {
+            try {                
                 quoteSummaryResult = await this.yahooFinance.quoteSummary(quote.symbol, {}, { validateResult: false });
             }
             catch (err) {
-                this.logDebug(`getSymbolsByQuery(): An error ocurred while retrieving summary for ${quote.symbol}. Skipping..`, progress, true);
+                this.logDebug(`getSymbolsByQuery(): An error ocurred while retrieving summary for ${quote.symbol}. ${err}. Skipping..`, progress, true);
                 continue;
             }
 

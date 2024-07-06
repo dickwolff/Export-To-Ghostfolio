@@ -95,6 +95,26 @@ describe("IbkrConverter", () => {
       });
     });
 
+    it("the header and row column count doesn't match", (done) => {
+
+      // Arrange
+      const sut = new IbkrConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+      let tempFileContent = "";
+      tempFileContent += `"Buy/Sell","TradeDate","ISIN","Quantity","TradePrice","TradeMoney","CurrencyPrimary","IBCommission","IBCommissionCurrency"\n`;
+      tempFileContent += `"BUY","20230522","CH0111762537","7","282.7","1978.9","CHF","-5","CHF",,`;
+
+      // Act
+      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+
+        // Assert
+        expect(err).toBeTruthy();
+        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 9, got 11 on line 2");
+
+        done();
+      });
+    });
+
     it("Yahoo Finance throws an error", (done) => {
 
       // Arrange

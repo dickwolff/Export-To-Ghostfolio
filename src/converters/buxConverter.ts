@@ -1,13 +1,13 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
+import { BuxRecord } from "../models/buxRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
-import { FinpensionRecord } from "../models/finpensionRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
-export class FinpensionConverter extends AbstractConverter {
+export class BuxConverter extends AbstractConverter {
 
     constructor(securityService: SecurityService) {
         super(securityService);
@@ -20,15 +20,15 @@ export class FinpensionConverter extends AbstractConverter {
 
         // Parse the CSV and convert to Ghostfolio import format.
         parse(input, {
-            delimiter: ";",
+            delimiter: ",",
             fromLine: 2,
-            columns: this.processHeaders(input, ";"),
+            columns: this.processHeaders(input),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
 
-                // Convert categories to Ghostfolio type.
-                if (context.column === "category") {
+                // Convert actions to Ghostfolio type.
+                if (context.column === "transactionType") {
                     const action = columnValue.toLocaleLowerCase();
 
                     if (action.indexOf("buy") > -1) {
@@ -40,21 +40,27 @@ export class FinpensionConverter extends AbstractConverter {
                     else if (action.indexOf("dividend") > -1) {
                         return "dividend";
                     }
+                    else if (action.indexOf("interest") > -1) {
+                        return "interest";
+                    }
                     else if (action.indexOf("fee") > -1) {
                         return "fee";
                     }
                 }
 
                 // Parse numbers to floats (from string).
-                if (context.column === "numberOfShares" ||
-                    context.column === "assetPriceInChf" ||
-                    context.column === "cashflow") {
+                if (context.column === "exchangeRate" ||
+                    context.column === "transactionAmount" ||
+                    context.column === "tradeAmount" ||
+                    context.column === "tradePrice" ||
+                    context.column === "tradeQuantity" ||
+                    context.column === "cashBalanceAmount") {
                     return parseFloat(columnValue);
                 }
 
                 return columnValue;
             }
-        }, async (err, records: FinpensionRecord[]) => {
+        }, async (err, records: BuxRecord[]) => {
 
             // Check if parsing failed..
             if (err || records === undefined || records.length === 0) {
@@ -66,7 +72,7 @@ export class FinpensionConverter extends AbstractConverter {
 
                 return errorCallback(new Error(errorMsg))
             }
-
+            
             console.log("[i] Read CSV file. Start processing..");
             const result: GhostfolioExport = {
                 meta: {
@@ -88,23 +94,24 @@ export class FinpensionConverter extends AbstractConverter {
                     continue;
                 }
 
-                // Fees do not have a security, so add those immediately.
-                if (record.category.toLocaleLowerCase() === "fee") {
+                // Interest and fees do not have a security, so add those immediately.
+                if (record.transactionType.toLocaleLowerCase() === "interest" ||
+                    record.transactionType.toLocaleLowerCase() === "fee") {
 
-                    const feeAmount = Math.abs(record.cashFlow);
+                    const feeAmount = Math.abs(record.transactionAmount);
 
-                    // Add fees record to export.
+                    // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: "",
+                        comment: `Bux ${record.transactionType.toLocaleLowerCase()}`,
                         fee: feeAmount,
                         quantity: 1,
-                        type: GhostfolioOrderType[record.category],
+                        type: GhostfolioOrderType[record.transactionType],
                         unitPrice: feeAmount,
-                        currency: record.assetCurrency,
+                        currency: record.transactionCurrency,
                         dataSource: "MANUAL",
-                        date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: record.category
+                        date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: `Bux ${record.transactionType.toLocaleLowerCase()}`
                     });
 
                     bar1.increment();
@@ -114,32 +121,32 @@ export class FinpensionConverter extends AbstractConverter {
                 let security: YahooFinanceRecord;
                 try {
                     security = await this.securityService.getSecurity(
-                        record.isin,
+                        record.assetId,
                         null,
                         record.assetName,
                         record.assetCurrency,
                         this.progress);
                 }
                 catch (err) {
-                    this.logQueryError(record.isin || record.assetName, idx + 2);
+                    this.logQueryError(record.assetId || record.assetName, idx + 2);
                     return errorCallback(err);
                 }
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`[i] No result found for ${record.category} action for ${record.isin || record.assetName} with currency ${record.assetCurrency}! Please add this manually..\n`);
+                    this.progress.log(`[i] No result found for ${record.transactionType} action for ${record.assetId || record.assetName} with currency ${record.assetCurrency}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }
 
-                // Make negative numbers (on sell records) absolute.
-                let numberOfShares = Math.abs(record.numberOfShares);
-                let assetPriceInChf = Math.abs(record.assetPriceInChf);
+                let quantity, unitPrice;
 
-                // Dividend record values are retrieved from cashflow.
-                if (record.category === "dividend") {
-                    numberOfShares = 1;
-                    assetPriceInChf = Math.abs(record.cashFlow);
+                if (record.transactionType === "dividend") {
+                    quantity = 1;
+                    unitPrice = Math.abs(record.transactionAmount);
+                } else {
+                    quantity = record.tradeQuantity;
+                    unitPrice = record.tradePrice;
                 }
 
                 // Add record to export.
@@ -147,12 +154,12 @@ export class FinpensionConverter extends AbstractConverter {
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: "",
                     fee: 0,
-                    quantity: numberOfShares,
-                    type: GhostfolioOrderType[record.category],
-                    unitPrice: assetPriceInChf,
-                    currency: record.assetCurrency,
+                    quantity: quantity,
+                    type: GhostfolioOrderType[record.transactionType],
+                    unitPrice: unitPrice,
+                    currency: record.transactionCurrency,
                     dataSource: "YAHOO",
-                    date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
+                    date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
                 });
 
@@ -168,9 +175,9 @@ export class FinpensionConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    public isIgnoredRecord(record: FinpensionRecord): boolean {
-        let ignoredRecordTypes = ["deposit", "withdraw"];
+    public isIgnoredRecord(record: BuxRecord): boolean {
+        let ignoredRecordTypes = ["deposit", "withdrawal"];
 
-        return ignoredRecordTypes.some(t => record.category.toLocaleLowerCase().indexOf(t) > -1)
+        return ignoredRecordTypes.some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)
     }
 }

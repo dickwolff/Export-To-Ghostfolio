@@ -35,10 +35,10 @@ export class XtbConverter extends AbstractConverter {
                 if (context.column === "type") {
                     const type = columnValue.toLocaleLowerCase();
 
-                    if (type.indexOf("stocks/etf purchase") > -1) {
+                    if (type.indexOf("stocks/etf purchase") > -1 || type.indexOf("ações/etf compra") > -1) {
                         return "buy";
                     }
-                    else if (type.indexOf("stocks/etf sale") > -1) {
+                    else if (type.indexOf("stocks/etf sale") > -1 || type.indexOf("ações/etf vende") > -1) {
                         return "sell";
                     }
                     else if (type.indexOf("free funds interests") > -1) {
@@ -55,13 +55,15 @@ export class XtbConverter extends AbstractConverter {
             }
         }, async (err, records: XtbRecord[]) => {
 
-            if (err) {
-                console.log(err);
-            }
+            // Check if parsing failed..
+            if (err || records === undefined || records.length === 0) {
+                let errorMsg = "An error ocurred while parsing!";
 
-            // If records is empty, parsing failed..
-            if (records === undefined || records.length === 0) {
-                return errorCallback(new Error("An error ocurred while parsing!"));
+                if (err) {
+                    errorMsg += ` Details: ${err.message}`
+                }
+
+                return errorCallback(new Error(errorMsg))
             }
 
             console.log("[i] Read CSV file. Start processing..");
@@ -161,7 +163,7 @@ export class XtbConverter extends AbstractConverter {
      */
     public isIgnoredRecord(record: XtbRecord): boolean {
         let ignoredRecordTypes = ["deposit"];
-
+console.log(record)
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
     }
 }

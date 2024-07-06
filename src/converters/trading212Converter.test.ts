@@ -34,7 +34,7 @@ describe("trading212Converter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(7);
+      expect(actualExport.activities.length).toBe(8);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
@@ -72,6 +72,26 @@ describe("trading212Converter", () => {
         // Assert
         expect(err).toBeTruthy();
         expect(err.message).toContain("An error ocurred while parsing");
+
+        done();
+      });
+    });
+    
+    it("the header and row column count doesn't match", (done) => {
+
+      // Arrange
+      const sut = new Trading212Converter(new SecurityService(new YahooFinanceServiceMock()));
+
+      let tempFileContent = "";
+      tempFileContent += "Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)\n";
+      tempFileContent += `Market buy,2023-12-18 14:30:03.613,US17275R1023,CSCO,"Cisco Systems",0.0290530000,49.96,USD,1.09303,,"EUR",1.33,"EUR",,,,EOF7504196256,,,,`;
+
+      // Act
+      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+
+        // Assert
+        expect(err).toBeTruthy();
+        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 19, got 21 on line 2");
 
         done();
       });

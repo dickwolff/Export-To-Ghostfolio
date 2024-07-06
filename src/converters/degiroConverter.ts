@@ -34,13 +34,18 @@ export class DeGiroConverter extends AbstractConverter {
 
         return columnValue;
       }
-    }, async (_, records: DeGiroRecord[]) => {
+    }, async (err, records: DeGiroRecord[]) => {
 
-      // If records is empty, parsing failed..
-      if (records === undefined || records.length === 0) {
-        return errorCallback(new Error("An error ocurred while parsing!"));
+      // Check if parsing failed..
+      if (err || records === undefined || records.length === 0) {
+        let errorMsg = "An error ocurred while parsing!";
+
+        if (err) {
+          errorMsg += ` Details: ${err.message}`
+        }
+
+        return errorCallback(new Error(errorMsg))
       }
-
 
       console.log("[i] Read CSV file. Start processing..");
       const result: GhostfolioExport = {
