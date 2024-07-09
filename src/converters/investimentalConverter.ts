@@ -9,7 +9,6 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 import { GhostfolioActivity } from "../models/ghostfolioActivity";
 
-
 export class InvestimentalConverter extends AbstractConverter {
 
     constructor(securityService: SecurityService) {
@@ -160,11 +159,11 @@ export class InvestimentalConverter extends AbstractConverter {
                 let newlyExecutedVolume = remainingVolume - record.volume;
                 if (record.status === "Inactive") {
                     newlyExecutedVolume = record.volume;
-                }
+                }                
                 executedVolume += newlyExecutedVolume;
-                totalValue += newlyExecutedVolume * (record.price || lastPrice);
-                
+                totalValue += newlyExecutedVolume * (record.price || lastPrice);                
             }
+            
             lastFee = record.fee || lastFee;
             lastPrice = record.price || lastPrice;
             remainingVolume = record.volume;
@@ -207,6 +206,4 @@ export class InvestimentalConverter extends AbstractConverter {
         const match = accountName.match(/\[(\w+)\]/);
         return match ? match[1] : null;
     }
-
-
 }
