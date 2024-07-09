@@ -16,15 +16,15 @@
   "devDependencies": {
     "@types/cacache": "^17.0.2",
     "@types/jest": "^29.5.11",
-    "@types/node": "^20.13.0",
+    "@types/node": "^20.14.10",
     "jest": "^29.7.0",
-    "ts-jest": "^29.1.4",
+    "ts-jest": "^29.1.5",
     "ts-node": "^10.9.2",
-    "tsx": "^4.11.0",
-    "typescript": "^5.4.5"
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3"
   },
   "dependencies": {
-    "@types/cli-progress": "^3.11.5",
+    "@types/cli-progress": "^3.11.6",
     "cacache": "^18.0.3",
     "chokidar": "^3.6.0",
     "cli-progress": "^3.12.0",

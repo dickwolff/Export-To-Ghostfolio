@@ -209,7 +209,9 @@ export class DeGiroConverterV2 extends AbstractConverter {
       "operation de change",
       "versement de fonds",
       "débit",
-      "depósito"];
+      "depósito",
+      "ingreso",
+      "retirada"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
