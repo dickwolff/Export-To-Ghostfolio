@@ -13,12 +13,12 @@ import { FinpensionConverter } from "./converters/finpensionConverter";
 import { FreetradeConverter } from "./converters/freetradeConverter";
 import { GhostfolioExport } from "./models/ghostfolioExport";
 import { IbkrConverter } from "./converters/ibkrConverter";
+import { InvestimentalConverter } from "./converters/investimentalConverter";
 import { RabobankConverter } from "./converters/rabobankConverter";
 import { SchwabConverter } from "./converters/schwabConverter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { XtbConverter } from "./converters/xtbConverter";
-import { InvestimentalConverter } from "./converters/investimentalConverter";
 
 import packageInfo from "../package.json";
 
@@ -105,6 +105,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
             console.log("[i] Processing file using IBKR converter");
             converter = new IbkrConverter(securityService);
             break;
+        case "investimental":
+            console.log("[i] Processing file using Investimental converter");
+            converter = new InvestimentalConverter(securityService);
+            break;
         case "rabobank":
             console.log("[i] Processing file using Rabobank converter");
             converter = new RabobankConverter(securityService);
@@ -127,10 +131,6 @@ async function createConverter(converterType: string): Promise<AbstractConverter
             console.log("[i] Processing file using XTB converter");
             converter = new XtbConverter(securityService);
             break;
-        case "investimental":
-                console.log("[i] Processing file using Investimental converter");
-                converter = new InvestimentalConverter(securityService);
-                break;
         default:
             throw new Error(`Unknown converter '${converterType}' provided`);
     }
