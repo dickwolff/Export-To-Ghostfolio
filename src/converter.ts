@@ -13,6 +13,7 @@ import { FinpensionConverter } from "./converters/finpensionConverter";
 import { FreetradeConverter } from "./converters/freetradeConverter";
 import { GhostfolioExport } from "./models/ghostfolioExport";
 import { IbkrConverter } from "./converters/ibkrConverter";
+import { InvestimentalConverter } from "./converters/investimentalConverter";
 import { RabobankConverter } from "./converters/rabobankConverter";
 import { SchwabConverter } from "./converters/schwabConverter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
@@ -103,6 +104,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
         case "ibkr":
             console.log("[i] Processing file using IBKR converter");
             converter = new IbkrConverter(securityService);
+            break;
+        case "investimental":
+            console.log("[i] Processing file using Investimental converter");
+            converter = new InvestimentalConverter(securityService);
             break;
         case "rabobank":
             console.log("[i] Processing file using Rabobank converter");

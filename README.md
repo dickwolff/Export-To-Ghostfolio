@@ -14,6 +14,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [Finpension](https://finpension.ch)
 - [Freetrade](https://freetrade.io)
 - [Interactive Brokers (IBKR)](https://www.interactivebrokers.com)
+- [Investimental](https://www.investimental.ro/)
 - [Rabobank](https://rabobank.nl)
 - [Schwab](https://www.schwab.com)
 - [Swissquote](https://en.swissquote.com/)
@@ -71,6 +72,12 @@ For trades, select "Trades". Then select the following properties: `Buy/Sell, Tr
 #### Dividends
 
 For dividends, select "Cash Transactions". Then select the following properties: `Type, SettleDate, ISIN, Description, Amount, CurrencyPrimary`.
+
+### Investimental
+
+Login to your Investimental account and click on the "Orders Daily Log". Select account and desired time period then click refresh button. Transactions should appear and then click on the download button.
+
+![Export instructions for Investimental](./assets/export-investimental.png)
 
 ### Rabobank
 
@@ -186,20 +193,21 @@ The repository contains a sample `.env` file. Rename this from `.env.sample`.
 
 You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the symbols that are supported with YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN).
 
-| Exporter    | Run command                         |
-| ----------- | ----------------------------------- |
-| Bitvavo     | `run start bitvavo` (or `bv`)       |
-| BUX         | `run start bux`                     |
-| DEGIRO      | `run start degiro`                  |
-| eToro       | `run start etoro`                   |
-| Finpension  | `run start finpension` (or `fp`)    |
-| Freetrade   | `run start freetrade`  (or `ft`)    |
-| IBKR        | `run start ibkr`                    |
-| Rabobank    | `run start rabobank`                |
-| Schwab      | `run start schwab`                  |
-| Swissquote  | `run start swissquote` (or `sq`)    |
-| Trading 212 | `run start trading212` (or `t212`)  |
-| XTB         | `run start xtb`                     |
+| Exporter      | Run command                         |
+| ------------- | ----------------------------------- |
+| Bitvavo       | `run start bitvavo` (or `bv`)       |
+| BUX           | `run start bux`                     |
+| DEGIRO        | `run start degiro`                  |
+| eToro         | `run start etoro`                   |
+| Finpension    | `run start finpension` (or `fp`)    |
+| Freetrade     | `run start freetrade`  (or `ft`)    |
+| IBKR          | `run start ibkr`                    |
+| Investimental | `run start investimental`           |
+| Rabobank      | `run start rabobank`                |
+| Schwab        | `run start schwab`                  |
+| Swissquote    | `run start swissquote` (or `sq`)    |
+| Trading 212   | `run start trading212` (or `t212`)  |
+| XTB           | `run start xtb`                     |
 
 ### Caching
 
