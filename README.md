@@ -189,6 +189,7 @@ The repository contains a sample `.env` file. Rename this from `.env.sample`.
   - This can be retrieved by going to Accounts > select your account and copying the ID from the URL 
   
     ![image](https://user-images.githubusercontent.com/5620002/203353840-f5db7323-fb2f-4f4f-befc-e4e340466a74.png)
+- Optionally you can set the `GHOSTFOLIO_UPDATE_CASH` variable to `TRUE` to automatically update your Ghostfolio account cash balance after processing the activities.
 - Optionally you can enable debug logging by setting the `DEBUG_LOGGING` variable to `TRUE`.
 
 You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the symbols that are supported with YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN).
