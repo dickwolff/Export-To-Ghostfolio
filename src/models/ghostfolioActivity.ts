@@ -10,5 +10,5 @@ export class GhostfolioActivity {
     currency: string;
     dataSource: string;
     date: string;
-    symbol: string
+    symbol: string;
 }

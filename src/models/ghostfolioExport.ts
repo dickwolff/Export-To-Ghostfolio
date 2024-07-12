@@ -3,6 +3,7 @@ import { GhostfolioActivity } from "./ghostfolioActivity";
 class GhostfolioExport {
     meta: GhostfolioMeta;
     activities: GhostfolioActivity[];
+    updateCashBalance: boolean;
 }
 
 class GhostfolioMeta {

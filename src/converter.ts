@@ -28,11 +28,11 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
     if (!process.env.GHOSTFOLIO_ACCOUNT_ID) {
         return errorCallback(new Error("Environment variable GHOSTFOLIO_ACCOUNT_ID not set!"));
     }
-    
+
     console.log(`[i] Starting Export to Ghostfolio v${packageInfo.version}`);
 
     // If DEBUG_LOGGING is enabled, set spaces to 2 else null for easier to read JSON output.
-    const spaces = process.env.DEBUG_LOGGING === "true" ? 2 : null;
+    const spaces = `${process.env.DEBUG_LOGGING}` === "true" ? 2 : null;
 
     const converterTypeLc = converterType.toLocaleLowerCase();
 
@@ -41,6 +41,9 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
 
     // Map the file to a Ghostfolio import.
     converter.readAndProcessFile(inputFilePath, async (result: GhostfolioExport) => {
+
+        // Set cash balance update setting according to settings.
+        result.updateCashBalance = `${process.env.GHOSTFOLIO_UPDATE_CASH}` === "true"
 
         console.log("[i] Processing complete, writing to file..")
 

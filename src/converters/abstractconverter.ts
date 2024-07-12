@@ -5,7 +5,7 @@ import { SecurityService } from "../securityService";
 export abstract class AbstractConverter {
 
     protected securityService: SecurityService;
-    
+
     protected progress: cliProgress.MultiBar;
 
     constructor(securityService: SecurityService) {
@@ -37,7 +37,7 @@ export abstract class AbstractConverter {
 
         const contents = fs.readFileSync(inputFile, "utf-8");
 
-        this.processFileContents(contents,successCallback, errorCallback);
+        this.processFileContents(contents, successCallback, errorCallback);
     }
 
     /**
@@ -46,7 +46,7 @@ export abstract class AbstractConverter {
      * @param record The record to check
      * @returns true if the record should be skipped, false otherwise.
      */
-    abstract isIgnoredRecord(record: any): boolean;    
+    abstract isIgnoredRecord(record: any): boolean;
 
     /**
      * Process export file contents.
@@ -105,18 +105,18 @@ export abstract class AbstractConverter {
      * @param index The index of the line in the input file.
      */
     protected logQueryError(query: string | undefined, index: number) {
-        
+
         let message = `\n[e] An error ocurred while trying to retrieve {query} (line ${index + 2})!\n`;
-        
+
         if (query) {
             message = message.replace("{query}", `symbol ${query}`);
         } else {
             message = message.replace("{query}", `an empty symbol`);
         }
 
-        console.log(message);    
+        console.log(message);
     }
-    
+
     private camelize(str): string {
         return str.replace(/[^a-zA-Z ]/g, "").replace(/(?:^\w|[A-Z]|\b\w)/g, function (word, index) {
             return index === 0 ? word.toLowerCase() : word.toUpperCase();
