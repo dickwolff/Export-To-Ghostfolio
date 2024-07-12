@@ -1,13 +1,13 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
-import { InvestimentalRecord } from "../models/investimentalRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 import { GhostfolioActivity } from "../models/ghostfolioActivity";
+import { InvestimentalRecord } from "../models/investimentalRecord";
+import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class InvestimentalConverter extends AbstractConverter {
 
@@ -86,7 +86,7 @@ export class InvestimentalConverter extends AbstractConverter {
                         bar1.increment();
                         continue;
                     }
-                
+
                     let security: YahooFinanceRecord;
                     try {
                         security = await this.securityService.getSecurity(
@@ -115,9 +115,9 @@ export class InvestimentalConverter extends AbstractConverter {
                 bar1.increment();
             }
 
-        this.progress.stop()
+            this.progress.stop()
 
-        successCallback(result);
+            successCallback(result);
         });
     }
 
@@ -153,24 +153,24 @@ export class InvestimentalConverter extends AbstractConverter {
         let totalValue = 0;
         let lastFee = 0;
         let lastPrice = 0;
-    
+
         for (const record of orderRecords) {
             if (record.updateType === "Fil") {
                 let newlyExecutedVolume = remainingVolume - record.volume;
                 if (record.status === "Inactive") {
                     newlyExecutedVolume = record.volume;
-                }                
+                }
                 executedVolume += newlyExecutedVolume;
-                totalValue += newlyExecutedVolume * (record.price || lastPrice);                
+                totalValue += newlyExecutedVolume * (record.price || lastPrice);
             }
-            
+
             lastFee = record.fee || lastFee;
             lastPrice = record.price || lastPrice;
             remainingVolume = record.volume;
         }
-    
+
         const lastRecord = orderRecords[orderRecords.length - 1];
-    
+
         if (executedVolume > 0) {
             const averagePrice = totalValue > 0 ? Number((totalValue / executedVolume).toFixed(4)) : lastPrice;
             return {
@@ -181,7 +181,7 @@ export class InvestimentalConverter extends AbstractConverter {
 
             };
         }
-    
+
         return null;
     }
 
