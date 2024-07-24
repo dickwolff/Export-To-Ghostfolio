@@ -79,7 +79,8 @@ export class XtbConverter extends AbstractConverter {
             const bar1 = this.progress.create(records.length, 0);
 
             for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
+                const record = records[idx];                
+                let extraIncrement = 1;
 
                 // Check if the record should be ignored.
                 if (this.isIgnoredRecord(record)) {
@@ -110,10 +111,18 @@ export class XtbConverter extends AbstractConverter {
                     continue;
                 }
 
-                const match = record.comment.match(/(?:OPEN|CLOSE) BUY (\d+|(?:[0-9]*[.])?[0-9]+)(?:\/(?:[0-9]*[.])?[0-9]+)? @ ((?:[0-9]*[.])?[0-9]+)/)
-                const quantity = parseFloat(match[1]);
-                const unitPrice = parseFloat(match[2]);
+                let fees = 0;
+                let orderType = GhostfolioOrderType[record.type];
+                let comment = record.comment;
+                let quantity;
+                let unitPrice;
 
+                const match = record.comment.match(/(?:OPEN|CLOSE) BUY (\d+|(?:[0-9]*[.])?[0-9]+)(?:\/(?:[0-9]*[.])?[0-9]+)? @ ((?:[0-9]*[.])?[0-9]+)/)                                
+                if (match) {
+                    quantity = parseFloat(match[1]);
+                    unitPrice = parseFloat(match[2]);
+                }
+                
                 let security: YahooFinanceRecord;
                 try {
                     security = await this.securityService.getSecurity(
@@ -135,13 +144,31 @@ export class XtbConverter extends AbstractConverter {
                     continue;
                 }
 
+                // Check if this record is about a CFD. 
+                // A CFD transaction exists of two records, a fee record (1st) and a profit/loss record (2nd).
+                if (comment.toLocaleLowerCase().includes("of position #")) {
+
+                    // Alter the properties for the fee.
+                    quantity = 1;
+                    fees = Math.abs(record.amount);
+                    comment = `CFD position #${comment.split("#")[1]}`
+
+                    // Get the 
+                    const cfdTxRecord = records[idx + 1];
+                    orderType = GhostfolioOrderType.sell
+                    unitPrice = Math.abs(cfdTxRecord.amount);
+
+                    // Skip the next record, as this is already processed in this iteration.
+                    extraIncrement = 1;
+                }
+
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: record.comment,
-                    fee: 0,
+                    comment: comment,
+                    fee: fees,
                     quantity: quantity,
-                    type: GhostfolioOrderType[record.type],
+                    type: orderType,
                     unitPrice: unitPrice,
                     currency: security.currency,
                     dataSource: "YAHOO",
@@ -149,7 +176,8 @@ export class XtbConverter extends AbstractConverter {
                     symbol: security.symbol,
                 });
 
-                bar1.increment();
+                bar1.increment(extraIncrement + 1);
+                idx += extraIncrement;
             }
 
             this.progress.stop()
@@ -163,7 +191,6 @@ export class XtbConverter extends AbstractConverter {
      */
     public isIgnoredRecord(record: XtbRecord): boolean {
         let ignoredRecordTypes = ["deposit"];
-console.log(record)
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
     }
 }
