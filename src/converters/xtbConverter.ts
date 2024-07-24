@@ -80,7 +80,7 @@ export class XtbConverter extends AbstractConverter {
 
             for (let idx = 0; idx < records.length; idx++) {
                 const record = records[idx];                
-                let extraIncrement = 1;
+                let extraIncrement = 0;
 
                 // Check if the record should be ignored.
                 if (this.isIgnoredRecord(record)) {
