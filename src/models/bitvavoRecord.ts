@@ -5,8 +5,10 @@ export class BitvavoRecord {
     type: string;
     currency: string;
     amount: number;
-    price: number;
-    amountReceivedPaid: number;
+    quoteCurrency: string;
+    quotePrice: number;
+    receivedPaidCurrency: string
+    receivedPaidAmount: number;
     feeCurrency: string;
     feeAmount: number;
     status: string;
