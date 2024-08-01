@@ -1,6 +1,6 @@
 {
   "name": "export-to-ghostfolio",
-  "version": "0.16.2",
+  "version": "0.16.3",
   "type": "module",
   "description": "Convert multiple broker exports to Ghostfolio import",
   "scripts": {
