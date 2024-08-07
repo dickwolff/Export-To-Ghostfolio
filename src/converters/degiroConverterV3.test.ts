@@ -27,7 +27,7 @@ describe("degiroConverterV3", () => {
 
     // Arange
     const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
-    const inputFile = "samples/degiro-export.csv";
+    const inputFile = "samples/degiro-v3-export.csv";
 
     // Act
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
