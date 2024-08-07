@@ -44,6 +44,13 @@ chokidar
         }
 
         let converter = headers.get(converterKey);
+
+        // Temporary flag to force DEGIRO V3.
+        if (converter === "degiro" && `${process.env.DEGIRO_FORCE_V3}` === "true") {
+            console.log("[i] Using DEGIRO V3 Beta converter because DEGIRO_FORCE_V3 was set to true..");
+            converter = "degiro-v3";
+        }
+
         console.log(`[i] Determined the file type to be of kind '${converter}'.`);
 
         // Determine convertor type and run conversion.

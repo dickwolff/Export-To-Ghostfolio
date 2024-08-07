@@ -8,6 +8,7 @@ import { BitvavoConverter } from "./converters/bitvavoConverter";
 import { BuxConverter } from "./converters/buxConverter";
 import { DeGiroConverter } from "./converters/degiroConverter";
 import { DeGiroConverterV2 } from "./converters/degiroConverterV2";
+import { DeGiroConverterV3 } from "./converters/degiroConverterV3";
 import { EtoroConverter } from "./converters/etoroConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
 import { FreetradeConverter } from "./converters/freetradeConverter";
@@ -89,6 +90,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
         case "degiro":
             console.log("[i] Processing file using DeGiro converter");
             converter = new DeGiroConverterV2(securityService);
+            break;
+        case "degiro-v3":
+            console.log("[i] Processing file using DeGiro converter V3 (beta)");
+            converter = new DeGiroConverterV3(securityService);
             break;
         case "etoro":
             console.log("[i] Processing file using Etoro converter");
