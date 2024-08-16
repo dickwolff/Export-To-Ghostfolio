@@ -75,8 +75,9 @@ export class DeGiroConverterV3 extends AbstractConverter {
         }
 
         // Look if the current record was already processed previously by checking the orderId.
+        // Dividend records don't have an order ID, so check for a marking there.
         // If a match was found, skip the record and move next.
-        if (result.activities.findIndex(a => a.comment !== "" && a.comment === record.orderId) > -1) {
+        if (result.activities.findIndex(a => a.comment !== "" && a.comment === record.orderId || a.comment.startsWith("Dividend") && a.comment.endsWith(`${record.date}T${record.time}`)) > -1) {
           bar1.increment();
           continue;
         }
@@ -134,14 +135,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
         // If it's a standalone record, add it immediately.
         if (!matchByOrderId) {
-console.log("matchByOrderId", record)
-          // Check wether this is a standalone dividend record or not,
-          if (!this.isDividendRecord(record)) {
-            result.activities.push(this.mapRecordToActivity(record, security));
-          }
-          else {
-            result.activities.push(this.mapDividendRecord(record, null, security));
-          }
+          result.activities.push(this.mapRecordToActivity(record, security));
         }
         else {
 
@@ -325,7 +319,7 @@ console.log("matchByOrderId", record)
     // Create the record.
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-      comment: currentRecord.orderId,
+      comment: `Dividend ${currentRecord.date}T${currentRecord.time}`,
       fee: fees,
       quantity: 1,
       type: GhostfolioOrderType.dividend,
