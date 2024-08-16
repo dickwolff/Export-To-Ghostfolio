@@ -15,7 +15,7 @@ import { FreetradeConverter } from "./converters/freetradeConverter";
 import { GhostfolioExport } from "./models/ghostfolioExport";
 import { IbkrConverter } from "./converters/ibkrConverter";
 import { InvestimentalConverter } from "./converters/investimentalConverter";
-import { ParqetConverter } from "./converters/parqet-converter";
+import { ParqetConverter } from "./converters/parqetConverter";
 import { RabobankConverter } from "./converters/rabobankConverter";
 import { SchwabConverter } from "./converters/schwabConverter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";

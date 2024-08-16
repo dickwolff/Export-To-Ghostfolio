@@ -90,7 +90,7 @@ export class ParqetConverter extends AbstractConverter {
 
                 // Log whenever there was no match found.
                 if (!security) {
-                    this.progress.log(`[i] No result found for ${record.type} action for ${record.identifier || record.holdingName}! Please add this manually..\n`);
+                    this.progress.log(`[i] No result found for ${record.type.toLocaleLowerCase()} action for ${record.identifier || record.holdingName}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
                 }
