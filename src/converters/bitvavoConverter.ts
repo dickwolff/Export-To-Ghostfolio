@@ -122,7 +122,7 @@ export class BitvavoConverter extends AbstractConverter {
       */
     protected processHeaders(_: string): string[] {
 
-        // Generic header mapping from the DEGIRO CSV export.
+        // Generic header mapping from the Bitvavo CSV export.
         const csvHeaders = [
             "timezone",
             "date",

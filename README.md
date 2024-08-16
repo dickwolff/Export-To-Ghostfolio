@@ -15,6 +15,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [Freetrade](https://freetrade.io)
 - [Interactive Brokers (IBKR)](https://www.interactivebrokers.com)
 - [Investimental](https://www.investimental.ro/)
+- [Parqet](https://www.parqet.com/)
 - [Rabobank](https://rabobank.nl)
 - [Schwab](https://www.schwab.com)
 - [Swissquote](https://en.swissquote.com/)
@@ -78,6 +79,10 @@ For dividends, select "Cash Transactions". Then select the following properties:
 Login to your Investimental account and click on the "Orders Daily Log". Select account and desired time period then click refresh button. Transactions should appear and then click on the download button.
 
 ![Export instructions for Investimental](./assets/export-investimental.png)
+
+### Parqet
+
+todo
 
 ### Rabobank
 
