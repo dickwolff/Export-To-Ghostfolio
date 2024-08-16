@@ -155,7 +155,10 @@ export class ParqetConverter extends AbstractConverter {
 
     /**
      * @inheritdoc
+     * 
+     * Ignore this method, as there are no ignored records for Parqet.
      */
+    /* istanbul ignore next */
     public isIgnoredRecord(record: ParqetRecord): boolean {
         let ignoredRecordTypes = [];
 
