@@ -148,7 +148,7 @@ export class Trading212Converter extends AbstractConverter {
                     quantity: record.noOfShares,
                     type: GhostfolioOrderType[record.action],
                     unitPrice: record.priceShare,
-                    currency: record.currencyPriceShare,
+                    currency: security.currency ?? record.currencyPriceShare,
                     dataSource: "YAHOO",
                     date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol

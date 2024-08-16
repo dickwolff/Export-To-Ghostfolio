@@ -155,7 +155,7 @@ export class EtoroConverter extends AbstractConverter {
                     quantity: record.units,
                     type: GhostfolioOrderType[record.type],
                     unitPrice: unitPrice,
-                    currency: currency,
+                    currency: security.currency ?? currency,
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol

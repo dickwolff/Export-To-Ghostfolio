@@ -143,7 +143,7 @@ export class XtbConverter extends AbstractConverter {
                     quantity: quantity,
                     type: GhostfolioOrderType[record.type],
                     unitPrice: unitPrice,
-                    currency: security.currency,
+                    currency: security.currency ?? security.currency,
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol,

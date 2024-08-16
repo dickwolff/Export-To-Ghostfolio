@@ -152,7 +152,7 @@ export class SwissquoteConverter extends AbstractConverter {
                     quantity: record.quantity,
                     type: GhostfolioOrderType[record.transaction],
                     unitPrice: record.unitPrice,
-                    currency: record.netAmountCurrency ?? record.currency,
+                    currency: security.currency ?? record.netAmountCurrency ?? record.currency,
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol

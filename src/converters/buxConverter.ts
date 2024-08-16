@@ -157,7 +157,7 @@ export class BuxConverter extends AbstractConverter {
                     quantity: quantity,
                     type: GhostfolioOrderType[record.transactionType],
                     unitPrice: unitPrice,
-                    currency: record.transactionCurrency,
+                    currency: security.currency ?? record.transactionCurrency,
                     dataSource: "YAHOO",
                     date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol

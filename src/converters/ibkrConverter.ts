@@ -181,7 +181,7 @@ export class IbkrConverter extends AbstractConverter {
                     quantity: quantity,
                     type: type,
                     unitPrice: price,
-                    currency: currency,
+                    currency: security.currency ?? currency,
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol

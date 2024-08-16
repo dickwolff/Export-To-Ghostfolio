@@ -150,7 +150,7 @@ export class FinpensionConverter extends AbstractConverter {
                     quantity: numberOfShares,
                     type: GhostfolioOrderType[record.category],
                     unitPrice: assetPriceInChf,
-                    currency: record.assetCurrency,
+                    currency: security.currency ?? record.assetCurrency,
                     dataSource: "YAHOO",
                     date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
