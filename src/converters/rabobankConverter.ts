@@ -169,7 +169,7 @@ export class RabobankConverter extends AbstractConverter {
                     quantity: quantity,
                     type: GhostfolioOrderType[record.type],
                     unitPrice: price,
-                    currency: record.currency,
+                    currency: security.currency ?? record.currency,
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
