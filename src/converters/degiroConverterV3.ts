@@ -216,13 +216,16 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "débit",
       "depósito",
       "ingreso",
-      "retirada"];
+      "retirada",
+      "fx debit",
+      "fx credit"
+    ];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
 
   private findMatchByOrderId(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
-    return records.find(r => r.orderId === currentRecord.orderId);
+    return records.find(r => r.orderId && currentRecord.orderId && r.orderId === currentRecord.orderId);
   }
 
   private mapRecordToActivity(record: DeGiroRecord, security?: YahooFinanceRecord, isTransactionFeeRecord: boolean = false): GhostfolioActivity {
@@ -374,7 +377,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
   private isPlatformFees(record: DeGiroRecord): boolean {
 
-    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion", "juros"];
+    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion", "juros", "connection fee"];
 
     return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
