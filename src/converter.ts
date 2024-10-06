@@ -15,6 +15,7 @@ import { FreetradeConverter } from "./converters/freetradeConverter";
 import { GhostfolioExport } from "./models/ghostfolioExport";
 import { IbkrConverter } from "./converters/ibkrConverter";
 import { InvestimentalConverter } from "./converters/investimentalConverter";
+import { ParqetConverter } from "./converters/parqetConverter";
 import { RabobankConverter } from "./converters/rabobankConverter";
 import { SchwabConverter } from "./converters/schwabConverter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
@@ -89,7 +90,7 @@ async function createConverter(converterType: string): Promise<AbstractConverter
             break;
         case "degiro":
             console.log("[i] Processing file using DeGiro converter");
-            console.log("[i] There is a new version of the DEGIRO converter available in public beta and we're looking for feedback!");            
+            console.log("[i] There is a new version of the DEGIRO converter available in public beta and we're looking for feedback!");
             console.log("[i] You can enable the new converter by setting the environment variable DEGIRO_FORCE_V3=true");
             converter = new DeGiroConverterV2(securityService);
             break;
@@ -120,6 +121,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
         case "investimental":
             console.log("[i] Processing file using Investimental converter");
             converter = new InvestimentalConverter(securityService);
+            break;
+        case "parqet":
+            console.log("[i] Processing file using Parqet converter");
+            converter = new ParqetConverter(securityService);
             break;
         case "rabobank":
             console.log("[i] Processing file using Rabobank converter");

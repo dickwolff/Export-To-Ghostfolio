@@ -189,7 +189,7 @@ export class RabobankConverter extends AbstractConverter {
      */
     protected processHeaders(_: string): string[] {
 
-        // Generic header mapping from the DEGIRO CSV export.
+        // Generic header mapping from the Rabobank CSV export.
         const csvHeaders = [
             "account",
             "name",

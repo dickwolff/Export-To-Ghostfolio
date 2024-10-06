@@ -15,6 +15,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [Freetrade](https://freetrade.io)
 - [Interactive Brokers (IBKR)](https://www.interactivebrokers.com)
 - [Investimental](https://www.investimental.ro/)
+- [Parqet](https://www.parqet.com/)
 - [Rabobank](https://rabobank.nl)
 - [Schwab](https://www.schwab.com)
 - [Swissquote](https://en.swissquote.com/)
@@ -37,7 +38,7 @@ Login to your Bitvavo account and click on your name at the top-right. Next, cli
 ![Export instructions for Bitvavo](./assets/export-bitvavo.jpg)
 
 ## BUX
-Open the app and go to "Account Value", and then "View History". Click the download icon in the top right corner to download your transaction history. The export will be sent to your email address. 
+Open the app and go to "Account Value", and then "View History". Click the download icon in the top right corner to download your transaction history. The export will be sent to your email address.
 
 _Due to limitations by BUX, you can request up to 3 CSV exports per day!_.
 
@@ -78,6 +79,12 @@ For dividends, select "Cash Transactions". Then select the following properties:
 Login to your Investimental account and click on the "Orders Daily Log". Select account and desired time period then click refresh button. Transactions should appear and then click on the download button.
 
 ![Export instructions for Investimental](./assets/export-investimental.png)
+
+### Parqet
+
+Login to Parquet and navigate to the "Activities" section (in German, "Aktivitäten"). In the top-right corner, next to the green "Neue Aktivität" button, you'll see an option to "Download as CSV" (In German, "Export als CSV"). Click this button to download a CSV file containing all your activities.
+
+![Export instructions for Parqet](./assets/export-parqet.png)
 
 ### Rabobank
 
