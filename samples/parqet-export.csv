@@ -1,0 +1,28 @@
+"datetime";"date";"time";"price";"shares";"amount";"tax";"fee";"realizedgains";"type";"broker";"assettype";"identifier";"wkn";"originalcurrency";"currency";"fxrate";"holding";"holdingname";"holdingnickname";"exchange";"avgholdingperiod"; 
+"2024-08-02T07:00:00.001Z";"02.08.2024";"09:00:00";28,03;17,83803;500;0;0;;"Buy";"trade_republic";"Security";"LU2089238203";"A2PWMK";;"EUR";;;"Amundi Index Solutions Prime Global UCITS ETF - DR USD ACC";;""; 
+"2024-08-02T07:00:00.000Z";"02.08.2024";"09:00:00";75,35;0,078433;5,91;0;0;;"Buy";"trade_republic";"Security";"IE00BM67HT60";"A113FM";;"EUR";;;"Xtrackers MSCI World Information Technology UCITS ETF - 1C USD ACC";"";""; 
+"2024-08-02T07:00:00.000Z";"02.08.2024";"09:00:00";28,03;0,250089;7,01;0;0;;"Buy";"trade_republic";"Security";"LU2089238203";"A2PWMK";;"EUR";;;"Amundi Index Solutions Prime Global UCITS ETF - DR USD ACC";;""; 
+"2024-07-23T07:00:00.000Z";"23.07.2024";"09:00:00";83,33;0,00036;0,03;0;0;;"Buy";"trade_republic";"Security";"IE00BM67HT60";"A113FM";;"EUR";;;"Xtrackers MSCI World Information Technology UCITS ETF - 1C USD ACC";"";""; 
+"2024-07-16T07:00:00.001Z";"16.07.2024";"09:00:00";85,99;1,162925;100;0;0;;"Buy";"trade_republic";"Security";"IE00BM67HT60";"A113FM";;"EUR";;;"Xtrackers MSCI World Information Technology UCITS ETF - 1C USD ACC";"";""; 
+"2024-07-16T07:00:00.000Z";"16.07.2024";"09:00:00";29,86;16,747613;500;0;0;;"Buy";"trade_republic";"Security";"LU2089238203";"A2PWMK";;"EUR";;;"Amundi Index Solutions Prime Global UCITS ETF - DR USD ACC";;""; 
+"2024-07-16T07:00:00.000Z";"16.07.2024";"09:00:00";85,99;0,094894;8,16;0;0;;"Buy";"trade_republic";"Security";"IE00BM67HT60";"A113FM";;"EUR";;;"Xtrackers MSCI World Information Technology UCITS ETF - 1C USD ACC";"";""; 
+"2024-07-15T07:00:00.000Z";"15.07.2024";"09:00:00";0,24;40;9,66;2,48;0;;"Dividend";"trade_republic";"Security";"US7561091049";"899744";;"EUR";;;"Realty Income";;; 
+"2024-07-09T07:00:00.000Z";"09.07.2024";"09:00:00";86,92;0,10941;9,51;0;0;;"Buy";"trade_republic";"Security";"IE00BM67HT60";"A113FM";;"EUR";;;"Xtrackers MSCI World Information Technology UCITS ETF - 1C USD ACC";"";""; 
+"2024-07-02T07:00:00.001Z";"02.07.2024";"09:00:00";29,33;17,050298;500;0;0;;"Buy";"trade_republic";"Security";"LU2089238203";"A2PWMK";;"EUR";;;"Amundi Index Solutions Prime Global UCITS ETF - DR USD ACC";;""; 
+"2024-07-02T07:00:00.000Z";"02.07.2024";"09:00:00";84,5;0,079526;6,72;0;0;;"Buy";"trade_republic";"Security";"IE00BM67HT60";"A113FM";;"EUR";;;"Xtrackers MSCI World Information Technology UCITS ETF - 1C USD ACC";"";""; 
+"2024-07-02T07:00:00.000Z";"02.07.2024";"09:00:00";29,33;0,511508;15;0;0;;"Buy";"trade_republic";"Security";"LU2089238203";"A2PWMK";;"EUR";;;"Amundi Index Solutions Prime Global UCITS ETF - DR USD ACC";;""; 
+"2024-06-24T07:00:00.000Z";"24.06.2024";"09:00:00";82,66;0,103435;8,55;0;0;;"Buy";"trade_republic";"Security";"IE00BM67HT60";"A113FM";;"EUR";;;"Xtrackers MSCI World Information Technology UCITS ETF - 1C USD ACC";"";""; 
+"2024-06-17T07:00:00.001Z";"17.06.2024";"09:00:00";84,39;1,184974;100;0;0;;"Buy";"trade_republic";"Security";"IE00BM67HT60";"A113FM";;"EUR";;;"Xtrackers MSCI World Information Technology UCITS ETF - 1C USD ACC";"";""; 
+"2024-06-17T07:00:00.000Z";"17.06.2024";"09:00:00";0,18;6;1,11;0,27;0;;"Dividend";"trade_republic";"Security";"US02079K3059";"A14Y6F";;"EUR";;;"Alphabet 'A'";;; 
+"2024-06-17T07:00:00.000Z";"17.06.2024";"09:00:00";29,09;17,190991;500;0;0;;"Buy";"trade_republic";"Security";"LU2089238203";"A2PWMK";;"EUR";;;"Amundi Index Solutions Prime Global UCITS ETF - DR USD ACC";;""; 
+"2024-06-17T07:00:00.000Z";"17.06.2024";"09:00:00";84,39;0,298613;25,2;0;0;;"Buy";"trade_republic";"Security";"IE00BM67HT60";"A113FM";;"EUR";;;"Xtrackers MSCI World Information Technology UCITS ETF - 1C USD ACC";"";""; 
+"2024-06-14T07:00:00.000Z";"14.06.2024";"09:00:00";0,24;40;9,76;2,5;0;;"Dividend";"trade_republic";"Security";"US7561091049";"899744";;"EUR";;;"Realty Income";;; 
+"2024-06-04T12:04:00.000Z";"04.06.2024";"14:04:00";263;6;1578;14,83;1;600,12;"Sell";;"Security";"DE0008404005";"840400";;"EUR";;;"Allianz";;;51941820000 
+"2024-06-03T12:03:00.000Z";"03.06.2024";"14:03:00";28,32;17,655367;500;0;0;;"Buy";;"Security";"LU2089238203";"A2PWMK";;"EUR";;;"Amundi Index Solutions Prime Global UCITS ETF - DR USD ACC";;""; 
+"2024-06-03T12:01:00.000Z";"03.06.2024";"14:01:00";28,32;0,47846;13,55;0;0;;"Buy";;"Security";"LU2089238203";"A2PWMK";;"EUR";;;"Amundi Index Solutions Prime Global UCITS ETF - DR USD ACC";;""; 
+"2024-05-21T04:38:00.000Z";"21.05.2024";"06:38:00";2,2;12;26,4;0;0;;"Dividend";;"Security";"DE0007164600";"716460";;"EUR";;;"SAP";;; 
+"2024-05-15T22:41:00.000Z";"16.05.2024";"00:41:00";28,56;17,510068;500;0;0;;"Buy";;"Security";"LU2089238203";"A2PWMK";;"EUR";;;"Amundi Index Solutions Prime Global UCITS ETF - DR USD ACC";;""; 
+"2024-05-15T22:39:00.000Z";"16.05.2024";"00:39:00";22,88;14;320,32;-12,64;1;-636,72;"Sell";;"Security";"IL0011582033";"A2PLX6";;"EUR";;;"Fiverr International";;;72534780000 
+"2024-05-15T22:37:00.000Z";"16.05.2024";"00:37:00";0,23;7;1,61;0,42;0;;"Dividend";;"Security";"US0378331005";"865985";;"EUR";;;"Apple";;"gettex"; 
+"2024-05-14T22:35:00.000Z";"15.05.2024";"00:35:00";0,24;40;9,6;2,51;0;;"Dividend";;"Security";"US7561091049";"899744";;"EUR";;;"Realty Income";;; 
+"2024-05-10T22:34:00.000Z";"11.05.2024";"00:34:00";13,8;6;82,8;11,46;0;;"Dividend";;"Security";"DE0008404005";"840400";;"EUR";;;"Allianz";;;
