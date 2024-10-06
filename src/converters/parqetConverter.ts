@@ -160,7 +160,7 @@ export class ParqetConverter extends AbstractConverter {
      */
     /* istanbul ignore next */
     public isIgnoredRecord(record: ParqetRecord): boolean {
-        let ignoredRecordTypes = [];
+        let ignoredRecordTypes = ["transferin", "transferout"];
 
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
     }
