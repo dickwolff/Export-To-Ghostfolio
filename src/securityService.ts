@@ -32,7 +32,8 @@ export class SecurityService {
             },
             queue: {
                 timeout: 60000
-            }
+            },
+            cookieJar: null
         });
 
         // Retrieve prefered exchange postfix if set in .env

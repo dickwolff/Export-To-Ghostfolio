@@ -17,6 +17,7 @@ import { IbkrConverter } from "./converters/ibkrConverter";
 import { InvestimentalConverter } from "./converters/investimentalConverter";
 import { ParqetConverter } from "./converters/parqetConverter";
 import { RabobankConverter } from "./converters/rabobankConverter";
+import { RevolutConverter } from "./converters/revolutConverter";
 import { SchwabConverter } from "./converters/schwabConverter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
@@ -129,6 +130,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
         case "rabobank":
             console.log("[i] Processing file using Rabobank converter");
             converter = new RabobankConverter(securityService);
+            break;
+        case "revolut":
+            console.log("[i] Processing file using Revolut converter");
+            converter = new RevolutConverter(securityService);
             break;
         case "schwab":
             console.log("[i] Processing file using Schwab converter");
