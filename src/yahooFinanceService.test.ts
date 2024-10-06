@@ -34,7 +34,7 @@ describe("yahooFinanceService", () => {
         const yahooFinance2Spy = jest.spyOn(yahooFinance, "setGlobalConfig").mockImplementation();
 
         // Act
-        sut.setGlobalConfig({});
+        sut.setGlobalConfig({ cookieJar: null });
 
         // Assert
         expect(yahooFinance2Spy).toHaveBeenCalledTimes(1);
