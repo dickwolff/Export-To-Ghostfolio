@@ -1,6 +1,6 @@
 {
   "name": "export-to-ghostfolio",
-  "version": "0.18.1",
+  "version": "0.18.2",
   "type": "module",
   "description": "Convert multiple broker exports to Ghostfolio import",
   "scripts": {
@@ -32,6 +32,6 @@
     "csv-parse": "^5.5.6",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.5",
-    "yahoo-finance2": "^2.13.2"
+    "yahoo-finance2": "^2.12.4"
   }
 }
