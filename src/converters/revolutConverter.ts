@@ -49,7 +49,7 @@ export class RevolutConverter extends AbstractConverter {
                 if (context.column === "quantity" ||
                     context.column === "pricePerShare" ||
                     context.column === "totalAmount") {
-                    return parseFloat(columnValue);
+                    return parseFloat(columnValue.replace(/[$]/g, '').trim());
                 }
 
                 return columnValue;
@@ -66,7 +66,7 @@ export class RevolutConverter extends AbstractConverter {
 
                 return errorCallback(new Error(errorMsg))
             }
-            
+
             console.log("[i] Read CSV file. Start processing..");
             const result: GhostfolioExport = {
                 meta: {
