@@ -162,7 +162,7 @@ export class XtbConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: XtbRecord): boolean {
-        let ignoredRecordTypes = ["deposit"];
+        let ignoredRecordTypes = ["deposit", "withdrawal"];
 console.log(record)
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
     }
