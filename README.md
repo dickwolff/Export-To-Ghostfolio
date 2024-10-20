@@ -93,11 +93,11 @@ Login to Rabobank and navigate to your investments. Navigate to "Transactions & 
 
 ### Revolut
 
-todo
+Open the Revolut app and open the "Invest"-tab. Press the "More"-button, and then choose "Documents". Select your investment account and select the first option, "Account statement". Choose the "Excel" option and select the date range. Then download the file and save it on your device. Convert the file from `.xlsx` to `.csv`. **Set the separation character to `,` (comma)!**
 
 ### Schwab
 
-Login to your Schwab account. Go to “Accounts” then “History”. Select the account you want to download details from. Select the “Date Range” and select “Export” (csv). Save the file.
+Login to your Schwab account. Go to "Accounts" then "History". Select the account you want to download details from. Select the "Date Range" and select "Export" (csv). Save the file.
 
 ![Export instructions for Schwab](./assets/export-schwab.jpg)
 
