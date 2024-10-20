@@ -17,6 +17,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [Investimental](https://www.investimental.ro/)
 - [Parqet](https://www.parqet.com/)
 - [Rabobank](https://rabobank.nl)
+- [Revolut](https://revolut.com)
 - [Schwab](https://www.schwab.com)
 - [Swissquote](https://en.swissquote.com/)
 - [Trading 212](https://trading212.com)
@@ -90,9 +91,13 @@ Login to Parquet and navigate to the "Activities" section (in German, "Aktivitä
 
 Login to Rabobank and navigate to your investments. Navigate to "Transactions & Contract Notes" (Mutaties & Nota's). Select the range you wish to export at the top. Then scroll to the bottom of the page and click "Export as .csv"
 
+### Revolut
+
+Open the Revolut app and open the "Invest"-tab. Press the "More"-button, and then choose "Documents". Select your investment account and select the first option, "Account statement". Choose the "Excel" option and select the date range. Then download the file and save it on your device. Convert the file from `.xlsx` to `.csv`. **Set the separation character to `,` (comma)!**
+
 ### Schwab
 
-Login to your Schwab account. Go to “Accounts” then “History”. Select the account you want to download details from. Select the “Date Range” and select “Export” (csv). Save the file.
+Login to your Schwab account. Go to "Accounts" then "History". Select the account you want to download details from. Select the "Date Range" and select "Export" (csv). Save the file.
 
 ![Export instructions for Schwab](./assets/export-schwab.jpg)
 
@@ -137,19 +142,19 @@ docker run --rm -v {local_in-folder}:/var/tmp/e2g-input -v {local_out_folder}:/v
 
 The following parameters can be given to the Docker run command.
 
-| Command | Optional | Description |
-| ------- | -------- | ----------- |
-| `-v {local_in-folder}:/var/tmp/e2g-input` | N | The input folder where you put the files to be processed |
-| `-v {local_out_folder}:/var/tmp/e2g-output` | N | The output folder where the Ghostfolio import JSON will be placed. Also the input file will be moved here when an error ocurred while processing the file. |
-| `-v {local_cache_folder}:/var/tmp/e2g-cache` | Y | The folder where Yahoo Finance symbols will be cached  |
-| `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx` | N | Your Ghostolio account ID [^1] |
-| `--env USE_POLLING=true` | Y | When set to true, the container will continously look for new files to process and the container will not stop. |
-| `--env DEBUG_LOGGING=true` | Y | When set to true, the container will show logs in more detail, useful for error tracing. |
-| `--env PURGE_CACHE=true` | Y | When set to true, the file cache will be purged on start. |
-| `--env GHOSTFOLIO_VALIDATE=true` | Y | When set to true, the tool with automatically validate the generated file against Ghostfolio. |
-| `--env GHOSTFOLIO_IMPORT=true` | Y | When set to true, the tool will try to automatically import the generated file into Ghostfolio. |
-| `--env GHOSTFOLIO_URL=http://xxxxxxx` | Y | The endpoint of your **local** Ghostfolio instance. E.g. `http://192.168.1.15:3333`. **Use ONLY with a local Ghostfolio instance!** |
-| `--env GHOSTFOLIO_SECRET=xxxxxxx` | Y | The credentials of your Ghostfolio user. Used to authenticate with the `import` API endpoint. **Use ONLY with a local Ghostfolio instance!** |
+| Command                                      | Optional | Description                                                                                                                                                |
+| -------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-v {local_in-folder}:/var/tmp/e2g-input`    | N        | The input folder where you put the files to be processed                                                                                                   |
+| `-v {local_out_folder}:/var/tmp/e2g-output`  | N        | The output folder where the Ghostfolio import JSON will be placed. Also the input file will be moved here when an error ocurred while processing the file. |
+| `-v {local_cache_folder}:/var/tmp/e2g-cache` | Y        | The folder where Yahoo Finance symbols will be cached                                                                                                      |
+| `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx`        | N        | Your Ghostolio account ID [^1]                                                                                                                             |
+| `--env USE_POLLING=true`                     | Y        | When set to true, the container will continously look for new files to process and the container will not stop.                                            |
+| `--env DEBUG_LOGGING=true`                   | Y        | When set to true, the container will show logs in more detail, useful for error tracing.                                                                   |
+| `--env PURGE_CACHE=true`                     | Y        | When set to true, the file cache will be purged on start.                                                                                                  |
+| `--env GHOSTFOLIO_VALIDATE=true`             | Y        | When set to true, the tool with automatically validate the generated file against Ghostfolio.                                                              |
+| `--env GHOSTFOLIO_IMPORT=true`               | Y        | When set to true, the tool will try to automatically import the generated file into Ghostfolio.                                                            |
+| `--env GHOSTFOLIO_URL=http://xxxxxxx`        | Y        | The endpoint of your **local** Ghostfolio instance. E.g. `http://192.168.1.15:3333`. **Use ONLY with a local Ghostfolio instance!**                        |
+| `--env GHOSTFOLIO_SECRET=xxxxxxx`            | Y        | The credentials of your Ghostfolio user. Used to authenticate with the `import` API endpoint. **Use ONLY with a local Ghostfolio instance!**               |
 
 [^1]: You can retrieve your Ghostfolio account ID by going to Accounts > Edit for your account and copying the Account ID field 
 
@@ -201,21 +206,23 @@ The repository contains a sample `.env` file. Rename this from `.env.sample`.
 
 You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the symbols that are supported with YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN).
 
-| Exporter      | Run command                         |
-| ------------- | ----------------------------------- |
-| Bitvavo       | `run start bitvavo` (or `bv`)       |
-| BUX           | `run start bux`                     |
-| DEGIRO        | `run start degiro`                  |
-| eToro         | `run start etoro`                   |
-| Finpension    | `run start finpension` (or `fp`)    |
-| Freetrade     | `run start freetrade`  (or `ft`)    |
-| IBKR          | `run start ibkr`                    |
-| Investimental | `run start investimental`           |
-| Rabobank      | `run start rabobank`                |
-| Schwab        | `run start schwab`                  |
-| Swissquote    | `run start swissquote` (or `sq`)    |
-| Trading 212   | `run start trading212` (or `t212`)  |
-| XTB           | `run start xtb`                     |
+| Exporter      | Run command                        |
+| ------------- | ---------------------------------- |
+| Bitvavo       | `run start bitvavo` (or `bv`)      |
+| BUX           | `run start bux`                    |
+| DEGIRO        | `run start degiro`                 |
+| eToro         | `run start etoro`                  |
+| Finpension    | `run start finpension` (or `fp`)   |
+| Freetrade     | `run start freetrade`  (or `ft`)   |
+| IBKR          | `run start ibkr`                   |
+| Investimental | `run start investimental`          |
+| Parqet        | `run start pareqt`                 |
+| Rabobank      | `run start rabobank`               |
+| Revolut       | `run start revolut`                |
+| Schwab        | `run start schwab`                 |
+| Swissquote    | `run start swissquote` (or `sq`)   |
+| Trading 212   | `run start trading212` (or `t212`) |
+| XTB           | `run start xtb`                    |
 
 ### Caching
 
@@ -234,12 +241,12 @@ The export file can now be imported in Ghostfolio by going to Portfolio > Activi
 ### Automatically (experimental)
 
 There is an experimental feature (since 0.12.0) with which you can automatically validate and import the generated file into Ghostfolio! To use this, set the corresponding environment variables:
-| Variable | Description |
-| --- | --- |
-| `--env GHOSTFOLIO_VALIDATE=true` | When set to true, the tool with automatically validate the generated file against Ghostfolio. |
-| `--env GHOSTFOLIO_IMPORT=true` | When set to true, the tool will try to automatically import the generated file into Ghostfolio. |
-| `--env GHOSTFOLIO_URL=http://xxxxxxx` | The endpoint of your **local** Ghostfolio instance. E.g. `http://192.168.1.15:3333`. **Use ONLY with a local Ghostfolio instance!** |
-| `--env GHOSTFOLIO_SECRET=xxxxxxx` | The credentials of your Ghostfolio user. Used to authenticate with the `import` API endpoint. **Use ONLY with a local Ghostfolio instance!** |
+| Variable                              | Description                                                                                                                                  |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--env GHOSTFOLIO_VALIDATE=true`      | When set to true, the tool with automatically validate the generated file against Ghostfolio.                                                |
+| `--env GHOSTFOLIO_IMPORT=true`        | When set to true, the tool will try to automatically import the generated file into Ghostfolio.                                              |
+| `--env GHOSTFOLIO_URL=http://xxxxxxx` | The endpoint of your **local** Ghostfolio instance. E.g. `http://192.168.1.15:3333`. **Use ONLY with a local Ghostfolio instance!**          |
+| `--env GHOSTFOLIO_SECRET=xxxxxxx`     | The credentials of your Ghostfolio user. Used to authenticate with the `import` API endpoint. **Use ONLY with a local Ghostfolio instance!** |
 
 ---
 
