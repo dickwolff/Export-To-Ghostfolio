@@ -216,7 +216,9 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "débit",
       "depósito",
       "ingreso",
-      "retirada"];
+      "retirada",
+      "levantamento de divisa",
+      "dito de divisa"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
@@ -345,15 +347,6 @@ export class DeGiroConverterV3 extends AbstractConverter {
     const buySellRecordType = ["\@", "zu je"]//, "acquisto"];
 
     return buySellRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
-  }
-
-  private isDividendRecord(record: DeGiroRecord): boolean {
-
-    if (!record) {
-      return false;
-    }
-
-    return record.description.toLocaleLowerCase().indexOf("dividend") > -1 || record.description.toLocaleLowerCase().indexOf("capital return") > -1;
   }
 
   private isTransactionFeeRecord(record: DeGiroRecord, isBuyOrSellTransactionFeeRecord: boolean): boolean {

@@ -218,7 +218,9 @@ export class DeGiroConverterV2 extends AbstractConverter {
       "débit",
       "depósito",
       "ingreso",
-      "retirada"];
+      "retirada",
+      "levantamento de divisa",
+      "dito de divisa"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
