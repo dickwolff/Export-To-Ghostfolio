@@ -38,7 +38,8 @@ export class SchwabConverter extends AbstractConverter {
                     // These transactions are exported as separate transactions.
                     // "Reinvest shares" actions should be interpreted as "buy".
                     if (action.indexOf("buy") > -1 ||
-                        action.indexOf("reinvest shares") > -1) {
+                        action.indexOf("reinvest shares") > -1 ||
+                        action.indexOf("stock split") > -1) {
                         return "buy";
                     }
                     else if (action.indexOf("sell") > -1) {
@@ -52,7 +53,9 @@ export class SchwabConverter extends AbstractConverter {
                         action.endsWith("reinvest")) {
                         return "dividend";
                     }
-                    else if (action.indexOf("advisor fee") > -1) {
+                    else if (action.indexOf("advisor fee") > -1 ||
+                        action.indexOf("mgmt fee") > -1 ||
+                        action.indexOf("foreign tax") > -1) {
                         return "fee";
                     }
                     else if (action.indexOf("interest") > -1) {
