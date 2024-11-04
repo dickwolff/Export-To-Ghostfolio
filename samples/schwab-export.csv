@@ -102,4 +102,8 @@ Date,Action,Symbol,Description,Quantity,Price,Fees & Comm,Amount
 "04/08/2024","MoneyLink Transfer","","Tfr BANK OF AMERICA, N, XXXX YYYYYY ZZZ","","","","-$30.00"
 "11/07/2023","Internal Transfer","","TDA TO DW&O TRANSFER","","","","$7.06"
 "11/07/2023","Non-Qualified Div","","TDA TRAN - NON-TAXABLE DIVIDENDS (CMF)","","","","$72.06"
+"09/06/2024","ADR Mgmt Fee","IBN","ICICI BANK LTD FSPONSORED ADR 1 ADR REPS 2 ORD SHS","","","","-$0.50"
+"09/06/2024","Foreign Tax Paid","IBN","ICICI BANK LTD FSPONSORED ADR 1 ADR REPS 2 ORD SHS","","","","-$1.30"
+"06/13/2024","Buy","AVGO","BROADCOM INC","1","$1680.00","","-$1680.00"
+"07/15/2024 as of 07/12/2024","Stock Split","AVGO","BROADCOM INC","9","$170.067","",""
 Transactions Total,,,,,,,"-$26,582.91"
