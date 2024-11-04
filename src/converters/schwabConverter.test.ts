@@ -34,7 +34,7 @@ describe("schwabConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(99);
+      expect(actualExport.activities.length).toBe(103);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
