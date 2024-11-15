@@ -3,6 +3,6 @@ Date,Way,Base amount,Base currency (name),Base type,Quote amount,Quote currency,
 2023-06-01 19:31:54-04:00,SELL,100,SOL (Solana),CRYPTO,0.88,ETH,Binance,,,,,,Example of a crypto sell. Name specified in brackets so we know SOL is Solana and not Sola
 2023-05-26 02:08:15-04:00,WITHDRAW,0.1,DOT (Polkadot),CRYPTO,,,,MY_WALLET,OTHER,0.001,DOT (Polkadot),,"Example of a withdrawal. Asset name can be specified in brackets for base, quote or fee currency"
 2023-05-09 14:51:31-04:00,DEPOSIT,0.001,BTC,CRYPTO,,,,DIVIDENDS,MY_WALLET,,,,Example of a deposit from staking / dividends for crypto
-2023-05-08 15:00:00-04:00,BUY,5,TSLA,STOCK,1250,USD,Nasdaq,,,,,eToro,Example of a stock purchase
+2023-05-08 15:00:00-04:00,BUY,5,AAPL,STOCK,1250,USD,Nasdaq,,,,,eToro,Example of a stock purchase
 2023-05-08 15:00:00-04:00,DEPOSIT,5000,USD,FIAT,,,,,,,,eToro,Example of a fiat deposit
 2023-05-08 15:00:00-04:00,DIVIDEND,,AAPL,STOCK,2.5,USD,Nasdaq,,,0.5,USD,eToro,Example of a dividend with a fee for AAPL
