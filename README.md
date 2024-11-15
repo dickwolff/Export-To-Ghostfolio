@@ -10,6 +10,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [Bitvavo](https://bitvavo.com)
 - [BUX](https://bux.com)
 - [DEGIRO](https://degiro.com)
+- [Delta](https://delta.app)
 - [eToro](https://www.etoro.com/)
 - [Finpension](https://finpension.ch)
 - [Freetrade](https://freetrade.io)
@@ -48,6 +49,10 @@ _Due to limitations by BUX, you can request up to 3 CSV exports per day!_.
 Login to your DEGIRO account and create an export file (via Inbox > Account Overview, see image below). Choose the period from which you wish to export your history and click download.
 
 ![Export instructions for DEGIRO](./assets/export-degiro.jpg)
+
+### Delta
+
+`to come..`
 
 ### eToro
 
@@ -211,6 +216,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | Bitvavo       | `run start bitvavo` (or `bv`)      |
 | BUX           | `run start bux`                    |
 | DEGIRO        | `run start degiro`                 |
+| Delta         | `run start delta`                  |
 | eToro         | `run start etoro`                  |
 | Finpension    | `run start finpension` (or `fp`)   |
 | Freetrade     | `run start freetrade`  (or `ft`)   |
