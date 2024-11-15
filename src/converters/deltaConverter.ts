@@ -90,47 +90,42 @@ export class DeltaConverter extends AbstractConverter {
                     continue;
                 }
 
-                let quantity, unitPrice, currency, symbol;
-
-                if (record.baseType === "STOCK") {
-
-                    let security: YahooFinanceRecord;
-                    try {
-                        security = await this.securityService.getSecurity(
-                            null,
-                            record.baseCurrencyName,
-                            null,
-                            record.quoteCurrency,
-                            this.progress);
-                    }
-                    catch (err) {
-                        this.logQueryError(record.baseCurrencyName, idx + 2);
-                        return errorCallback(err);
-                    }
-
-                    // Log whenever there was no match found.
-                    if (!security) {
-                        this.progress.log(`[i] No result found for ${record.way} action for ${record.baseCurrencyName} with currency ${record.quoteCurrency}! Please add this manually..\n`);
-                        bar1.increment();
-                        continue;
-                    }
-
-                    if (record.way === "dividend") {
-                        quantity = 1;
-                        unitPrice = Math.abs(record.quoteAmount);
-                    } else {
-                        quantity = record.baseAmount;
-                        unitPrice = parseFloat((record.quoteAmount / quantity).toFixed(2));
-                    }
-
-                    currency = security.currency ?? record.baseCurrencyName
-                    symbol = security.symbol;
-                }
-                else {
-                    // Temporary skip crypto.
+                // Temporary skip crypto.
+                if (record.baseType === "CRYPTO") {
                     console.log(`[i] Unsupported base type ${record.baseType} for ${record.way} action for ${record.baseCurrencyName} with currency ${record.quoteCurrency}! Please add this manually..`);
                     bar1.increment();
                     continue;
+                }
+
+                let security: YahooFinanceRecord;
+                try {
+                    security = await this.securityService.getSecurity(
+                        null,
+                        record.baseCurrencyName,
+                        null,
+                        record.quoteCurrency,
+                        this.progress);
+                }
+                catch (err) {
+                    this.logQueryError(record.baseCurrencyName, idx + 2);
+                    return errorCallback(err);
+                }
+
+                // Log whenever there was no match found.
+                if (!security) {
+                    this.progress.log(`[i] No result found for ${record.way} action for ${record.baseCurrencyName} with currency ${record.quoteCurrency}! Please add this manually..\n`);
+                    bar1.increment();
+                    continue;
+                }
+
+                let quantity, unitPrice;
+
+                if (record.way === "dividend") {
+                    quantity = 1;
+                    unitPrice = Math.abs(record.quoteAmount);
+                } else {
+                    quantity = record.baseAmount;
+                    unitPrice = parseFloat((record.quoteAmount / quantity).toFixed(2));
                 }
 
                 // Add record to export.
@@ -141,10 +136,10 @@ export class DeltaConverter extends AbstractConverter {
                     quantity: quantity,
                     type: GhostfolioOrderType[record.way],
                     unitPrice: unitPrice,
-                    currency: currency,
+                    currency: security.currency ?? record.baseCurrencyName,
                     dataSource: "YAHOO",
                     date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: symbol
+                    symbol: security.symbol
                 });
 
                 bar1.increment();
