@@ -9,6 +9,7 @@ import { BuxConverter } from "./converters/buxConverter";
 import { DeGiroConverter } from "./converters/degiroConverter";
 import { DeGiroConverterV2 } from "./converters/degiroConverterV2";
 import { DeGiroConverterV3 } from "./converters/degiroConverterV3";
+import { DeltaConverter } from "./converters/deltaConverter";
 import { EtoroConverter } from "./converters/etoroConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
 import { FreetradeConverter } from "./converters/freetradeConverter";
@@ -100,6 +101,10 @@ async function createConverter(converterType: string): Promise<AbstractConverter
             console.log("[i] NOTICE: This converter is currently in public beta and may not be complete!");
             console.log("[i] Should you have issues with the result of the converter, please report a bug at https://git.new/degiro-v3-bug");
             converter = new DeGiroConverterV3(securityService);
+            break;
+        case "delta":
+            console.log("[i] Processing file using Delta converter");
+            converter = new DeltaConverter(securityService);
             break;
         case "etoro":
             console.log("[i] Processing file using Etoro converter");
