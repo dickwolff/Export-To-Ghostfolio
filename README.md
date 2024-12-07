@@ -268,3 +268,4 @@ The tool can be run two ways, manually and via Docker. Both entrypoints of the t
 The tool uses a mock in the tests, which allow the tests to be run in a consistent and repeatable manner. This way there is no necessity for a live Yahoo Finance service. The mock was added because of inconsistencies in between test runs and rate-limiting issues with Yahoo Finance (with multiple consequetive runs, especially when running locally).
 
 Whenever you add a new converter or create a fix for an existing one, please refer to the [Wiki](https://github.com/dickwolff/Export-To-Ghostfolio/wiki/Add-new-testdata-to-Yahoo-Finance-mock) for instructions on how to extend the mock with testdata.
+
