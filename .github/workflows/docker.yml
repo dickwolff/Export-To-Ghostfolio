@@ -98,16 +98,25 @@ jobs:
       # Step 8: Push Docker image with branch-specific tags
       - name: Push Docker image with branch-specific tags
         run: |
-          IMAGE_NAME=ghcr.io/$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')/bolt.new-any-llm-1
-          # Replace invalid characters in the branch name
+          # Get the repository name and transform it into a valid Docker image name
+          REPO_NAME=$(echo "${{ github.repository }}" | awk -F '/' '{print $2}' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g')
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$REPO_NAME
+          
+          # Sanitize the branch name to be Docker-compatible
           SANITIZED_BRANCH_NAME=$(echo "${{ github.ref_name }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
-          docker tag bolt-ai:latest $IMAGE_NAME:$SANITIZED_BRANCH_NAME
+          
+          # Tag and push the Docker image with branch-specific tags
+          docker tag $REPO_NAME:latest $IMAGE_NAME:$SANITIZED_BRANCH_NAME
           docker push $IMAGE_NAME:$SANITIZED_BRANCH_NAME
 
       # Step 9: Push the 'latest' tag only for the main branch
       - name: Push 'latest' tag for main branch
         if: github.ref == 'refs/heads/main'
         run: |
-          IMAGE_NAME=ghcr.io/$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')/bolt.new-any-llm-1
-          docker tag bolt-ai:latest $IMAGE_NAME:latest
+          # Reuse the repository name transformation logic
+          REPO_NAME=$(echo "${{ github.repository }}" | awk -F '/' '{print $2}' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g')
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$REPO_NAME
+          
+          # Tag and push the Docker image with the 'latest' tag
+          docker tag $REPO_NAME:latest $IMAGE_NAME:latest
           docker push $IMAGE_NAME:latest
