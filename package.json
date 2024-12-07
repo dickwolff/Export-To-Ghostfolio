@@ -19,6 +19,7 @@
   "devDependencies": {
     "@nuxt/ui": "^2.14.2",
     "@types/cacache": "^17.0.2",
+    "@types/cli-progress": "^3.11.6",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.13",
     "@types/multer": "^1.4.12",
@@ -32,7 +33,6 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@types/cli-progress": "^3.11.6",
     "cacache": "^19.0.1",
     "chokidar": "^4.0.1",
     "cli-progress": "^3.12.0",

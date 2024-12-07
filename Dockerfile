@@ -10,13 +10,17 @@ LABEL version="$IMAGE_VERSION"
 
 COPY . .
 
+# Install all dependencies (including dev dependencies)
 RUN npm install
 
-RUN mkdir /var/tmp/e2g-input
-RUN mkdir /var/tmp/e2g-output
-RUN mkdir /var/tmp/e2g-cache
-
+# Run the generate command
 RUN node --run web:generate
+
+# Remove dev dependencies
+RUN npm prune --production
+
+# Create necessary directories
+RUN mkdir -p /var/tmp/e2g-input /var/tmp/e2g-output /var/tmp/e2g-cache
 
 EXPOSE 3001
 
