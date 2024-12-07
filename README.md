@@ -119,9 +119,19 @@ Login to your XTB account and from the top bar click on "Account history", then 
 
 You can run the tool on your local machine by cloning this repository. You can also run the tool inside a Docker container. See the runtime specific instructions below.
 
-## Docker
+## Docker compose
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/dickwolff/export-to-ghostfolio?style=for-the-badge)](https://hub.docker.com/r/dickwolff/export-to-ghostfolio)
+Install docker
+
+Copy the `docker-compose.yml` file on your machine/server and run the file. Remember to configure ports and environment variables for that file.
+
+_If you have previous version are the same envs variables._
+
+```shell
+docker compose up
+```
+
+When you finnish using it, press Ctrl-C on the terminal you openned.
 
 <details>
 <summary>View instructions</summary>
