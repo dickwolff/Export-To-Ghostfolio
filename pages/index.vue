@@ -136,7 +136,7 @@ const isProcessed = ref(false)
 const isConnecting = ref(false)
 const showServerLogs = ref(false)
 const logs = ref("")
-
+let configUpdated;
 
 const GHOSTFOLIO_VALIDATE = ref(!!config.public.GHOSTFOLIO_VALIDATE || false);
 const GHOSTFOLIO_IMPORT = ref(!!config.public.GHOSTFOLIO_IMPORT || false);
@@ -148,6 +148,24 @@ const GHOSTFOLIO_SECRET = ref(config.public.GHOSTFOLIO_SECRET || "");
 const serverUrl = config.public.serverUrl;
 
 showServerLogs.value = config.public.isDev || false;
+
+
+try {
+  fetch("/env").then(async (response) => {
+    const data = await response.json();
+    configUpdated = data;
+    if (data.GHOSTFOLIO_ACCOUNT_ID) GHOSTFOLIO_ACCOUNT_ID.value = data.GHOSTFOLIO_ACCOUNT_ID;
+    if (data.GHOSTFOLIO_URL) GHOSTFOLIO_URL.value = data.GHOSTFOLIO_URL;
+    if (data.GHOSTFOLIO_SECRET) GHOSTFOLIO_SECRET.value = data.GHOSTFOLIO_SECRET;
+    if (data.GHOSTFOLIO_VALIDATE) GHOSTFOLIO_VALIDATE.value = data.GHOSTFOLIO_VALIDATE;
+    if (data.GHOSTFOLIO_IMPORT) GHOSTFOLIO_IMPORT.value = data.GHOSTFOLIO_IMPORT;
+    if (data.GHOSTFOLIO_UPDATE_CASH) GHOSTFOLIO_UPDATE_CASH.value = data.GHOSTFOLIO_UPDATE_CASH;
+    
+    showServerLogs.value = data?.isDev || false;
+  });
+} catch (error) {
+  console.error('Error fetching config:', error);
+}
 
 // Messages shown during processing to provide feedback
 const processingMessages = [
