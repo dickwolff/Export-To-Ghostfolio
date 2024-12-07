@@ -57,3 +57,10 @@ ghostfolio-*.json
 
 # Ignore output folder
 e2g-output
+
+# Ignore uploads
+uploads
+
+# Ignore nuxt files (frontend)
+.nuxt
+.output
