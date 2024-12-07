@@ -10,12 +10,10 @@ on:
       - "pages"
       - "package.json"
   pull_request:
-    branches:
-      - main
-    paths:
-      - "src/**"
-      - "pages"
-      - "package.json"
+    types:
+      - opened
+      - synchronize
+      - reopened
   workflow_dispatch: # Also allow manual triggering
 
 jobs:
@@ -100,7 +98,7 @@ jobs:
         run: |
           # Get the repository name and transform it into a valid Docker image name
           REPO_NAME=$(echo "${{ github.repository }}" | awk -F '/' '{print $2}' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g')
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$REPO_NAME
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner | tr '[:upper:]' '[:lower:]' }}/$REPO_NAME
           
           # Sanitize the branch name to be Docker-compatible
           SANITIZED_BRANCH_NAME=$(echo "${{ github.ref_name }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
@@ -115,7 +113,7 @@ jobs:
         run: |
           # Reuse the repository name transformation logic
           REPO_NAME=$(echo "${{ github.repository }}" | awk -F '/' '{print $2}' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g')
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$REPO_NAME
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner | tr '[:upper:]' '[:lower:]' }}/$REPO_NAME
           
           # Tag and push the Docker image with the 'latest' tag
           docker tag $REPO_NAME:latest $IMAGE_NAME:latest
