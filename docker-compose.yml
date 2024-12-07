@@ -1,7 +1,7 @@
 # Create a docker compose file
 services:
   export-to-ghostfolio:
-    image: "ghdr.io/juanmandev/export-to-ghostfolio:latest"
+    image: ghcr.io/juanmandev/export-to-ghostfolio:latest
     ports:
       - "3456:3001"
       # Update 3456 with the port you want to use

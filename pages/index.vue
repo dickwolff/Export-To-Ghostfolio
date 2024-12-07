@@ -34,9 +34,9 @@
             <UCheckbox v-model="GHOSTFOLIO_IMPORT" name="GHOSTFOLIO_IMPORT" label="Import" />
             <UCheckbox v-model="GHOSTFOLIO_UPDATE_CASH" name="GHOSTFOLIO_UPDATE_CASH" label="Update cash" />
           </div>
-          <UInput v-model="GHOSTFOLIO_ACCOUNT_ID" placeholder="GHOSTFOLIO_ACCOUNT_ID" icon="i-heroicons-account" class="my-4" required="true" />
-          <UInput v-if="GHOSTFOLIO_IMPORT" v-model="GHOSTFOLIO_URL" placeholder="GHOSTFOLIO_URL" icon="i-heroicons-envelope" class="my-4" />
-          <UInput v-if="GHOSTFOLIO_IMPORT" v-model="GHOSTFOLIO_SECRET" placeholder="GHOSTFOLIO_SECRET" icon="i-heroicons-envelope" class="my-4" />
+          <UInput v-model="GHOSTFOLIO_ACCOUNT_ID" placeholder="GHOSTFOLIO_ACCOUNT_ID" icon="heroicons:identification-solid" class="my-4" :required="true" />
+          <UInput v-if="GHOSTFOLIO_IMPORT" v-model="GHOSTFOLIO_URL" placeholder="GHOSTFOLIO_URL" icon="heroicons:link-solid" class="my-4" />
+          <UInput v-if="GHOSTFOLIO_IMPORT" v-model="GHOSTFOLIO_SECRET" placeholder="GHOSTFOLIO_SECRET" icon="heroicons:ellipsis-horizontal-circle" class="my-4" />
         </div>
 
         <!-- Process Button -->
@@ -61,7 +61,7 @@
           <div class="w-full">
             <UButton
               block
-              icon="i-heroicon-arrow-down-tray"
+              icon="heroicons:arrow-down-tray-solid"
               color="primary"
               @click="downloadResults"
             >
@@ -71,7 +71,7 @@
           <div class="w-full" v-if="GHOSTFOLIO_URL">
             <UButton
               block
-              icon="i-heroicon-ghost"
+              icon="heroicons:presentation-chart-line-solid"
               color="gray"
               :loading="isConnecting"
               :to="GHOSTFOLIO_URL"
@@ -98,7 +98,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, ref } from 'vue'
+import { nextTick, onBeforeUnmount, Ref, ref } from 'vue'
 
 const toast = useToast()
 const config = useRuntimeConfig()
@@ -130,7 +130,7 @@ const brokers = [
 ]
 
 const selectedBroker = ref(null)
-const selectedFile = ref(null)
+const selectedFile: Ref<File, File> = ref(null)
 const isProcessing = ref(false)
 const isProcessed = ref(false)
 const isConnecting = ref(false)
