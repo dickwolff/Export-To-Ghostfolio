@@ -7,12 +7,14 @@ on:
       - main
     paths:
       - "src/**"
+      - "pages"
       - "package.json"
   pull_request:
     branches:
       - main
     paths:
       - "src/**"
+      - "pages"
       - "package.json"
   workflow_dispatch: # Also allow manual triggering
 
@@ -68,7 +70,7 @@ jobs:
         with:
           push: true
           tags: |
-            dickwolff/export-to-ghostfolio:${{ env.IMAGE_VERSION }}
+            ${{ github.ref_name }}/export-to-ghostfolio:${{ env.IMAGE_VERSION }}
           build-args: |
            IMAGE_VERSION=${{ env.IMAGE_VERSION }}
           platforms: linux/amd64,linux/arm64
@@ -79,8 +81,8 @@ jobs:
         with:
           push: true
           tags: |
-            dickwolff/export-to-ghostfolio:latest
-            dickwolff/export-to-ghostfolio:${{ env.IMAGE_VERSION }}
+            ${{ github.ref_name }}/export-to-ghostfolio:latest
+            ${{ github.ref_name }}/export-to-ghostfolio:${{ env.IMAGE_VERSION }}
           build-args: |
             IMAGE_VERSION=${{ env.IMAGE_VERSION }}
           platforms: linux/amd64,linux/arm64
