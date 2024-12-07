@@ -238,6 +238,23 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 
 The tool uses `cacache` to store data retrieved from Yahoo Finance on disk. This way the load on Yahoo Finance is reduced and the tool should run faster. The cached data is stored in `/var/tmp/e2g-cache`. If you feel you need to invalidate your cache, you can do so by removing the folder and the tool will recreate the cache when you run it the next time.
 
+
+### Use the tool with Web
+
+Run `npm install` to install all required packages.
+
+Run `npm run web:dev` to start the web on port 3000.
+Run `npm run server` to start the web on port 3001.
+
+Recommended node version: 22.
+
+To have web inside the server, generate the web files with `node --run web:generate`.  
+Them you only have to run: `npm run server`.
+
+You can write the variables on the web server (woon't be saved), or using the same .env file than before that would be showed on the web page (recommended if you are alone).
+
+
+
 </details>
 
 ## Import to Ghostfolio
