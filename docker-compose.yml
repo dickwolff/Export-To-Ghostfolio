@@ -5,6 +5,8 @@ services:
     ports:
       - "3456:3001"
       # Update 3456 with the port you want to use
+    volumes:
+      - ./.env:/app/.env
     environment:
       - GHOSTFOLIO_VALIDATE=true
       # - GHOSTFOLIO_ACCOUNT_ID="YO"

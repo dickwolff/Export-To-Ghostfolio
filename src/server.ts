@@ -38,6 +38,20 @@ console.log("outputFolder:", outputFolder);
 app.use("/" + outputFolder, express.static(outputFolder));
 
 
+app.get('/env', async (req, res) => {
+  // Return the environment variables
+  const envsToSend = {
+    GHOSTFOLIO_VALIDATE: process.env.GHOSTFOLIO_VALIDATE,
+    GHOSTFOLIO_IMPORT: process.env.GHOSTFOLIO_IMPORT,
+    GHOSTFOLIO_UPDATE_CASH: process.env.GHOSTFOLIO_UPDATE_CASH,
+    GHOSTFOLIO_ACCOUNT_ID: process.env.GHOSTFOLIO_ACCOUNT_ID,
+    GHOSTFOLIO_URL: process.env.GHOSTFOLIO_URL,
+    GHOSTFOLIO_SECRET: process.env.GHOSTFOLIO_SECRET,
+    serverUrl: process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:3001/',
+    isDev: process.env.NODE_ENV !== 'production',
+  }
+  res.send(envsToSend);
+})
 
 
 app.post('/upload', upload.single('file'), async (req, res) => {
