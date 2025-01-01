@@ -288,8 +288,8 @@ export class DeGiroConverterV3 extends AbstractConverter {
       const totalAmount = parseFloat(record.amount.replace(",", "."));
       unitPrice = parseFloat((Math.abs(totalAmount) / numberShares).toFixed(3));
 
-      // If amount is negative, so money has been removed, thus it's a buy record.
-      if (totalAmount < 0) {
+      // If amount is negative (so money has been removed) or it's stock dividend (so free shares), thus it's a buy record.
+      if (totalAmount < 0 || record.description.toLocaleLowerCase().indexOf("stock dividend") > -1) {
         orderType = GhostfolioOrderType.buy;
       } else {
         orderType = GhostfolioOrderType.sell;
