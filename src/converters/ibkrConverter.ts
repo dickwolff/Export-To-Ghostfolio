@@ -101,6 +101,7 @@ export class IbkrConverter extends AbstractConverter {
                 } else {
                     currency = (record as IbkrTradeRecord).tradeCurrency;
                 }
+                currency === "GBP" ? currency = "GBp" : currency;
 
                 let security: YahooFinanceRecord;
                 try {
@@ -181,7 +182,7 @@ export class IbkrConverter extends AbstractConverter {
                     quantity: quantity,
                     type: type,
                     unitPrice: price,
-                    currency: security.currency ?? currency,
+                    currency: currency,
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol

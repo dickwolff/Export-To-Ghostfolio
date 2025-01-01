@@ -55,7 +55,7 @@ export class Trading212Converter extends AbstractConverter {
 
                 // Patch GBX currency (should be GBp).
                 if (context.column === "currencyPriceShare") {
-                    if (columnValue == "GBX") {
+                    if (columnValue == "GBX" || columnValue == "GBP") {
                         return "GBp";
                     }
                 }
@@ -148,7 +148,7 @@ export class Trading212Converter extends AbstractConverter {
                     quantity: record.noOfShares,
                     type: GhostfolioOrderType[record.action],
                     unitPrice: record.priceShare,
-                    currency: security.currency ?? record.currencyPriceShare,
+                    currency: record.currencyPriceShare,
                     dataSource: "YAHOO",
                     date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol

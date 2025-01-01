@@ -27,6 +27,10 @@ export class RevolutConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
+                if (context.column === "currency" && columnValue === "GBP") {
+                    return "GBp";
+                }
+
                 // Convert actions to Ghostfolio type.
                 if (context.column === "type") {
                     const action = columnValue.toLocaleLowerCase();
@@ -150,7 +154,7 @@ export class RevolutConverter extends AbstractConverter {
                     quantity: quantity,
                     type: GhostfolioOrderType[record.type],
                     unitPrice: unitPrice,
-                    currency: security.currency ?? record.currency,
+                    currency: record.currency,
                     dataSource: "YAHOO",
                     date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
