@@ -52,7 +52,7 @@ Login to your DEGIRO account and create an export file (via Inbox > Account Over
 
 ### Delta
 
-`to come..`
+Open the Delta app. Open the menu, then click "Settings". Go to "Devices & Data", then "Export data". Select the portfolio to export, then click the "Download" button to get the CSV file.
 
 ### eToro
 
