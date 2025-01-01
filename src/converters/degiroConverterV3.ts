@@ -27,9 +27,13 @@ export class DeGiroConverterV3 extends AbstractConverter {
       delimiter: ",",
       fromLine: 2,
       columns: this.processHeaders(input),
-      cast: (columnValue, _) => {
+      cast: (columnValue, context) => {
 
         // Custom mapping below.
+
+        if (context.column === "currency" && columnValue === "GBP") {
+          return "GBp";
+        }
 
         return columnValue;
       }
@@ -311,7 +315,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
       quantity: numberShares,
       type: orderType,
       unitPrice: unitPrice,
-      currency: security.currency ?? record.currency ?? "",
+      currency: record.currency ?? "",
       dataSource: "YAHOO",
       date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
       symbol: security.symbol ?? "",
@@ -371,7 +375,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
       quantity: 1,
       type: GhostfolioOrderType.dividend,
       unitPrice: unitPrice,
-      currency: security.currency ?? dividendRecord.currency,
+      currency: dividendRecord.currency,
       dataSource: "YAHOO",
       date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
       symbol: security.symbol,

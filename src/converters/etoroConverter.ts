@@ -122,7 +122,8 @@ export class EtoroConverter extends AbstractConverter {
 
                 const detailsSplit = record.details.split("/");
                 const symbol = detailsSplit[0];
-                const currency = detailsSplit[1];
+                let currency = detailsSplit[1];
+                currency = currency === "GBP" ? "GBp" : currency;
 
                 let security: YahooFinanceRecord;
                 try {
@@ -155,7 +156,7 @@ export class EtoroConverter extends AbstractConverter {
                     quantity: record.units,
                     type: GhostfolioOrderType[record.type],
                     unitPrice: unitPrice,
-                    currency: security.currency ?? currency,
+                    currency: currency,
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
