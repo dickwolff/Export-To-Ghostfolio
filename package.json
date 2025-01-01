@@ -10,7 +10,7 @@
   },
   "author": "Dick Wolff",
   "repository": {
-    "url": "https://github.com/dickwolff/Trading-212-to-Ghostfolio"
+    "url": "https://github.com/dickwolff/Export-to-Ghostfolio"
   },
   "license": "Apache-2.0",
   "devDependencies": {
