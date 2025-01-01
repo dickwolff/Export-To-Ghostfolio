@@ -40,6 +40,7 @@ Login to your Bitvavo account and click on your name at the top-right. Next, cli
 ![Export instructions for Bitvavo](./assets/export-bitvavo.jpg)
 
 ## BUX
+
 Open the app and go to "Account Value", and then "View History". Click the download icon in the top right corner to download your transaction history. The export will be sent to your email address.
 
 _Due to limitations by BUX, you can request up to 3 CSV exports per day!_.
