@@ -77,7 +77,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
         // Look if the current record was already processed previously by checking the orderId.
         // Dividend records don't have an order ID, so check for a marking there.
         // If a match was found, skip the record and move next.
-        if (result.activities.findIndex(a => a.comment !== "" && a.comment === record.orderId || a.comment.startsWith("Dividend") && a.comment.endsWith(`${record.date}T${record.time}`)) > -1) {
+        if (result.activities.findIndex(a => a.comment !== "" && a.comment === record.orderId || a.comment.toLocaleLowerCase().startsWith("dividend") && a.comment.endsWith(`${record.date}T${record.time}`)) > -1) {
           bar1.increment();
           continue;
         }
@@ -243,8 +243,8 @@ export class DeGiroConverterV3 extends AbstractConverter {
       const totalAmount = parseFloat(record.amount.replace(",", "."));
       unitPrice = parseFloat((Math.abs(totalAmount) / numberShares).toFixed(3));
 
-      // If amount is negative, so money has been removed, thus it's a buy record.      
-      if (totalAmount < 0) {
+      // If amount is negative (so money has been removed) or it's stock dividend (so free shares), thus it's a buy record.
+      if (totalAmount < 0 || record.description.toLocaleLowerCase().indexOf("stock dividend") > -1) {
         orderType = GhostfolioOrderType.buy;
       } else {
         orderType = GhostfolioOrderType.sell;
