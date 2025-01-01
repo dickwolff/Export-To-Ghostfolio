@@ -35,7 +35,7 @@ describe("degiroConverterV3", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(18);
+      expect(actualExport.activities.length).toBe(19);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
