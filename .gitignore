@@ -34,9 +34,6 @@ Thumbs.db
 # Ignore built ts files
 dist/**/*
 
-# ignore package-lock
-package-lock.json
-
 # Allow sample export files
 !samples/*-export.csv
 
