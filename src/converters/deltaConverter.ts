@@ -27,6 +27,10 @@ export class DeltaConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
+                if (context.column === "baseCurrencyName" && columnValue === "GBP") {
+                    return "GBp";
+                }
+
                 // Convert actions to Ghostfolio type.
                 if (context.column === "way") {
                     const action = columnValue.toLocaleLowerCase();
@@ -136,7 +140,7 @@ export class DeltaConverter extends AbstractConverter {
                     quantity: quantity,
                     type: GhostfolioOrderType[record.way],
                     unitPrice: unitPrice,
-                    currency: security.currency ?? record.baseCurrencyName,
+                    currency: record.baseCurrencyName,
                     dataSource: "YAHOO",
                     date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
