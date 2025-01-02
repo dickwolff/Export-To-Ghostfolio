@@ -11,6 +11,7 @@ This tool allows you to convert a multiple transaction exports (CSV) to an impor
 - [BUX](https://bux.com)
 - [DEGIRO](https://degiro.com)
 - [Delta](https://delta.app)
+- [Directa](https://directatrading.com)
 - [eToro](https://www.etoro.com/)
 - [Finpension](https://finpension.ch)
 - [Freetrade](https://freetrade.io)
@@ -53,6 +54,16 @@ Login to your DEGIRO account and create an export file (via Inbox > Account Over
 ### Delta
 
 Open the Delta app. Open the menu, then click "Settings". Go to "Devices & Data", then "Export data". Select the portfolio to export, then click the "Download" button to get the CSV file.
+
+
+### Directa
+
+Open Directa App, select "Libera" mode and go on Transactions ("Movimenti").
+![Export instructions for Directa, Transactions](./assets/directa-transactions.png)
+
+Choose date range on the right and click on "Excel" icon, in the modal select "File separato da virgole (csv)" and "Estrai"
+![Export instructions for Directa, Export](./assets/directa-export.png)
+
 
 ### eToro
 
@@ -217,6 +228,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | BUX           | `run start bux`                    |
 | DEGIRO        | `run start degiro`                 |
 | Delta         | `run start delta`                  |
+| Directa       | `run start directa`                |
 | eToro         | `run start etoro`                  |
 | Finpension    | `run start finpension` (or `fp`)   |
 | Freetrade     | `run start freetrade`  (or `ft`)   |
