@@ -57,7 +57,7 @@ jobs:
     #    shell: bash
         run: |
           if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
-            echo "IMAGE_VERSION=${{ env.GitVersion_SemVer }}" | sed 's/\./-/g' >> $GITHUB_ENV
+            echo "IMAGE_VERSION=${{ env.GitVersion_SemVer }}" >> $GITHUB_ENV
           else
             echo "IMAGE_VERSION=${{ env.GitVersion_MajorMinorPatch }}" >> $GITHUB_ENV
           fi
