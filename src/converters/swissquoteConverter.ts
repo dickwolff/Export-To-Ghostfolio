@@ -43,7 +43,7 @@ export class SwissquoteConverter extends AbstractConverter {
                     else if (action.indexOf("dividend") > -1) {
                         return "dividend";
                     }
-                    else if (action.indexOf("custody fees") > -1) {
+                    else if (action.indexOf("custody fees") > -1 || action.indexOf("depotgebühren") > -1) {
                         return "fee";
                     }
                     else if (action.indexOf("interest") > -1) {
@@ -171,7 +171,7 @@ export class SwissquoteConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: SwissquoteRecord): boolean {
-        let ignoredRecordTypes = ["credit", "debit", "payment", "tax statement"];
+        let ignoredRecordTypes = ["credit", "debit", "payment", "tax statement", "zahlung"];
 
         return ignoredRecordTypes.some(t => record.transaction.toLocaleLowerCase().indexOf(t) > -1)
     }
