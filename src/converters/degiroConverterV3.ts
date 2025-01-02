@@ -77,7 +77,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
         // Look if the current record was already processed previously by checking the orderId.
         // Dividend records don't have an order ID, so check for a marking there.
         // If a match was found, skip the record and move next.
-        if (result.activities.findIndex(a => a.comment !== "" && a.comment === record.orderId || a.comment.startsWith("Dividend") && a.comment.endsWith(`${record.date}T${record.time}`)) > -1) {
+        if (result.activities.findIndex(a => a.comment !== "" && a.comment === record.orderId || a.comment.startsWith(`Dividend ${record.isin} @ ${record.date}T`)) > -1) {
           bar1.increment();
           continue;
         }
@@ -131,10 +131,15 @@ export class DeGiroConverterV3 extends AbstractConverter {
         }
 
         // Look ahead in the remaining records if there is one with the samen orderId.
-        const matchByOrderId = this.findMatchByOrderId(record, records.slice(idx + 1));
+        let matchingRecord = this.findMatchByOrderId(record, records.slice(idx + 1));
+
+        // If there was no match by orderId, and there was no orderId present on the current record, look ahead in the remaining records to find a match by ISIN + Product.
+        if (!matchingRecord && !record.orderId) {
+          matchingRecord = this.findMatchByIsin(record, records.slice(idx + 1));
+        }
 
         // If it's a standalone record, add it immediately.
-        if (!matchByOrderId) {
+        if (!matchingRecord) {
           result.activities.push(this.mapRecordToActivity(record, security));
         }
         else {
@@ -142,10 +147,10 @@ export class DeGiroConverterV3 extends AbstractConverter {
           // This is a pair of records. Check which type of record it is and then combine the records into a Ghostfolio activity.
 
           // Check wether it is a buy/sell record set.
-          if (this.isBuyOrSellRecordSet(record, matchByOrderId)) {
-            result.activities.push(this.combineRecords(record, matchByOrderId, security));
+          if (this.isBuyOrSellRecordSet(record, matchingRecord)) {
+            result.activities.push(this.combineRecords(record, matchingRecord, security));
           } else {
-            result.activities.push(this.mapDividendRecord(record, matchByOrderId, security));
+            result.activities.push(this.mapDividendRecord(record, matchingRecord, security));
           }
         }
 
@@ -225,6 +230,10 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
   private findMatchByOrderId(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
     return records.find(r => r.orderId === currentRecord.orderId);
+  }
+
+  private findMatchByIsin(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
+    return records.find(r => r.isin === currentRecord.isin && r.product === currentRecord.product);
   }
 
   private mapRecordToActivity(record: DeGiroRecord, security?: YahooFinanceRecord, isTransactionFeeRecord: boolean = false): GhostfolioActivity {
@@ -321,7 +330,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
     // Create the record.
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-      comment: `Dividend ${currentRecord.date}T${currentRecord.time}`,
+      comment: `Dividend ${dividendRecord.isin} @ ${currentRecord.date}T${currentRecord.time}`,
       fee: fees,
       quantity: 1,
       type: GhostfolioOrderType.dividend,
