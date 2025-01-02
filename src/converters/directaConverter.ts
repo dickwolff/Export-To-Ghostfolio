@@ -33,14 +33,6 @@ export class DirectaConverter extends AbstractConverter {
                 // Convert actions to Ghostfolio type.
                 if (context.column === "tipoOperazione") {
                     const action = columnValue.toLocaleLowerCase();
-
-                    /*export enum GhostfolioOrderType {
-                        buy = "BUY",
-                        sell = "SELL",
-                        dividend = "DIVIDEND",
-                        fee = "FEE",
-                        interest = "INTEREST"
-                    }*/
         
                     if (action.indexOf("acquisto") > -1) {
                         return "buy";

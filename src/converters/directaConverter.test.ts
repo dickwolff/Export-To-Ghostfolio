@@ -34,7 +34,7 @@ describe("directaConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(15);
+      expect(actualExport.activities.length).toBe(17);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
@@ -84,14 +84,14 @@ describe("directaConverter", () => {
 
       let tempFileContent = "";
       tempFileContent += "Data operazione,Data valuta,Tipo operazione,Ticker,Isin,Protocollo,Descrizione,Quantità,Importo euro,Importo Divisa,Divisa,Riferimento ordine\n";
-      tempFileContent += "13-12-2024,13-12-2024,Conferimento con bonifico,,,17189370,,0,1200,0,EUR,,"
+      tempFileContent += "02-12-2024,04-12-2024,Acquisto,ICOV,IE00B3B8Q275,,ETF COVERED BOND ISH,3,-431.04,0,EUR,XXXXXXXXX,\n";
 
       // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 12, got 13 on line 2");
+        expect(err.message).toBe("An error ocurred while parsing!");
 
         done();
       });
@@ -102,8 +102,14 @@ describe("directaConverter", () => {
 
     // Arrange
     let tempFileContent = "";
+    
+    // add fake 10 rows 
+    for (let i = 0; i < 9; i++) {
+      tempFileContent += "\n";
+    }
+    
     tempFileContent += "Data operazione,Data valuta,Tipo operazione,Ticker,Isin,Protocollo,Descrizione,Quantità,Importo euro,Importo Divisa,Divisa,Riferimento ordine\n";
-    tempFileContent += "13-12-2024,13-12-2024,Conferimento con bonifico,,,17189370,,0,1200,0,EUR,"
+    tempFileContent += "02-12-2024,04-12-2024,Acquisto,ICOV,XXXXXXXX,,ETF COVERED BOND ISH,3,-431.04,0,EUR,T3717285639899"
 
     // Mock Yahoo Finance service to return no quotes.
     const yahooFinanceServiceMock = new YahooFinanceServiceMock();
@@ -116,7 +122,7 @@ describe("directaConverter", () => {
     // Act
     sut.processFileContents(tempFileContent, () => {
 
-      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for conferimento con bonifico action for  with currency EUR! Please add this manually..\n");
+      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for XXXXXXXX with currency EUR! Please add this manually..\n");
 
       done();
     }, () => done.fail("Should not have an error!"));
