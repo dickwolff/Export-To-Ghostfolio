@@ -75,9 +75,16 @@ export class DeGiroConverterV3 extends AbstractConverter {
         }
 
         // Look if the current record was already processed previously by checking the orderId.
-        // Dividend records don't have an order ID, so check for a marking there.
+        // Not all exports provide an order ID, so check for a buy/sell marking in those cases.
+        // Dividend records never have an order ID, so check for a marking there.
         // If a match was found, skip the record and move next.
-        if (result.activities.findIndex(a => a.comment !== "" && a.comment === record.orderId || a.comment.startsWith(`Dividend ${record.isin} @ ${record.date}T`)) > -1) {
+        if (result.activities.findIndex(a =>
+          a.comment !== "" &&
+          a.comment === record.orderId ||
+          a.comment.startsWith(`Buy ${record.isin} @ ${record.date}T`) ||
+          a.comment.startsWith(`Sell ${record.isin} @ ${record.date}T`) ||
+          a.comment.startsWith(`Dividend ${record.isin} @ ${record.date}T`)) > -1) {
+
           bar1.increment();
           continue;
         }
@@ -270,7 +277,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
     // Create the record.
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-      comment: record.orderId,
+      comment: record.orderId ?? `${orderType === GhostfolioOrderType.buy ? "Buy" : "Sell"} ${record.isin} @ ${record.date}T${record.time}`,
       fee: feeAmount,
       quantity: numberShares,
       type: orderType,
