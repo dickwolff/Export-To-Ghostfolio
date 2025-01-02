@@ -1,4 +1,4 @@
-next-version: 0.20.1-swissquote-german-types-fix
+next-version: 0.20.1
 assembly-informational-format: "{NuGetVersion}"
 mode: ContinuousDeployment
 branches:

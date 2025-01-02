@@ -1,6 +1,6 @@
 {
   "name": "export-to-ghostfolio",
-  "version": "0.20.1-swissquote-german-types-fix",
+  "version": "0.20.1",
   "type": "module",
   "description": "Convert multiple broker exports to Ghostfolio import",
   "scripts": {
