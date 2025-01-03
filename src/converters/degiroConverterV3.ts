@@ -147,7 +147,13 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
         // If it's a standalone record, add it immediately.
         if (!matchingRecord) {
-          result.activities.push(this.mapRecordToActivity(record, security));
+
+          if (this.isBuyOrSellRecord(record)) {
+            result.activities.push(this.mapRecordToActivity(record, security));
+          }
+          else {
+            result.activities.push(this.mapDividendRecord(record, null, security));
+          }
         }
         else {
 
@@ -259,7 +265,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
       const totalAmount = parseFloat(record.amount.replace(",", "."));
       unitPrice = parseFloat((Math.abs(totalAmount) / numberShares).toFixed(3));
 
-      // If amount is negative, so money has been removed, thus it's a buy record.      
+      // If amount is negative, so money has been removed, thus it's a buy record.
       if (totalAmount < 0) {
         orderType = GhostfolioOrderType.buy;
       } else {
