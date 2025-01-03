@@ -139,7 +139,7 @@ describe("swissquoteConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toBe("German language records detected. Please make sure to set your SwissQuote display language to English!");
+        expect(err.message).toBe("German language records detected. Please make sure to set your Swissquote display language to English!");
 
         done();
       });
