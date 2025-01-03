@@ -108,7 +108,9 @@ Login to your Schwab account. Go to "Accounts" then "History". Select the accoun
 
 ### Swissquote
 
-Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.
+Login to your Swissquote account. From the bar menu click on "Transactions". Select the desired time period as well as types and then select the "export CSV" button to the right.
+
+**NOTE:** For Swissquote it's important you have set your display language as English. You can do this by logging into your Swissquote account and then select "My Account" (Mein Konto). Click the "Settings"-button (Einstellungen), then change your display language (displaysprache) to English. After this change, your Swissquote export will be in English.
 
 ### Trading 212
 
