@@ -115,6 +115,29 @@ export class DeGiroConverterV3 extends AbstractConverter {
           continue;
         }
 
+        // Interest does not have a security, add it immediately.
+        if (this.isInterest(record)) {
+
+          const interestAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
+          const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
+
+          result.activities.push({
+            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+            comment: "",
+            fee: 0,
+            quantity: 1,
+            type: GhostfolioOrderType.interest,
+            unitPrice: interestAmount,
+            currency: record.currency,
+            dataSource: "MANUAL",
+            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+            symbol: record.description
+          });
+
+          bar1.increment(1);
+          continue;
+        }
+
         // Look for the security for the current record.
         let security: YahooFinanceRecord;
         try {
@@ -390,6 +413,13 @@ export class DeGiroConverterV3 extends AbstractConverter {
   private isPlatformFees(record: DeGiroRecord): boolean {
 
     const platformFeeRecordType = ["aansluitingskosten", "connection fee", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion", "juros", "corporate action"];
+
+    return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
+  }
+
+  private isInterest(record: DeGiroRecord): boolean {
+
+    const platformFeeRecordType = ["degiro courtesy"];
 
     return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
