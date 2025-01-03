@@ -78,7 +78,7 @@ export class SwissquoteConverter extends AbstractConverter {
             // Check if there are any German language records detected.
             if (records.filter(r => this.isGermanLanguageRecord(r)).length > 0) {
                 
-                const msg = "German language records detected. Please make sure to set your SwissQuote display language to English!";
+                const msg = "German language records detected. Please make sure to set your Swissquote display language to English!";
                 this.progress.log(`[i] ${msg}.\n`);
                 return errorCallback(new Error(msg));
             }
