@@ -104,7 +104,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
             fee: feeAmount,
             quantity: 1,
             type: GhostfolioOrderType.fee,
-            unitPrice: feeAmount,
+            unitPrice: 0,
             currency: record.currency,
             dataSource: "MANUAL",
             date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
@@ -389,7 +389,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
   private isPlatformFees(record: DeGiroRecord): boolean {
 
-    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion", "juros", "corporate action"];
+    const platformFeeRecordType = ["aansluitingskosten", "connection fee", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion", "juros", "corporate action"];
 
     return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
