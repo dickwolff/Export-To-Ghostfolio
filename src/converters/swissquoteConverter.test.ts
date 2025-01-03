@@ -34,7 +34,7 @@ describe("swissquoteConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(15);
+      expect(actualExport.activities.length).toBe(14);
 
       done();
     }, () => { fail("Should not have an error!"); });
@@ -77,7 +77,7 @@ describe("swissquoteConverter", () => {
         done();
       });
     });
-    
+
     it("the header and row column count doesn't match", (done) => {
 
       // Arrange
@@ -117,6 +117,29 @@ describe("swissquoteConverter", () => {
         // Assert
         expect(err).toBeTruthy();
         expect(err.message).toContain("Unit test error");
+
+        done();
+      });
+    });
+
+    it("the export has German language records", (done) => {
+
+      // Arrange
+      const sut = new SwissquoteConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+      // Create temp file.
+      let tempFileContent = "";
+      tempFileContent += "Date;Order #;Transaction;Symbol;Name;ISIN;Quantity;Unit price;Costs;Accrued Interest;Net Amount;Balance;Currency\n";
+      tempFileContent += "16-06-2022 13:14:35;110152600;Sell;VEUD;VANGUARD FTSE EUROPE UCITS ETF;IE00B945VV12;709.0;32.37;115.28;0.00;22835.05;111207.71;USD\n";
+      tempFileContent += "31-12-2024 11:40:56;00000000;Depotgebühren;;;;1.0;37.50;3.04;0.00;-40.54;CHF;\n";
+      tempFileContent += "30-12-2024 00:35:49;00000000;Zahlung;;;;1.0;1000.00;0.00;0.00;1000.00;CHF;\n";
+
+      // Act
+      sut.processFileContents(tempFileContent, () => { fail("Should not succeed!"); }, (err: Error) => {
+
+        // Assert
+        expect(err).toBeTruthy();
+        expect(err.message).toBe("German language records detected. Please make sure to set your SwissQuote display language to English!");
 
         done();
       });

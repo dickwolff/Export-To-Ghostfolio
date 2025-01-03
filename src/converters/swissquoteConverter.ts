@@ -43,7 +43,7 @@ export class SwissquoteConverter extends AbstractConverter {
                     else if (action.indexOf("dividend") > -1) {
                         return "dividend";
                     }
-                    else if (action.indexOf("custody fees") > -1 || action.indexOf("depotgebühren") > -1) {
+                    else if (action.indexOf("custody fees") > -1) {
                         return "fee";
                     }
                     else if (action.indexOf("interest") > -1) {
@@ -73,6 +73,14 @@ export class SwissquoteConverter extends AbstractConverter {
                 }
 
                 return errorCallback(new Error(errorMsg))
+            }
+
+            // Check if there are any German language records detected.
+            if (records.filter(r => this.isGermanLanguageRecord(r)).length > 0) {
+                
+                const msg = "German language records detected. Please make sure to set your SwissQuote display language to English!";
+                this.progress.log(`[i] ${msg}.\n`);
+                return errorCallback(new Error(msg));
             }
 
             console.log("Read CSV file. Start processing..");
@@ -171,8 +179,15 @@ export class SwissquoteConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: SwissquoteRecord): boolean {
-        let ignoredRecordTypes = ["credit", "debit", "payment", "tax statement", "zahlung"];
+        const ignoredRecordTypes = ["credit", "debit", "payment", "tax statement"];
 
         return ignoredRecordTypes.some(t => record.transaction.toLocaleLowerCase().indexOf(t) > -1)
+    }
+
+    private isGermanLanguageRecord(record: SwissquoteRecord): boolean {
+
+        const germanRecordTypes = ["kauf", "verkauf", "dividende", "gebühren"];
+
+        return germanRecordTypes.some(t => record.transaction.toLocaleLowerCase().indexOf(t) > -1)
     }
 }

@@ -3,7 +3,7 @@ import type { Config } from "@jest/types";
 // Sync object
 const config: Config.InitialOptions = {
   verbose: true,
-  testTimeout: 15000,
+  testTimeout: 5000,
   transform: {
     '^.+\\.tsx?$': 'ts-jest'
   },
