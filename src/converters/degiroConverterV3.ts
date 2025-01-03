@@ -98,46 +98,14 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
         // Platform fees do not have a security, add those immediately.
         if (this.isPlatformFees(record)) {
-
-          const feeAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
-          const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
-
-          result.activities.push({
-            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-            comment: "",
-            fee: feeAmount,
-            quantity: 1,
-            type: GhostfolioOrderType.fee,
-            unitPrice: 0,
-            currency: record.currency,
-            dataSource: "MANUAL",
-            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-            symbol: record.description
-          });
-
+          result.activities.push(this.mapPlatformFeeRecord(record));
           bar1.increment(1);
           continue;
         }
 
         // Interest does not have a security, add it immediately.
         if (this.isInterest(record)) {
-
-          const interestAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
-          const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
-
-          result.activities.push({
-            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-            comment: "",
-            fee: 0,
-            quantity: 1,
-            type: GhostfolioOrderType.interest,
-            unitPrice: interestAmount,
-            currency: record.currency,
-            dataSource: "MANUAL",
-            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-            symbol: record.description
-          });
-
+          result.activities.push(this.mapInterestRecord(record));
           bar1.increment(1);
           continue;
         }
@@ -388,6 +356,40 @@ export class DeGiroConverterV3 extends AbstractConverter {
   private isBuyOrSellRecordSet(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord): boolean {
     return (this.isBuyOrSellRecord(currentRecord) && this.isTransactionFeeRecord(nextRecord, true)) ||
       (this.isTransactionFeeRecord(currentRecord, true) && this.isBuyOrSellRecord(nextRecord))
+  }
+
+  private mapPlatformFeeRecord(record: DeGiroRecord): GhostfolioActivity {
+    const feeAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
+    const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
+    return {
+      accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+      comment: "",
+      fee: feeAmount,
+      quantity: 1,
+      type: GhostfolioOrderType.fee,
+      unitPrice: 0,
+      currency: record.currency,
+      dataSource: "MANUAL",
+      date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+      symbol: record.description
+    };
+  }
+
+  private mapInterestRecord(record: DeGiroRecord): GhostfolioActivity {
+    const interestAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
+    const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
+    return {
+      accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+      comment: "",
+      fee: 0,
+      quantity: 1,
+      type: GhostfolioOrderType.interest,
+      unitPrice: interestAmount,
+      currency: record.currency,
+      dataSource: "MANUAL",
+      date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+      symbol: record.description
+    };
   }
 
   private isBuyOrSellRecord(record: DeGiroRecord): boolean {
