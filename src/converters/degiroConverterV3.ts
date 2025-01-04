@@ -38,10 +38,10 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
         return columnValue;
       }
-    }, async (err, records: DeGiroRecord[]) => {
+    }, async (err, plainRecords: DeGiroRecord[]) => {
 
       // Check if parsing failed..
-      if (err || records === undefined || records.length === 0) {
+      if (err || plainRecords === undefined || plainRecords.length === 0) {
         let errorMsg = "An error ocurred while parsing!";
 
         if (err) {
@@ -66,6 +66,9 @@ export class DeGiroConverterV3 extends AbstractConverter {
         },
         activities: []
       };
+
+      // Map plain objects to DeGiroRecord instances
+      const records = plainRecords.map(record => DeGiroRecord.fromPlainObject(record));
 
       // Populate the progress bar.
       const bar1 = this.progress.create(records.length, 0);
