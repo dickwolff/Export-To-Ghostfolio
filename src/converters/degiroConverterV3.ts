@@ -185,7 +185,20 @@ export class DeGiroConverterV3 extends AbstractConverter {
           // Check wether it is a buy/sell record set.
           if (this.isBuyOrSellRecordSet(record, matchingRecord)) {
             result.activities.push(this.combineRecords(record, matchingRecord, security));
-          } else {
+          }
+          // Check wether both records are transaction fee records. This happens among others for Belgium customers. 
+          // In this case, combine the transaction fee records into one record.
+          else if (this.isTransactionFeeRecord(record, true) && this.isTransactionFeeRecord(matchingRecord, true)) {
+
+            // Combine the details and prepare the record for the next for-loop iteration.
+            record.description = `${record.description}; ${matchingRecord.description}`;
+            record.amount = `${parseFloat(record.amount) + parseFloat(matchingRecord.amount)}`;
+
+            records[idx + 1] = record;
+          }
+          else {
+
+            // It's a dividend record set.
             result.activities.push(this.mapDividendRecord(record, matchingRecord, security));
           }
         }
