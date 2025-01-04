@@ -293,7 +293,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
       // For buy/sale records, only the total amount is recorded. So the unit price needs to be calculated.
       const totalAmount = record.getAmount();
-      unitPrice = parseFloat((Math.abs(totalAmount) / numberShares).toFixed(3));
+      unitPrice = Math.abs(totalAmount) / numberShares;
 
       // If amount is negative (so money has been removed) or it's stock dividend (so free shares), thus it's a buy record.
       if (totalAmount < 0 || record.description.toLocaleLowerCase().indexOf("stock dividend") > -1) {
@@ -304,9 +304,8 @@ export class DeGiroConverterV3 extends AbstractConverter {
     } else {
 
       // Otherwise, get the transaction fee info.
-      const amount = record.getAmount();
-      feeAmount = parseFloat(Math.abs(amount).toFixed(3));
-      orderType = amount < 0 ? GhostfolioOrderType.sell : GhostfolioOrderType.buy;
+      feeAmount = record.getAbsoluteAmount();
+      orderType = record.getAmount() < 0 ? GhostfolioOrderType.sell : GhostfolioOrderType.buy;
       numberShares = 1;
       unitPrice = 0;
     }
@@ -317,10 +316,10 @@ export class DeGiroConverterV3 extends AbstractConverter {
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
       comment: record.orderId ?? `${orderType === GhostfolioOrderType.buy ? "Buy" : "Sell"} ${record.isin} @ ${record.date}T${record.time}`,
-      fee: feeAmount,
+      fee: this.formatFloat(feeAmount),
       quantity: numberShares,
       type: orderType,
-      unitPrice: unitPrice,
+      unitPrice: this.formatFloat(unitPrice),
       currency: record.currency ?? "",
       dataSource: "YAHOO",
       date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
@@ -334,8 +333,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
     const mappedTxFeeRecords = transactionFeeRecords.map(r => this.mapRecordToActivity(r, security, true));
 
     // Extract the fee from the transaction fee record and put it in the action record.
-    const fee = mappedTxFeeRecords.reduce((sum, r) => sum + r.fee, 0);
-    mappedActionRecord.fee = parseFloat(fee.toFixed(3));
+    mappedActionRecord.fee = mappedTxFeeRecords.reduce((sum, r) => sum + r.fee, 0);
 
     return mappedActionRecord;
   }
@@ -349,10 +347,10 @@ export class DeGiroConverterV3 extends AbstractConverter {
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
       comment: `Dividend ${dividendRecord.isin} @ ${dividendRecord.date}T${dividendRecord.time}`,
-      fee: feeAmount,
+      fee: this.formatFloat(feeAmount),
       quantity: 1,
       type: GhostfolioOrderType.dividend,
-      unitPrice: unitPrice,
+      unitPrice: this.formatFloat(unitPrice),
       currency: dividendRecord.currency,
       dataSource: "YAHOO",
       date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
@@ -366,7 +364,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
       comment: "",
-      fee: feeAmount,
+      fee: this.formatFloat(feeAmount),
       quantity: 1,
       type: GhostfolioOrderType.fee,
       unitPrice: 0,
@@ -386,7 +384,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
       fee: 0,
       quantity: 1,
       type: GhostfolioOrderType.interest,
-      unitPrice: interestAmount,
+      unitPrice: this.formatFloat(interestAmount),
       currency: record.currency,
       dataSource: "MANUAL",
       date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
@@ -460,5 +458,9 @@ export class DeGiroConverterV3 extends AbstractConverter {
     md5.update(record.balance);
     md5.update(record.orderId);
     return md5.digest('hex');
+  }
+
+  private formatFloat(val: number): number {
+    return parseFloat(val.toFixed(3));
   }
 }
