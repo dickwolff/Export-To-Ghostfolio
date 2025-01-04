@@ -22,6 +22,10 @@ export class DeGiroConverterV3 extends AbstractConverter {
    * @inheritdoc
    */
   public processFileContents(input: string, successCallback: any, errorCallback: any): void {
+    // my exported file contained many broken records like this. It's easy to recover them. So, why not?!
+    // 13-04-2016,09:00,13-04-2016,ABN AMRO BANK NV,NL0011540547,"Koop 10 @ 18,3 EUR",,EUR,-183.00,EUR,,df134e52-2753-4694-
+    // ,,,,,,,,,,,947b-418f08d4a352
+    input = input.replace(/(,[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-)\n,{11}([a-f0-9]{4}-[a-f0-9]{12})$/mg, '$1$2');
 
     // Parse the CSV and convert to Ghostfolio import format.
     parse(input, {
