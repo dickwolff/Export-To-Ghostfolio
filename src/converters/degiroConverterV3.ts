@@ -130,33 +130,61 @@ export class DeGiroConverterV3 extends AbstractConverter {
           continue;
         }
 
-        // Look ahead in the remaining records if there is one with the samen orderId.
-        let matchingRecord = this.findMatchByOrderId(record, records.slice(idx + 1));
-
-        // If there was no match by orderId, and there was no orderId present on the current record, look ahead in the remaining records to find a match by ISIN + Product.
-        if (!matchingRecord && !record.orderId) {
-          matchingRecord = this.findMatchByIsin(record, records.slice(idx + 1));
+        // Look ahead in the remaining records if there are some with the same orderId.
+        let matchingRecords = [];
+        if (record.orderId) {
+          matchingRecords = this.findMatchesByOrderId(record, records.slice(idx + 1));
         }
 
-        // If it's a standalone record, add it immediately.
-        if (!matchingRecord) {
+        // If there was no match by orderId, and there was no orderId present on the current record, look ahead one record to find a match by ISIN + Product + Date.
+        if (matchingRecords.length == 0 && !record.orderId) {
+          matchingRecords = this.findMatchByIsinSameDateTime(record, records.slice(idx + 1, idx + 2));
+        }
 
+        if (matchingRecords.length > 0) {
+          // Filter out ignored records
+          matchingRecords = matchingRecords.filter(r => !this.isIgnoredRecord(r));
+
+          // Register records as processed so they are skipped on next iteration(s)
+          matchingRecords.forEach(r => processedRecords.add(this.hashRecord(r)));
+        }
+
+        if (matchingRecords.length > 0) {
+          // This is a set of records. Check which type of record it is and then combine the records into a Ghostfolio activity.
+
+          // Get main and fees records
+          matchingRecords.unshift(record);
+          const mainRecords = matchingRecords.filter(r => this.isBuyOrSellRecord(r) || this.isDividendRecord(r));
+          let transactionFeeRecords = matchingRecords.filter(r => this.isTransactionFeeRecord(r));
+
+          if (mainRecords.length == 0 || matchingRecords.length != mainRecords.length + transactionFeeRecords.length) {
+            this.progress.log(`[i] Unexpected set of ${matchingRecords.length} records (see below)! Please add them manually..\n`);
+            matchingRecords.forEach(r => this.progress.log(`Record ${r.isin || r.product} from ${r.date} with ${r.amount}${r.currency}`));
+            bar1.increment();
+            continue;
+          }
+
+          // if there is one main record, report it combined with transaction fee(s). All other goes without TX fee.
+          mainRecords.forEach(r => {
+            if (this.isBuyOrSellRecord(r)) {
+              result.activities.push(this.combineRecords(r, transactionFeeRecords, security));
+            } else {
+              result.activities.push(this.mapDividendRecord(r, transactionFeeRecords, security));
+            }
+
+            transactionFeeRecords = []; // nullify tx after first iteration
+          });
+        } else {
+          // If it's a standalone record, add it immediately.
           if (this.isBuyOrSellRecord(record)) {
             result.activities.push(this.mapRecordToActivity(record, security));
-          }
-          else {
-            result.activities.push(this.mapDividendRecord(record, null, security));
-          }
-        }
-        else {
-
-          // This is a pair of records. Check which type of record it is and then combine the records into a Ghostfolio activity.
-
-          // Check wether it is a buy/sell record set.
-          if (this.isBuyOrSellRecordSet(record, matchingRecord)) {
-            result.activities.push(this.combineRecords(record, matchingRecord, security));
+          } else if (this.isDividendRecord(record)) {
+            result.activities.push(this.mapDividendRecord(record, [], security));
+          } else if (this.isTransactionFeeRecord(record)) {
+            // sometimes there are stantalone transaction records, report them as platform fees
+            result.activities.push(this.mapPlatformFeeRecord(record));
           } else {
-            result.activities.push(this.mapDividendRecord(record, matchingRecord, security));
+            this.progress.log(`[i] Unknown standalone record ${record.isin || record.product} from ${record.date} with ${record.amount}${record.currency}! Please add this manually..\n`);
           }
         }
 
@@ -241,12 +269,12 @@ export class DeGiroConverterV3 extends AbstractConverter {
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
 
-  private findMatchByOrderId(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
-    return records.find(r => r.orderId === currentRecord.orderId);
+  private findMatchesByOrderId(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord[] | undefined {
+    return records.filter(r => r.orderId === currentRecord.orderId);
   }
 
-  private findMatchByIsin(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
-    return records.find(r => r.isin === currentRecord.isin && r.product === currentRecord.product);
+  private findMatchByIsinSameDateTime(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord[] | undefined {
+    return records.filter(r => r.isin === currentRecord.isin && r.product === currentRecord.product && r.date == currentRecord.date);
   }
 
   private mapRecordToActivity(record: DeGiroRecord, security?: YahooFinanceRecord, isTransactionFeeRecord: boolean = false): GhostfolioActivity {
@@ -271,11 +299,14 @@ export class DeGiroConverterV3 extends AbstractConverter {
       } else {
         orderType = GhostfolioOrderType.sell;
       }
-    }
-    else {
+    } else {
 
       // Otherwise, get the transaction fee info.
-      feeAmount = parseFloat(Math.abs(parseFloat(record.amount.replace(",", "."))).toFixed(3));
+      const amount = parseFloat(record.amount.replace(",", "."));
+      feeAmount = parseFloat(Math.abs(amount).toFixed(3));
+      orderType = amount < 0 ? GhostfolioOrderType.sell : GhostfolioOrderType.buy;
+      numberShares = 1;
+      unitPrice = 0;
     }
 
     const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
@@ -295,56 +326,28 @@ export class DeGiroConverterV3 extends AbstractConverter {
     };
   }
 
-  private combineRecords(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord, security: YahooFinanceRecord): GhostfolioActivity {
-
-    // Set the default values for the records.
-    let actionRecord = currentRecord;
-    let txFeeRecord: DeGiroRecord | null = nextRecord;
-
-    // Determine which of the two records is the action record (e.g. buy/sell) and which contains the transaction fees.
-    // Firstly, check if the current record is the TxFee record.
-    if (this.isTransactionFeeRecord(currentRecord, true)) {
-      actionRecord = nextRecord;
-      txFeeRecord = currentRecord;
-    }
-
+  private combineRecords(mainRecord: DeGiroRecord, transactionFeeRecords: DeGiroRecord[], security: YahooFinanceRecord): GhostfolioActivity {
     // Map both records.
-    const mappedActionRecord = this.mapRecordToActivity(actionRecord, security);
-    const mappedTxFeeRecord = this.mapRecordToActivity(txFeeRecord, security, true);
+    const mappedActionRecord = this.mapRecordToActivity(mainRecord, security);
+    const mappedTxFeeRecords = transactionFeeRecords.map(r => this.mapRecordToActivity(r, security, true));
 
     // Extract the fee from the transaction fee record and put it in the action record.
-    mappedActionRecord.fee = mappedTxFeeRecord.fee;
+    const fee = mappedTxFeeRecords.reduce((sum, r) => sum + r.fee, 0);
+    mappedActionRecord.fee = parseFloat(fee.toFixed(3));
 
     return mappedActionRecord;
   }
 
-  private mapDividendRecord(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord | null = null, security: YahooFinanceRecord): GhostfolioActivity {
-
-    // It's a dividend set.
-    // Set the default values for the records.
-    let dividendRecord = currentRecord;
-    let txFeeRecord: DeGiroRecord = nextRecord;
-
-    // Determine which of the two records is the dividend record and which contains the transaction fees.
-    // Firstly, check if the current record is the TxFee record.
-    if (nextRecord && this.isTransactionFeeRecord(currentRecord, false)) {
-      dividendRecord = nextRecord;
-      txFeeRecord = currentRecord;
-    }
-
-    let unitPrice = Math.abs(parseFloat(dividendRecord.amount.replace(",", ".")));
-    let fees = 0;
-    if (txFeeRecord) {
-      fees = Math.abs(parseFloat(txFeeRecord.amount.replace(",", ".")));
-    }
-
+  private mapDividendRecord(dividendRecord: DeGiroRecord, transactionFeeRecords: DeGiroRecord[], security: YahooFinanceRecord): GhostfolioActivity {
+    const unitPrice = Math.abs(parseFloat(dividendRecord.amount.replace(",", ".")));
+    const feeAmount = transactionFeeRecords.reduce((sum, r) => sum + Math.abs(parseFloat(r.amount.replace(",", "."))), 0);
     const date = dayjs(`${dividendRecord.date} ${dividendRecord.time}:00`, "DD-MM-YYYY HH:mm");
 
     // Create the record.
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-      comment: `Dividend ${dividendRecord.isin} @ ${currentRecord.date}T${currentRecord.time}`,
-      fee: fees,
+      comment: `Dividend ${dividendRecord.isin} @ ${dividendRecord.date}T${dividendRecord.time}`,
+      fee: feeAmount,
       quantity: 1,
       type: GhostfolioOrderType.dividend,
       unitPrice: unitPrice,
@@ -353,11 +356,6 @@ export class DeGiroConverterV3 extends AbstractConverter {
       date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
       symbol: security.symbol,
     };
-  }
-
-  private isBuyOrSellRecordSet(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord): boolean {
-    return (this.isBuyOrSellRecord(currentRecord) && this.isTransactionFeeRecord(nextRecord, true)) ||
-      (this.isTransactionFeeRecord(currentRecord, true) && this.isBuyOrSellRecord(nextRecord))
   }
 
   private mapPlatformFeeRecord(record: DeGiroRecord): GhostfolioActivity {
@@ -405,14 +403,24 @@ export class DeGiroConverterV3 extends AbstractConverter {
     return buySellRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
 
-  private isTransactionFeeRecord(record: DeGiroRecord, isBuyOrSellTransactionFeeRecord: boolean): boolean {
+  private isDividendRecord(record: DeGiroRecord): boolean {
 
     if (!record) {
       return false;
     }
 
-    // When a dividend transaction must be found, there should not be an orderid.
-    if (!isBuyOrSellTransactionFeeRecord && record.orderId) {
+    if (this.isTransactionFeeRecord(record)) {
+      // dividend tax records often has 'Impôts sur dividende' or 'dividendbelasting'
+      // which make them match the condition below.
+      return false;
+    }
+
+    return record.description.toLocaleLowerCase().indexOf("dividend") > -1 || record.description.toLocaleLowerCase().indexOf("capital return") > -1;
+  }
+
+  private isTransactionFeeRecord(record: DeGiroRecord): boolean {
+
+    if (!record) {
       return false;
     }
 
