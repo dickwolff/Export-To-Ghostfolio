@@ -36,6 +36,10 @@ export class SecurityService {
             cookieJar: null
         });
 
+        // Also override console.error, since for some reason yahooFinance2 does not allows to disable this inside their library.
+        /* istanbul ignore next */
+        console.error = () =>{};
+
         // Retrieve prefered exchange postfix if set in .env
         this.preferedExchangePostfix = process.env.DEGIRO_PREFERED_EXCHANGE_POSTFIX;
     }
