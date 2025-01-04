@@ -1,4 +1,4 @@
-FROM node:20-alpine3.19
+FROM node:22-alpine3.21
 WORKDIR /app
 
 ARG IMAGE_VERSION
