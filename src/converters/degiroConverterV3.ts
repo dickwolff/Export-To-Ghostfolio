@@ -293,7 +293,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
       numberShares = parseFloat(numberSharesFromDescription);
 
       // For buy/sale records, only the total amount is recorded. So the unit price needs to be calculated.
-      const totalAmount = parseFloat(record.amount.replace(",", "."));
+      const totalAmount = record.getAmount();
       unitPrice = parseFloat((Math.abs(totalAmount) / numberShares).toFixed(3));
 
       // If amount is negative (so money has been removed) or it's stock dividend (so free shares), thus it's a buy record.
@@ -305,7 +305,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
     } else {
 
       // Otherwise, get the transaction fee info.
-      const amount = parseFloat(record.amount.replace(",", "."));
+      const amount = record.getAmount();
       feeAmount = parseFloat(Math.abs(amount).toFixed(3));
       orderType = amount < 0 ? GhostfolioOrderType.sell : GhostfolioOrderType.buy;
       numberShares = 1;
@@ -342,8 +342,8 @@ export class DeGiroConverterV3 extends AbstractConverter {
   }
 
   private mapDividendRecord(dividendRecord: DeGiroRecord, transactionFeeRecords: DeGiroRecord[], security: YahooFinanceRecord): GhostfolioActivity {
-    const unitPrice = Math.abs(parseFloat(dividendRecord.amount.replace(",", ".")));
-    const feeAmount = transactionFeeRecords.reduce((sum, r) => sum + Math.abs(parseFloat(r.amount.replace(",", "."))), 0);
+    const unitPrice = dividendRecord.getAbsoluteAmount();
+    const feeAmount = transactionFeeRecords.reduce((sum, r) => sum + r.getAbsoluteAmount(), 0);
     const date = dayjs(`${dividendRecord.date} ${dividendRecord.time}:00`, "DD-MM-YYYY HH:mm");
 
     // Create the record.
@@ -362,7 +362,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
   }
 
   private mapPlatformFeeRecord(record: DeGiroRecord): GhostfolioActivity {
-    const feeAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
+    const feeAmount = record.getAbsoluteAmount();
     const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
@@ -379,7 +379,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
   }
 
   private mapInterestRecord(record: DeGiroRecord): GhostfolioActivity {
-    const interestAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
+    const interestAmount = record.getAbsoluteAmount();
     const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
