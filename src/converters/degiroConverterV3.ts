@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import * as crypto from "crypto";
 import { parse } from "csv-parse";
 import { DeGiroRecord } from "../models/degiroRecord";
 import { AbstractConverter } from "./abstractconverter";
@@ -69,6 +70,9 @@ export class DeGiroConverterV3 extends AbstractConverter {
       // Populate the progress bar.
       const bar1 = this.progress.create(records.length, 0);
 
+      // HashSet to skip processed records
+      const processedRecords = new Set<string>();
+
       for (let idx = 0; idx < records.length; idx++) {
         const record = records[idx];
 
@@ -78,20 +82,14 @@ export class DeGiroConverterV3 extends AbstractConverter {
           continue;
         }
 
-        // Look if the current record was already processed previously by checking the orderId.
-        // Not all exports provide an order ID, so check for a buy/sell marking in those cases.
-        // Dividend records never have an order ID, so check for a marking there.
-        // If a match was found, skip the record and move next.
-        if (result.activities.findIndex(a =>
-          a.comment !== "" &&
-          a.comment === record.orderId ||
-          a.comment.startsWith(`Buy ${record.isin} @ ${record.date}T`) ||
-          a.comment.startsWith(`Sell ${record.isin} @ ${record.date}T`) ||
-          a.comment.startsWith(`Dividend ${record.isin} @ ${record.date}T`)) > -1) {
-
-          bar1.increment();
-          continue;
+        // Check if the current record was already processed.
+        const recordHash = this.hashRecord(record);
+        if (processedRecords.has(recordHash)) {
+            bar1.increment();
+            continue
         }
+
+        processedRecords.add(recordHash);
 
         // TODO: Is is possible to add currency? So VWRL.AS is retrieved for IE00B3RBWM25 instead of VWRL.L.
         // Maybe add yahoo-finance2 library that Ghostfolio uses, so I dont need to call Ghostfolio for this.
@@ -187,8 +185,8 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "fx",
       "currency",
       "amount",
-      "col1", // Not relevant column.
-      "col2", // Not relevant column.
+      "balance_currency",
+      "balance",
       "orderId"];
 
     return csvHeaders;
@@ -431,5 +429,22 @@ export class DeGiroConverterV3 extends AbstractConverter {
     const platformFeeRecordType = ["degiro courtesy"];
 
     return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
+  }
+
+  private hashRecord(record: DeGiroRecord): string {
+    const md5 = crypto.createHash('md5');
+    md5.update(record.date);
+    md5.update(record.time);
+    md5.update(record.currencyDate.toString());
+    md5.update(record.product);
+    md5.update(record.isin);
+    md5.update(record.description);
+    md5.update(record.fx);
+    md5.update(record.currency);
+    md5.update(record.amount);
+    md5.update(record.balance_currency);
+    md5.update(record.balance);
+    md5.update(record.orderId);
+    return md5.digest('hex');
   }
 }
