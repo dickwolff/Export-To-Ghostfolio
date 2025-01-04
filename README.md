@@ -194,7 +194,7 @@ The tool uses `cacache` to store data retrieved from Yahoo Finance inside the co
 
 ### System requirements
 
-The tool requires you to install the latest LTS version of Node, which you can download [here](https://nodejs.org/en/download/). The tool can run on any OS on which you can install Node.
+The tool requires you to install the latest LTS version of Node, which currently is v22. You can download it [here](https://nodejs.org/en/download/). The tool can run on any OS on which you can install Node.
 
 ### Use the tool
 
