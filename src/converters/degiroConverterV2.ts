@@ -44,9 +44,9 @@ export class DeGiroConverterV2 extends AbstractConverter {
 
           // Temporary error check for Transactions.csv
           if (err.message.indexOf("length is 12, got 19")) {
-            console.error("[i] Detecting wrong input format. Have you exported the correct CSV file?");
-            console.error("[i] Export to Ghostfolio only supports Account.csv, not Transactions.csv!");
-            console.error("[i] See the export instructions in the README at https://git.new/JjA86vv");
+            console.warn("[i] Detecting wrong input format. Have you exported the correct CSV file?");
+            console.warn("[i] Export to Ghostfolio only supports Account.csv, not Transactions.csv!");
+            console.warn("[i] See the export instructions in the README at https://git.new/JjA86vv");
           }
         }
 
