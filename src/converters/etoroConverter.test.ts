@@ -2,7 +2,7 @@ import { EtoroConverter } from "./etoroConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
-import { log, error } from "console";
+
 describe("etoroConverter", () => {
 
   beforeEach(() => {
@@ -35,8 +35,6 @@ describe("etoroConverter", () => {
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
       expect(actualExport.activities.length).toBe(24);
-
-      log(actualExport.activities);
 
       const fee = actualExport.activities[21];
       expect(fee.type).toBe("FEE");
