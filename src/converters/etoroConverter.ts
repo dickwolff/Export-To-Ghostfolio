@@ -56,7 +56,7 @@ export class EtoroConverter extends AbstractConverter {
                         return 1;
                     }
 
-                    return parseFloat(columnValue.replace(/()/g, '').replace(',', '.'));
+                    return parseFloat(columnValue.replace(/[()]/g, '').replace(',', '.'));
                 }
 
                 return columnValue;
