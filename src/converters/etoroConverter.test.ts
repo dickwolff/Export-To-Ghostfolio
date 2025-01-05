@@ -2,7 +2,7 @@ import { EtoroConverter } from "./etoroConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
-
+import { log, error } from "console";
 describe("etoroConverter", () => {
 
   beforeEach(() => {
@@ -34,7 +34,19 @@ describe("etoroConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(19);
+      expect(actualExport.activities.length).toBe(24);
+
+      log(actualExport.activities);
+
+      const fee = actualExport.activities[21];
+      expect(fee.type).toBe("FEE");
+      expect(fee.comment).toBe("FEE CFD Daily");
+      expect(fee.fee).toBe(0.31);
+
+      const refund = actualExport.activities[22];
+      expect(refund.type).toBe("INTEREST");
+      expect(refund.comment).toBe("REFUND CFD Daily");
+      expect(refund.fee).toBe(0.21);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
