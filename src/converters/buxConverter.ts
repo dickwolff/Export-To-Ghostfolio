@@ -27,6 +27,10 @@ export class BuxConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
+                if (context.column === "assetCurrency" && columnValue === "GBX") {
+                    return "GBp";
+                }
+
                 // Convert actions to Ghostfolio type.
                 if (context.column === "transactionType") {
                     const action = columnValue.toLocaleLowerCase();
@@ -72,7 +76,7 @@ export class BuxConverter extends AbstractConverter {
 
                 return errorCallback(new Error(errorMsg))
             }
-            
+
             console.log("[i] Read CSV file. Start processing..");
             const result: GhostfolioExport = {
                 meta: {
@@ -157,7 +161,7 @@ export class BuxConverter extends AbstractConverter {
                     quantity: quantity,
                     type: GhostfolioOrderType[record.transactionType],
                     unitPrice: unitPrice,
-                    currency: security.currency ?? record.transactionCurrency,
+                    currency: record.transactionCurrency,
                     dataSource: "YAHOO",
                     date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol

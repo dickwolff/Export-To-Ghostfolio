@@ -243,7 +243,8 @@ export class DeGiroConverterV2 extends AbstractConverter {
       "ingreso",
       "retirada",
       "levantamento de divisa",
-      "dito de divisa"];
+      "dito de divisa",
+      "fonds monétaires"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
@@ -319,7 +320,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
           quantity: numberShares,
           type: orderType,
           unitPrice: unitPrice,
-          currency: security.currency ?? actionRecord.currency,
+          currency: actionRecord.currency,
           dataSource: "YAHOO",
           date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
           symbol: security.symbol,
@@ -361,7 +362,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
           quantity: 1,
           type: GhostfolioOrderType.dividend,
           unitPrice: unitPrice,
-          currency: security.currency ?? dividendRecord.currency,
+          currency: dividendRecord.currency,
           dataSource: "YAHOO",
           date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
           symbol: security.symbol,
