@@ -33,7 +33,7 @@ export class DirectaConverter extends AbstractConverter {
                 // Convert actions to Ghostfolio type.
                 if (context.column === "tipoOperazione") {
                     const action = columnValue.toLocaleLowerCase();
-        
+
                     if (action.indexOf("acquisto") > -1) {
                         return "buy";
                     }
@@ -95,7 +95,7 @@ export class DirectaConverter extends AbstractConverter {
                     continue;
                 }
 
-                if(!record.dataValuta) {
+                if (!record.dataValuta) {
                     this.progress.log(`[i] No date found for record ${idx + 2}! Skipping..\n`);
                     bar1.increment();
                     continue;
@@ -132,8 +132,8 @@ export class DirectaConverter extends AbstractConverter {
                     this.progress.log(`[i] No result found for ${record.tipoOperazione} action for ${record.isin || record.ticker} with currency ${record.divisa}! Please add this manually..\n`);
                     bar1.increment();
                     continue;
-                }              
-                
+                }
+
                 const activity = this.createActivity(record, security);
                 if (activity) {
                     result.activities.push(activity);
@@ -148,6 +148,14 @@ export class DirectaConverter extends AbstractConverter {
         });
     }
 
+    /**
+     * @inheritdoc
+     */
+    public isIgnoredRecord(record: any): boolean {
+        let ignoredRecordTypes = ["conferimento", "bonifico", "finanziamento", "bollo", "prelievo"];
+        return ignoredRecordTypes.some(t => record.tipoOperazione.toLocaleLowerCase().indexOf(t) > -1)
+    }
+
     private createActivity(record: DirectaRecord, security: YahooFinanceRecord): GhostfolioActivity {
         const date = dayjs(record.dataValuta, "DD-MM-YYYY");
 
@@ -155,7 +163,7 @@ export class DirectaConverter extends AbstractConverter {
 
         let bondDescriptions = ["cdp obb", "romania", "btp"];
         const isBond = bondDescriptions.some(t => record.descrizione.toLowerCase().indexOf(t) > -1);
-        
+
         switch (record.tipoOperazione) {
             case "dividend":
             case "interest":
@@ -169,7 +177,7 @@ export class DirectaConverter extends AbstractConverter {
             default:
                 if (isBond) {
                     unitPrice = (record.importoEuro / Number(record.quantit)) * 100;
-                    quantity = Number(record.quantit)/100;
+                    quantity = Number(record.quantit) / 100;
                 } else {
                     quantity = Number(record.quantit);
                     unitPrice = record.importoEuro / quantity;
@@ -190,13 +198,5 @@ export class DirectaConverter extends AbstractConverter {
             date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
             symbol: security.symbol
         };
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public isIgnoredRecord(record: any): boolean {
-        let ignoredRecordTypes = ["conferimento", "bonifico", "finanziamento", "bollo", "prelievo"];
-        return ignoredRecordTypes.some(t => record.tipoOperazione.toLocaleLowerCase().indexOf(t) > -1)
     }
 }
