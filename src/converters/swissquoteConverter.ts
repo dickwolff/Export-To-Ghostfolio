@@ -30,7 +30,7 @@ export class SwissquoteConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
-                if ((context.column === "netAmountCurrency" || context.column === "currency") && columnValue === "GBP") {
+                if ((context.column === "netAmountCurrency" || context.column === "currency") && columnValue === "GBX") {
                     return "GBp";
                 }
 

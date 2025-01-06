@@ -123,7 +123,7 @@ export class EtoroConverter extends AbstractConverter {
                 const detailsSplit = record.details.split("/");
                 const symbol = detailsSplit[0];
                 let currency = detailsSplit[1];
-                currency = currency === "GBP" ? "GBp" : currency;
+                currency = currency === "GBX" ? "GBp" : currency;
 
                 let security: YahooFinanceRecord;
                 try {
