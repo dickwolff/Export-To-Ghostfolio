@@ -243,7 +243,8 @@ export class DeGiroConverterV2 extends AbstractConverter {
       "ingreso",
       "retirada",
       "levantamento de divisa",
-      "dito de divisa"];
+      "dito de divisa",
+      "fonds monétaires"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }

@@ -259,11 +259,13 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "operation de change",
       "versement de fonds",
       "débit",
+      "debit",
       "depósito",
       "ingreso",
       "retirada",
       "levantamento de divisa",
-      "dito de divisa"];
+      "dito de divisa",
+      "fonds monétaires"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
