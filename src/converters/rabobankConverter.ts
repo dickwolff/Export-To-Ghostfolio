@@ -30,6 +30,10 @@ export class RabobankConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
+                if (context.column === "currency" && columnValue === "GBX") {
+                    return "GBp";
+                }
+
                 // Convert actions to Ghostfolio type.
                 if (context.column === "type") {
                     const action = columnValue.toLocaleLowerCase();
@@ -169,7 +173,7 @@ export class RabobankConverter extends AbstractConverter {
                     quantity: quantity,
                     type: GhostfolioOrderType[record.type],
                     unitPrice: price,
-                    currency: security.currency ?? record.currency,
+                    currency: record.currency,
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol

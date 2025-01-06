@@ -30,6 +30,10 @@ export class SwissquoteConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
+                if ((context.column === "netAmountCurrency" || context.column === "currency") && columnValue === "GBX") {
+                    return "GBp";
+                }
+
                 // Convert categories to Ghostfolio type.
                 if (context.column === "transaction") {
                     const action = columnValue.toLocaleLowerCase();
@@ -160,7 +164,7 @@ export class SwissquoteConverter extends AbstractConverter {
                     quantity: record.quantity,
                     type: GhostfolioOrderType[record.transaction],
                     unitPrice: record.unitPrice,
-                    currency: security.currency ?? record.netAmountCurrency ?? record.currency,
+                    currency: record.netAmountCurrency ?? record.currency,
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
