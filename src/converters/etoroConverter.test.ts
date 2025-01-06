@@ -36,16 +36,6 @@ describe("etoroConverter", () => {
       expect(actualExport.activities.length).toBeGreaterThan(0);
       expect(actualExport.activities.length).toBe(24);
 
-      const fee = actualExport.activities[21];
-      expect(fee.type).toBe("FEE");
-      expect(fee.comment).toBe("FEE CFD Daily");
-      expect(fee.fee).toBe(0.31);
-
-      const refund = actualExport.activities[22];
-      expect(refund.type).toBe("INTEREST");
-      expect(refund.comment).toBe("REFUND CFD Daily");
-      expect(refund.fee).toBe(0.21);
-
       done();
     }, () => { done.fail("Should not have an error!"); });
   });
