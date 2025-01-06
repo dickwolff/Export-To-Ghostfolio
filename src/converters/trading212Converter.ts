@@ -55,7 +55,7 @@ export class Trading212Converter extends AbstractConverter {
 
                 // Patch GBX currency (should be GBp).
                 if (context.column === "currencyPriceShare") {
-                    if (columnValue == "GBX" || columnValue == "GBP") {
+                    if (columnValue == "GBX") {
                         return "GBp";
                     }
                 }

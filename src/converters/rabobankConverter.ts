@@ -30,7 +30,7 @@ export class RabobankConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
-                if (context.column === "currency" && columnValue === "GBP") {
+                if (context.column === "currency" && columnValue === "GBX") {
                     return "GBp";
                 }
 

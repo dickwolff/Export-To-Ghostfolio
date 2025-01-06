@@ -27,7 +27,7 @@ export class DeltaConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
-                if (context.column === "baseCurrencyName" && columnValue === "GBP") {
+                if (context.column === "baseCurrencyName" && columnValue === "GBX") {
                     return "GBp";
                 }
 

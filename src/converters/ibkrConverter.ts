@@ -100,8 +100,8 @@ export class IbkrConverter extends AbstractConverter {
                     currency = (record as IbkrDividendRecord).currency;
                 } else {
                     currency = (record as IbkrTradeRecord).tradeCurrency;
-                }
-                currency === "GBP" ? currency = "GBp" : currency;
+                }            
+                currency === "GBX" ? currency = "GBp" : currency;
 
                 let security: YahooFinanceRecord;
                 try {

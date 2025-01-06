@@ -27,7 +27,7 @@ export class BuxConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
-                if (context.column === "assetCurrency" && columnValue === "GBP") {
+                if (context.column === "assetCurrency" && columnValue === "GBX") {
                     return "GBp";
                 }
 

@@ -27,7 +27,7 @@ export class ParqetConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
-                if ((context.column === "currency" || context.column === "originalCurrency") && columnValue === "GBP") {
+                if ((context.column === "currency" || context.column === "originalCurrency") && columnValue === "GBX") {
                     return "GBp";
                 }
 
