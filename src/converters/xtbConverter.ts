@@ -49,6 +49,10 @@ export class XtbConverter extends AbstractConverter {
                     }
                 }
 
+                if (context.column === "symbol" && columnValue.endsWith(".UK")) {
+                    return columnValue.replace(".UK", ".L");
+                }
+
                 // Parse numbers to floats (from string).
                 if (context.column === "amount") {
                     return parseFloat(columnValue);
@@ -114,7 +118,7 @@ export class XtbConverter extends AbstractConverter {
                 }
 
                 const match = record.comment.match(/(?:OPEN|CLOSE) BUY ((?:[0-9]*[.])?[0-9]+) @ ((?:[0-9]*[.])?[0-9]+)|((?:[0-9]*[.])?[0-9]+)(?:\/)/)
-
+console.log(record)
                 let quantity = parseFloat(match[1]);
                 let unitPrice = parseFloat(match[2]);
                 const dividendPerShare = parseFloat(match[3]);
@@ -183,7 +187,7 @@ export class XtbConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: XtbRecord): boolean {
-        let ignoredRecordTypes = ["deposit", "withdrawal", "tax"];
+        let ignoredRecordTypes = ["deposit", "withdrawal", "tax", "transfer"];
 
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
     }
