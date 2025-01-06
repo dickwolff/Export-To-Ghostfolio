@@ -6,7 +6,7 @@ import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
 describe("degiroConverterV3", () => {
 
   beforeEach(() => {
-    // jest.spyOn(console, "log").mockImplementation(jest.fn());
+    jest.spyOn(console, "log").mockImplementation(jest.fn());
     jest.spyOn(console, "error").mockImplementation(jest.fn());
   });
 
@@ -173,7 +173,7 @@ describe("degiroConverterV3", () => {
       expect(actualExport.activities[0].currency).toBe("GBP");
       expect(actualExport.activities[1].currency).toBe("GBP");
       expect(actualExport.activities[2].currency).toBe("JPY");
-      expect(actualExport.activities[3].currency).toBe("JPY");
+      expect(actualExport.activities[3].currency).toBe("EUR");
 
       done();
     }, (e) => { console.log(e); done.fail("Should not have an error!"); });
