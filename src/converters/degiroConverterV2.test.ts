@@ -35,29 +35,7 @@ describe("degiroConverterV2", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(18);
-
-      done();
-    }, () => { done.fail("Should not have an error!"); });
-  });
-
-  it("should map GBP to GBp if Yahoo Finance returns GBp for AV.L", (done) => {
-
-    // Arrange
-    const sut = new DeGiroConverterV2(new SecurityService(new YahooFinanceServiceMock()));
-
-    let tempFileContent = "";
-    tempFileContent += "Date,Time,Value date,Product,ISIN,Description,FX,Change,,Balance,,Order Id\n";
-    tempFileContent += `02-04-2024,09:00,02-04-2024,AVIVA,GB00BPQY8M80,Sell 4 AVIVA@496 GBX (GB00BPQY8M80),,GBP,19.84,GBP,114.31,86c1f17b-8a74-4126-af39-61049bcb6e33\n`;
-
-    // Act
-    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
-
-      // Assert
-      expect(actualExport).toBeTruthy();
-      expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(1);
-      expect(actualExport.activities[0].currency).toBe("GBp");
+      expect(actualExport.activities.length).toBe(26);
 
       done();
     }, () => { done.fail("Should not have an error!"); });

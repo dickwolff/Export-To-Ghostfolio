@@ -1,4 +1,4 @@
-FROM node:20-alpine3.19
+FROM node:22-alpine3.21
 WORKDIR /app
 
 ARG IMAGE_VERSION
@@ -8,9 +8,13 @@ LABEL description="Convert transaction history export from your favorite broker 
 LABEL author="Dick Wolff"
 LABEL version="$IMAGE_VERSION"
 
-COPY . .
+WORKDIR /
 
-RUN npm install
+COPY ./src ./src
+COPY package.json .
+COPY package-lock.json .
+
+RUN npm install --omit=dev
 
 RUN mkdir /var/tmp/e2g-input
 RUN mkdir /var/tmp/e2g-output

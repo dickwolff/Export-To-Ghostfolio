@@ -30,6 +30,10 @@ export class SwissquoteConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
+                if ((context.column === "netAmountCurrency" || context.column === "currency") && columnValue === "GBX") {
+                    return "GBp";
+                }
+
                 // Convert categories to Ghostfolio type.
                 if (context.column === "transaction") {
                     const action = columnValue.toLocaleLowerCase();
@@ -73,6 +77,14 @@ export class SwissquoteConverter extends AbstractConverter {
                 }
 
                 return errorCallback(new Error(errorMsg))
+            }
+
+            // Check if there are any German language records detected.
+            if (records.filter(r => this.isGermanLanguageRecord(r)).length > 0) {
+                
+                const msg = "German language records detected. Please make sure to set your Swissquote display language to English!";
+                this.progress.log(`[i] ${msg}.\n`);
+                return errorCallback(new Error(msg));
             }
 
             console.log("Read CSV file. Start processing..");
@@ -152,7 +164,7 @@ export class SwissquoteConverter extends AbstractConverter {
                     quantity: record.quantity,
                     type: GhostfolioOrderType[record.transaction],
                     unitPrice: record.unitPrice,
-                    currency: security.currency ?? record.netAmountCurrency ?? record.currency,
+                    currency: record.netAmountCurrency ?? record.currency,
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol
@@ -171,8 +183,15 @@ export class SwissquoteConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: SwissquoteRecord): boolean {
-        let ignoredRecordTypes = ["credit", "debit", "payment", "tax statement"];
+        const ignoredRecordTypes = ["credit", "debit", "payment", "tax statement"];
 
         return ignoredRecordTypes.some(t => record.transaction.toLocaleLowerCase().indexOf(t) > -1)
+    }
+
+    private isGermanLanguageRecord(record: SwissquoteRecord): boolean {
+
+        const germanRecordTypes = ["kauf", "verkauf", "dividende", "gebühren"];
+
+        return germanRecordTypes.some(t => record.transaction.toLocaleLowerCase().indexOf(t) > -1)
     }
 }

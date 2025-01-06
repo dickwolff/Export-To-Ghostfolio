@@ -41,6 +41,7 @@ Login to your Bitvavo account and click on your name at the top-right. Next, cli
 ![Export instructions for Bitvavo](./assets/export-bitvavo.jpg)
 
 ## BUX
+
 Open the app and go to "Account Value", and then "View History". Click the download icon in the top right corner to download your transaction history. The export will be sent to your email address.
 
 _Due to limitations by BUX, you can request up to 3 CSV exports per day!_.
@@ -119,7 +120,9 @@ Login to your Schwab account. Go to "Accounts" then "History". Select the accoun
 
 ### Swissquote
 
-Login to your Swissquote account. From the bar menu click on “Transactions”. Select the desired time period as well as types and then select the “export CSV” button to the right.
+Login to your Swissquote account. From the bar menu click on "Transactions". Select the desired time period as well as types and then select the "export CSV" button to the right.
+
+**NOTE:** For Swissquote it's important you have set your display language as English. You can do this by logging into your Swissquote account and then select "My Account" (Mein Konto). Click the "Settings"-button (Einstellungen), then change your display language (displaysprache) to English. After this change, your Swissquote export will be in English.
 
 ### Trading 212
 
@@ -202,7 +205,7 @@ The tool uses `cacache` to store data retrieved from Yahoo Finance inside the co
 
 ### System requirements
 
-The tool requires you to install the latest LTS version of Node, which you can download [here](https://nodejs.org/en/download/). The tool can run on any OS on which you can install Node.
+The tool requires you to install the latest LTS version of Node, which currently is v22. You can download it [here](https://nodejs.org/en/download/). The tool can run on any OS on which you can install Node.
 
 ### Use the tool
 

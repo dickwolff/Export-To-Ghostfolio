@@ -44,9 +44,9 @@ export class DeGiroConverterV2 extends AbstractConverter {
 
           // Temporary error check for Transactions.csv
           if (err.message.indexOf("length is 12, got 19")) {
-            console.error("[i] Detecting wrong input format. Have you exported the correct CSV file?");
-            console.error("[i] Export to Ghostfolio only supports Account.csv, not Transactions.csv!");
-            console.error("[i] See the export instructions in the README at https://git.new/JjA86vv");
+            console.warn("[i] Detecting wrong input format. Have you exported the correct CSV file?");
+            console.warn("[i] Export to Ghostfolio only supports Account.csv, not Transactions.csv!");
+            console.warn("[i] See the export instructions in the README at https://git.new/JjA86vv");
           }
         }
 
@@ -89,7 +89,30 @@ export class DeGiroConverterV2 extends AbstractConverter {
             fee: feeAmount,
             quantity: 1,
             type: GhostfolioOrderType.fee,
-            unitPrice: feeAmount,
+            unitPrice: 0,
+            currency: record.currency,
+            dataSource: "MANUAL",
+            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+            symbol: record.description
+          });
+
+          bar1.increment(1);
+          continue;
+        }
+
+        // Interest does not have a security, add it immediately.
+        if (this.isInterest(record)) {
+
+          const interestAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
+          const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
+
+          result.activities.push({
+            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+            comment: "",
+            fee: 0,
+            quantity: 1,
+            type: GhostfolioOrderType.interest,
+            unitPrice: interestAmount,
             currency: record.currency,
             dataSource: "MANUAL",
             date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
@@ -220,7 +243,8 @@ export class DeGiroConverterV2 extends AbstractConverter {
       "ingreso",
       "retirada",
       "levantamento de divisa",
-      "dito de divisa"];
+      "dito de divisa",
+      "fonds monétaires"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
@@ -296,7 +320,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
           quantity: numberShares,
           type: orderType,
           unitPrice: unitPrice,
-          currency: security.currency ?? actionRecord.currency,
+          currency: actionRecord.currency,
           dataSource: "YAHOO",
           date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
           symbol: security.symbol,
@@ -338,7 +362,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
           quantity: 1,
           type: GhostfolioOrderType.dividend,
           unitPrice: unitPrice,
-          currency: security.currency ?? dividendRecord.currency,
+          currency: dividendRecord.currency,
           dataSource: "YAHOO",
           date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
           symbol: security.symbol,
@@ -410,8 +434,15 @@ export class DeGiroConverterV2 extends AbstractConverter {
 
   private isPlatformFees(record: DeGiroRecord): boolean {
 
-    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion", "juros", "corporate action"];
+    const platformFeeRecordType = ["aansluitingskosten", "connection fee", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion", "juros", "corporate action"];
 
     return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
+  }
+
+  private isInterest(record: DeGiroRecord): boolean {
+
+    const interestRecordType = ["degiro courtesy"];
+
+    return interestRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
 }

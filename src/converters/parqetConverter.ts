@@ -27,6 +27,10 @@ export class ParqetConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
+                if ((context.column === "currency" || context.column === "originalCurrency") && columnValue === "GBX") {
+                    return "GBp";
+                }
+
                 // Parse numbers to floats (from string).
                 if (context.column === "price" ||
                     context.column === "shares" ||
@@ -105,7 +109,7 @@ export class ParqetConverter extends AbstractConverter {
                     quantity: record.shares,
                     type: GhostfolioOrderType[record.type.toLocaleLowerCase()],
                     unitPrice: record.price,
-                    currency: security.currency ?? record.currency ?? record.originalCurrency,
+                    currency: record.currency ?? record.originalCurrency,
                     dataSource: "YAHOO",
                     date: dayjs(record.dateTime).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol

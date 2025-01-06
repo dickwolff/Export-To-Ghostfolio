@@ -27,6 +27,10 @@ export class FinpensionConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
+                if (context.column === "assetCurrency" && columnValue === "GBX") {
+                    return "GBp";
+                }
+
                 // Convert categories to Ghostfolio type.
                 if (context.column === "category") {
                     const action = columnValue.toLocaleLowerCase();
@@ -150,7 +154,7 @@ export class FinpensionConverter extends AbstractConverter {
                     quantity: numberOfShares,
                     type: GhostfolioOrderType[record.category],
                     unitPrice: assetPriceInChf,
-                    currency: security.currency ?? record.assetCurrency,
+                    currency: record.assetCurrency,
                     dataSource: "YAHOO",
                     date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
                     symbol: security.symbol

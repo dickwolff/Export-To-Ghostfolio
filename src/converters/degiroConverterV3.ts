@@ -27,9 +27,13 @@ export class DeGiroConverterV3 extends AbstractConverter {
       delimiter: ",",
       fromLine: 2,
       columns: this.processHeaders(input),
-      cast: (columnValue, _) => {
+      cast: (columnValue, context) => {
 
         // Custom mapping below.
+
+        if (context.column === "currency" && columnValue === "GBX") {
+          return "GBp";
+        }
 
         return columnValue;
       }
@@ -44,9 +48,9 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
           // Temporary error check for Transactions.csv
           if (err.message.indexOf("length is 12, got 19")) {
-            console.error("[i] Detecting wrong input format. Have you exported the correct CSV file?");
-            console.error("[i] Export to Ghostfolio only supports Account.csv, not Transactions.csv!");
-            console.error("[i] See the export instructions in the README at https://git.new/JjA86vv");
+            console.warn("[i] Detecting wrong input format. Have you exported the correct CSV file?");
+            console.warn("[i] Export to Ghostfolio only supports Account.csv, not Transactions.csv!");
+            console.warn("[i] See the export instructions in the README at https://git.new/JjA86vv");
           }
         }
 
@@ -75,9 +79,16 @@ export class DeGiroConverterV3 extends AbstractConverter {
         }
 
         // Look if the current record was already processed previously by checking the orderId.
-        // Dividend records don't have an order ID, so check for a marking there.
+        // Not all exports provide an order ID, so check for a buy/sell marking in those cases.
+        // Dividend records never have an order ID, so check for a marking there.
         // If a match was found, skip the record and move next.
-        if (result.activities.findIndex(a => a.comment !== "" && a.comment === record.orderId || a.comment.startsWith("Dividend") && a.comment.endsWith(`${record.date}T${record.time}`)) > -1) {
+        if (result.activities.findIndex(a =>
+          a.comment !== "" &&
+          a.comment === record.orderId ||
+          a.comment.startsWith(`Buy ${record.isin} @ ${record.date}T`) ||
+          a.comment.startsWith(`Sell ${record.isin} @ ${record.date}T`) ||
+          a.comment.startsWith(`Dividend ${record.isin} @ ${record.date}T`)) > -1) {
+
           bar1.increment();
           continue;
         }
@@ -97,7 +108,30 @@ export class DeGiroConverterV3 extends AbstractConverter {
             fee: feeAmount,
             quantity: 1,
             type: GhostfolioOrderType.fee,
-            unitPrice: feeAmount,
+            unitPrice: 0,
+            currency: record.currency,
+            dataSource: "MANUAL",
+            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+            symbol: record.description
+          });
+
+          bar1.increment(1);
+          continue;
+        }
+
+        // Interest does not have a security, add it immediately.
+        if (this.isInterest(record)) {
+
+          const interestAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
+          const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
+
+          result.activities.push({
+            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+            comment: "",
+            fee: 0,
+            quantity: 1,
+            type: GhostfolioOrderType.interest,
+            unitPrice: interestAmount,
             currency: record.currency,
             dataSource: "MANUAL",
             date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
@@ -131,21 +165,32 @@ export class DeGiroConverterV3 extends AbstractConverter {
         }
 
         // Look ahead in the remaining records if there is one with the samen orderId.
-        const matchByOrderId = this.findMatchByOrderId(record, records.slice(idx + 1));
+        let matchingRecord = this.findMatchByOrderId(record, records.slice(idx + 1));
+
+        // If there was no match by orderId, and there was no orderId present on the current record, look ahead in the remaining records to find a match by ISIN + Product.
+        if (!matchingRecord && !record.orderId) {
+          matchingRecord = this.findMatchByIsin(record, records.slice(idx + 1));
+        }
 
         // If it's a standalone record, add it immediately.
-        if (!matchByOrderId) {
-          result.activities.push(this.mapRecordToActivity(record, security));
+        if (!matchingRecord) {
+
+          if (this.isBuyOrSellRecord(record)) {
+            result.activities.push(this.mapRecordToActivity(record, security));
+          }
+          else {
+            result.activities.push(this.mapDividendRecord(record, null, security));
+          }
         }
         else {
 
           // This is a pair of records. Check which type of record it is and then combine the records into a Ghostfolio activity.
 
           // Check wether it is a buy/sell record set.
-          if (this.isBuyOrSellRecordSet(record, matchByOrderId)) {
-            result.activities.push(this.combineRecords(record, matchByOrderId, security));
+          if (this.isBuyOrSellRecordSet(record, matchingRecord)) {
+            result.activities.push(this.combineRecords(record, matchingRecord, security));
           } else {
-            result.activities.push(this.mapDividendRecord(record, matchByOrderId, security));
+            result.activities.push(this.mapDividendRecord(record, matchingRecord, security));
           }
         }
 
@@ -214,17 +259,23 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "operation de change",
       "versement de fonds",
       "débit",
+      "debit",
       "depósito",
       "ingreso",
       "retirada",
       "levantamento de divisa",
-      "dito de divisa"];
+      "dito de divisa",
+      "fonds monétaires"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
 
   private findMatchByOrderId(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
     return records.find(r => r.orderId === currentRecord.orderId);
+  }
+
+  private findMatchByIsin(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
+    return records.find(r => r.isin === currentRecord.isin && r.product === currentRecord.product);
   }
 
   private mapRecordToActivity(record: DeGiroRecord, security?: YahooFinanceRecord, isTransactionFeeRecord: boolean = false): GhostfolioActivity {
@@ -243,8 +294,8 @@ export class DeGiroConverterV3 extends AbstractConverter {
       const totalAmount = parseFloat(record.amount.replace(",", "."));
       unitPrice = parseFloat((Math.abs(totalAmount) / numberShares).toFixed(3));
 
-      // If amount is negative, so money has been removed, thus it's a buy record.      
-      if (totalAmount < 0) {
+      // If amount is negative (so money has been removed) or it's stock dividend (so free shares), thus it's a buy record.
+      if (totalAmount < 0 || record.description.toLocaleLowerCase().indexOf("stock dividend") > -1) {
         orderType = GhostfolioOrderType.buy;
       } else {
         orderType = GhostfolioOrderType.sell;
@@ -261,12 +312,12 @@ export class DeGiroConverterV3 extends AbstractConverter {
     // Create the record.
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-      comment: record.orderId,
+      comment: record.orderId ?? `${orderType === GhostfolioOrderType.buy ? "Buy" : "Sell"} ${record.isin} @ ${record.date}T${record.time}`,
       fee: feeAmount,
       quantity: numberShares,
       type: orderType,
       unitPrice: unitPrice,
-      currency: security.currency ?? record.currency ?? "",
+      currency: record.currency ?? "",
       dataSource: "YAHOO",
       date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
       symbol: security.symbol ?? "",
@@ -321,12 +372,12 @@ export class DeGiroConverterV3 extends AbstractConverter {
     // Create the record.
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-      comment: `Dividend ${currentRecord.date}T${currentRecord.time}`,
+      comment: `Dividend ${dividendRecord.isin} @ ${currentRecord.date}T${currentRecord.time}`,
       fee: fees,
       quantity: 1,
       type: GhostfolioOrderType.dividend,
       unitPrice: unitPrice,
-      currency: security.currency ?? dividendRecord.currency,
+      currency: dividendRecord.currency,
       dataSource: "YAHOO",
       date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
       symbol: security.symbol,
@@ -367,7 +418,14 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
   private isPlatformFees(record: DeGiroRecord): boolean {
 
-    const platformFeeRecordType = ["aansluitingskosten", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion", "juros", "corporate action"];
+    const platformFeeRecordType = ["aansluitingskosten", "connection fee", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion", "juros", "corporate action"];
+
+    return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
+  }
+
+  private isInterest(record: DeGiroRecord): boolean {
+
+    const platformFeeRecordType = ["degiro courtesy"];
 
     return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
