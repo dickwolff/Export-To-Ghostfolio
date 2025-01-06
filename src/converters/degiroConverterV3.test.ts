@@ -6,7 +6,7 @@ import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
 describe("degiroConverterV3", () => {
 
   beforeEach(() => {
-    jest.spyOn(console, "log").mockImplementation(jest.fn());
+    // jest.spyOn(console, "log").mockImplementation(jest.fn());
     jest.spyOn(console, "error").mockImplementation(jest.fn());
   });
 
@@ -35,29 +35,7 @@ describe("degiroConverterV3", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(24);
-
-      done();
-    }, () => { done.fail("Should not have an error!"); });
-  });
-
-  it("should map GBP to GBp if Yahoo Finance returns GBp for AV.L", (done) => {
-
-    // Arrange
-    const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
-
-    let tempFileContent = "";
-    tempFileContent += "Date,Time,Value date,Product,ISIN,Description,FX,Change,,Balance,,Order Id\n";
-    tempFileContent += `02-04-2024,09:00,02-04-2024,AVIVA,GB00BPQY8M80,Sell 4 AVIVA@496 GBX (GB00BPQY8M80),,GBP,19.84,GBP,114.31,86c1f17b-8a74-4126-af39-61049bcb6e33\n`;
-
-    // Act
-    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
-
-      // Assert
-      expect(actualExport).toBeTruthy();
-      expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(1);
-      expect(actualExport.activities[0].currency).toBe("GBp");
+      expect(actualExport.activities.length).toBe(26);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
@@ -168,5 +146,36 @@ describe("degiroConverterV3", () => {
 
       done();
     }, () => done.fail("Should not have an error!"));
+  });
+
+  it("should process foreign currency", (done) => {
+
+    // Arrange
+    let tempFileContent = "";
+    tempFileContent += "Datum,Tijd,Valutadatum,Product,ISIN,Omschrijving,FX,Mutatie,,Saldo,,Order Id\n";
+    tempFileContent += `03-03-2020,11:14,03-03-2020,ISHARES GLOBAL CLEAN ENERGY UCITS ETF,IE00B1XNHC34,"Koop 475 @ 583,5 GBX",,GBP,-2771.63,GBP,,3b000105-xxxx-xxxx-xxxx-xxxxxxxxxxxx\n`;
+    tempFileContent += `02-04-2024,09:00,02-04-2024,AVIVA,GB00BPQY8M80,Sell 4 AVIVA@496 GBX (GB00BPQY8M80),,GBP,19.84,GBP,114.31,86c1f17b-8a74-4126-af39-61049bcb6e33\n`;
+    tempFileContent += `27-05-2024,07:41,24-05-2024,TOYOTA MOTOR CORP,JP3633400001,Dividend,,JPY,9999.99,JPY,9999.99,\n`;
+    tempFileContent += `27-05-2024,07:41,24-05-2024,TOYOTA MOTOR CORP,JP3633400001,Dividendbelasting,,JPY,-9999.99,JPY,-9999.99,\n`;
+    tempFileContent += `08-03-2024,11:25,08-03-2024,TOYOTA MOTOR CORP,JP3633400001,DEGIRO Transactiekosten en/of kosten van derden,,EUR,-9999.99,EUR,9999.99,541651641\n`;
+    tempFileContent += `08-03-2024,11:25,08-03-2024,TOYOTA MOTOR CORP,JP3633400001,"Koop 30 @ 22,4 EUR",,EUR,-9999.99,EUR,9999.99,541651641`;
+
+    const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
+
+    // Act
+    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+
+      // Assert
+      expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBeGreaterThan(0);
+      expect(actualExport.activities.length).toBe(4);
+
+      expect(actualExport.activities[0].currency).toBe("GBP");
+      expect(actualExport.activities[1].currency).toBe("GBP");
+      expect(actualExport.activities[2].currency).toBe("JPY");
+      expect(actualExport.activities[3].currency).toBe("JPY");
+
+      done();
+    }, (e) => { console.log(e); done.fail("Should not have an error!"); });
   });
 });
