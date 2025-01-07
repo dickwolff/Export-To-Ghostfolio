@@ -34,7 +34,32 @@ describe("etoroConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(24);
+      expect(actualExport.activities.length).toBe(26);
+
+      done();
+    }, () => { done.fail("Should not have an error!"); });
+  });
+
+  it("should process fee and interest records with comments", (done) => {
+
+    // Arange
+    const sut = new EtoroConverter(new SecurityService(new YahooFinanceServiceMock()));
+    const inputFile = "samples/etoro-export.csv";
+
+    // Act
+    sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
+
+      // Assert
+      expect(actualExport).toBeTruthy();
+      const fee = actualExport.activities[23];
+      expect(fee.comment).toBe("FEE CFD Daily");
+      expect(fee.type).toBe("FEE");
+      expect(fee.fee).toBe(0.31);
+
+      const refund = actualExport.activities[24];
+      expect(refund.comment).toBe("REFUND CFD Daily");
+      expect(refund.type).toBe("INTEREST");
+      expect(refund.fee).toBe(0.21);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
