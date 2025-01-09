@@ -46,6 +46,12 @@ export class EtoroConverter extends AbstractConverter {
                     else if (action.indexOf("interest") > -1) {
                         return "interest";
                     }
+                    else if (action.indexOf("fee") > -1) {
+                        return "fee";
+                    }
+                    else if (action.indexOf("refund") > -1) {
+                        return "refund";
+                    }
                 }
 
                 // Parse numbers to floats (from string).
@@ -97,18 +103,28 @@ export class EtoroConverter extends AbstractConverter {
 
                 const date = dayjs(`${record.date}`, "DD/MM/YYYY HH:mm:ss");
 
-                // Interest does not have a security, so add those immediately.
-                if (record.type.toLocaleLowerCase() === "interest") {
+                // Interest, fee and refund does not have a security, so add those immediately.
+                if (record.type.toLocaleLowerCase() === "interest" || record.type.toLocaleLowerCase() === "fee" || record.type.toLocaleLowerCase() === "refund") {
 
                     const feeAmount = Math.abs(record.amount);
+                    let recordType = record.type
+                    let comment = '';
+
+                    if (record.type.toLocaleLowerCase() === "fee" || record.type.toLocaleLowerCase() === "refund") {
+                        comment += `${recordType.toLocaleUpperCase()} ${record.assetType} ${record.details}`;
+                    }
+
+                    if (recordType.toLocaleLowerCase() === "refund") {
+                        recordType = "interest";
+                    }
 
                     // Add fees record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: "",
+                        comment: comment,
                         fee: feeAmount,
                         quantity: 1,
-                        type: GhostfolioOrderType[record.type],
+                        type: GhostfolioOrderType[recordType],
                         unitPrice: feeAmount,
                         currency: "USD",
                         dataSource: "MANUAL",
