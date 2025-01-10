@@ -140,6 +140,12 @@ export class Trading212Converter extends AbstractConverter {
                     continue;
                 }
 
+                // When the currency is GBX/GBp, convert to GBP.
+                if (record.currencyPriceShare === "GBp") {
+                    record.priceShare = record.priceShare / 100;
+                    record.currencyPriceShare = "GBP";
+                }
+                
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,

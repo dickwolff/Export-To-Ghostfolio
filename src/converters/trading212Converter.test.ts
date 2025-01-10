@@ -40,6 +40,27 @@ describe("trading212Converter", () => {
     }, () => { done.fail("Should not have an error!"); });
   });
 
+  it("should convert GBX to GBp and then convert to GBP", (done) => {
+
+    // Arrange
+    let tempFileContent = "";
+    tempFileContent += "Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)\n";
+    tempFileContent += `Dividend (Dividend),2024-01-12 14:14:14,IE00B1XNHC34,INRG,"iShares Global Clean Energy UCITS ETF",0.0280492000,630.11,GBX,Not available,,,17.67,"EUR",15.02,USD,,,,`;
+
+    const sut = new Trading212Converter(new SecurityService(new YahooFinanceServiceMock()));
+
+    // Act
+    sut.processFileContents(tempFileContent,  (actualExport: GhostfolioExport) => {
+
+      // Assert
+      expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBe(1);
+      expect(actualExport.activities[0].unitPrice).toBe(6.3011);
+
+      done();
+    }, () => done.fail("Should not have an error!"));
+  });
+
   describe("should throw an error if", () => {
     it("the input file does not exist", (done) => {
 
@@ -76,7 +97,7 @@ describe("trading212Converter", () => {
         done();
       });
     });
-    
+
     it("the header and row column count doesn't match", (done) => {
 
       // Arrange
