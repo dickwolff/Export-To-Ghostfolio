@@ -44,7 +44,7 @@ export class XtbConverter extends AbstractConverter {
                     else if (type.indexOf("free funds interests") > -1) {
                         return "interest";
                     }
-                    else if (type.indexOf("sec fee") > -1 || type.indexOf("swap") > -1) {
+                    else if (type.indexOf("sec fee") > -1 || type.indexOf("swap") > -1 || type.indexOf("commission") > -1) {
                         return "fee";
                     }
                     else if (type.indexOf("dividend") > -1) {
