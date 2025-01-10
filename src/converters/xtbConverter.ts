@@ -44,8 +44,14 @@ export class XtbConverter extends AbstractConverter {
                     else if (type.indexOf("free funds interests") > -1) {
                         return "interest";
                     }
+                    else if (type.indexOf("sec fee") > -1 || type.indexOf("swap") > -1) {
+                        return "fee";
+                    }
                     else if (type.indexOf("dividend") > -1) {
                         return "dividend";
+                    }
+                    else if (type.indexOf("profit/loss") > -1) {
+                        return "profitloss";
                     }
                 }
 
@@ -96,6 +102,16 @@ export class XtbConverter extends AbstractConverter {
 
                 const date = dayjs(`${record.time}`, "DD.MM.YYYY HH:mm:ss");
 
+                // If the record is a profit/loss, check if it should be a fee or interest.
+                if (record.type.toLocaleLowerCase() === "profitloss") {
+                    if (record.amount < 0) {
+                        record.type = "fee";
+                    }
+                    else {
+                        record.type = "interest";
+                    }
+                }
+
                 // Interest does not have a security, so add those immediately.
                 if (record.type.toLocaleLowerCase() === "interest") {
 
@@ -107,6 +123,26 @@ export class XtbConverter extends AbstractConverter {
                         quantity: 1,
                         type: GhostfolioOrderType[record.type],
                         unitPrice: record.amount,
+                        currency: process.env.XTB_ACCOUNT_CURRENCY || "EUR",
+                        dataSource: "MANUAL",
+                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: record.comment,
+                    });
+
+                    bar1.increment();
+                    continue;
+                }
+
+                if (record.type.toLocaleLowerCase() === "fee") {
+
+                    // Add interest record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: record.comment,
+                        fee: Math.abs(record.amount),
+                        quantity: 1,
+                        type: GhostfolioOrderType[record.type],
+                        unitPrice: 0,
                         currency: process.env.XTB_ACCOUNT_CURRENCY || "EUR",
                         dataSource: "MANUAL",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
