@@ -249,6 +249,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "währungswechsel",
       "trasferisci",
       "deposito",
+      "credit",
       "credito",
       "prelievo",
       "creditering",
