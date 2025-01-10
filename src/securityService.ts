@@ -38,7 +38,7 @@ export class SecurityService {
 
         // Also override console.error, since for some reason yahooFinance2 does not allows to disable this inside their library.
         /* istanbul ignore next */
-        console.error = () =>{};
+        console.error = () => { };
 
         // Retrieve prefered exchange postfix if set in .env
         this.preferedExchangePostfix = process.env.DEGIRO_PREFERED_EXCHANGE_POSTFIX;
@@ -113,9 +113,15 @@ export class SecurityService {
         // If still no match has been found and the symbol contains a dot ('.'), take the part before the dot and search again.
         if (!symbolMatch && symbol && symbol.indexOf(".") > -1) {
             const symbolSplit = symbol.split(".");
-            this.logDebug(`getSecurity(): No match found for ${symbol}, trying to symbol ${symbolSplit[0]}`, progress);
-            const queryBySymbol = await this.getSymbolsByQuery(symbolSplit[0], progress);
-            symbolMatch = this.findSymbolMatchByCurrency(queryBySymbol, expectedCurrency);
+            this.logDebug(`getSecurity(): No match found for ${symbol}, trying by symbol ${symbolSplit[0]}`, progress);
+
+            if (this.symbolCache.has(symbolSplit[0])) {
+                symbolMatch = this.symbolCache.get(symbolSplit[0]);
+            }
+            else {
+                const queryBySymbol = await this.getSymbolsByQuery(symbolSplit[0], progress);
+                symbolMatch = this.findSymbolMatchByCurrency(queryBySymbol, expectedCurrency);
+            }
         }
 
         // If no name was given, take name from the first ISIN match.
@@ -231,7 +237,7 @@ export class SecurityService {
             // Get quote summary details (containing currency, price, etc).
             // Put in try-catch, since Yahoo Finance can return faulty data and crash..
             let quoteSummaryResult;
-            try {                
+            try {
                 quoteSummaryResult = await this.yahooFinance.quoteSummary(quote.symbol, {}, { validateResult: false });
             }
             catch (err) {
