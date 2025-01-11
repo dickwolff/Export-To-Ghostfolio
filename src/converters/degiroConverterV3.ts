@@ -71,6 +71,13 @@ export class DeGiroConverterV3 extends AbstractConverter {
         activities: []
       };
 
+      // Inverse records so they come in the chronological order. This is very important since
+      // selecion of security should happe based on buy/sell records, and not dividend/fee records.
+      // By default DeGiro's CSV file has the most recent records at the top. So, by inversing
+      // the order we process records in choronological order but keep internal releationships
+      // between records which we can break if, for instance, sort by date/time.
+      plainRecords.reverse();
+
       // Map plain objects to DeGiroRecord instances
       const records = plainRecords.map(record => DeGiroRecord.fromPlainObject(record));
 
