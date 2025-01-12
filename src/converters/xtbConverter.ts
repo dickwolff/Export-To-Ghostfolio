@@ -44,6 +44,19 @@ export class XtbConverter extends AbstractConverter {
                     else if (type.indexOf("free funds interests") > -1) {
                         return "interest";
                     }
+                    else if (type.indexOf("sec fee") > -1 || type.indexOf("swap") > -1 || type.indexOf("commission") > -1) {
+                        return "fee";
+                    }
+                    else if (type.indexOf("dividend") > -1) {
+                        return "dividend";
+                    }
+                    else if (type.indexOf("profit/loss") > -1) {
+                        return "profitloss";
+                    }
+                }
+
+                if (context.column === "symbol" && columnValue.endsWith(".UK")) {
+                    return columnValue.replace(".UK", ".L");
                 }
 
                 // Parse numbers to floats (from string).
@@ -89,6 +102,16 @@ export class XtbConverter extends AbstractConverter {
 
                 const date = dayjs(`${record.time}`, "DD.MM.YYYY HH:mm:ss");
 
+                // If the record is a profit/loss, check if it should be a fee or interest.
+                if (record.type.toLocaleLowerCase() === "profitloss") {
+                    if (record.amount < 0) {
+                        record.type = "fee";
+                    }
+                    else {
+                        record.type = "interest";
+                    }
+                }
+
                 // Interest does not have a security, so add those immediately.
                 if (record.type.toLocaleLowerCase() === "interest") {
 
@@ -110,9 +133,31 @@ export class XtbConverter extends AbstractConverter {
                     continue;
                 }
 
-                const match = record.comment.match(/(?:OPEN|CLOSE) BUY (\d+|(?:[0-9]*[.])?[0-9]+)(?:\/(?:[0-9]*[.])?[0-9]+)? @ ((?:[0-9]*[.])?[0-9]+)/)
-                const quantity = parseFloat(match[1]);
-                const unitPrice = parseFloat(match[2]);
+                if (record.type.toLocaleLowerCase() === "fee") {
+
+                    // Add interest record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: record.comment,
+                        fee: Math.abs(record.amount),
+                        quantity: 1,
+                        type: GhostfolioOrderType[record.type],
+                        unitPrice: 0,
+                        currency: process.env.XTB_ACCOUNT_CURRENCY || "EUR",
+                        dataSource: "MANUAL",
+                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: record.comment,
+                    });
+
+                    bar1.increment();
+                    continue;
+                }
+
+                const match = record.comment.match(/(?:OPEN|CLOSE) BUY ((?:[0-9]*[.])?[0-9]+) @ ((?:[0-9]*[.])?[0-9]+)|((?:[0-9]*[.])?[0-9]+)(?:\/)/)
+
+                let quantity = parseFloat(match[1]);
+                let unitPrice = parseFloat(match[2]);
+                const dividendPerShare = parseFloat(match[3]);
 
                 let security: YahooFinanceRecord;
                 try {
@@ -135,11 +180,27 @@ export class XtbConverter extends AbstractConverter {
                     continue;
                 }
 
+                let feeAmount = 0;
+
+                // Dividend usually goes with a dividend tax record, so look it up.
+                if (record.type.toLocaleLowerCase() === "dividend") {
+
+                    const taxRecord = this.lookupDividendTaxRecord(records, idx);
+
+                    // If there was a dividend tax record found, check if it matches the dividend record.
+                    if (taxRecord && taxRecord.symbol === record.symbol && taxRecord.time === record.time) {
+
+                        feeAmount = Math.abs(taxRecord.amount);
+                        quantity = (record.amount / dividendPerShare);
+                        unitPrice = dividendPerShare;
+                    }
+                }
+
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: record.comment,
-                    fee: 0,
+                    fee: feeAmount,
                     quantity: quantity,
                     type: GhostfolioOrderType[record.type],
                     unitPrice: unitPrice,
@@ -162,8 +223,32 @@ export class XtbConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: XtbRecord): boolean {
-        let ignoredRecordTypes = ["deposit", "withdrawal"];
-console.log(record)
+        let ignoredRecordTypes = ["deposit", "withdrawal", "tax", "transfer"];
+
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
+    }
+
+    private lookupDividendTaxRecord(records: XtbRecord[], idx: number): XtbRecord | undefined {
+
+        let taxRecord;
+
+        // Look ahead at the next record (if there are any records left).
+        if (idx > 0 && records.length - 1 > idx + 1) {
+            const nextRecord = records[idx + 1];
+
+
+            if (nextRecord.type.toLocaleLowerCase().indexOf("tax") > -1) {
+                taxRecord = nextRecord;
+            }
+        }
+        else {
+            // Look back at the previous record.
+            const previousRecord = records[idx - 1];
+            if (previousRecord.type.toLocaleLowerCase().indexOf("tax") > -1) {
+                taxRecord = previousRecord;
+            }
+        }
+
+        return taxRecord;
     }
 }

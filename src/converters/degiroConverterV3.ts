@@ -250,6 +250,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "trasferisci",
       "deposito",
       "credito",
+      "credit",
       "prelievo",
       "creditering",
       "debitering",
