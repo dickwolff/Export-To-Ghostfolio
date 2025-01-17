@@ -52,7 +52,10 @@ export class RevolutConverter extends AbstractConverter {
                 // Parse numbers to floats (from string).
                 if (context.column === "quantity" ||
                     context.column === "pricePerShare" ||
-                    context.column === "totalAmount") {
+                    context.column === "totalAmount" ||
+                    context.column === "price" ||
+                    context.column === "value" ||
+                    context.column === "fees") {
                     if (columnValue === "") {
                         return 0;
                     }
@@ -123,7 +126,7 @@ export class RevolutConverter extends AbstractConverter {
                 try {
                     security = await this.securityService.getSecurity(
                         null,
-                        record.ticker,
+                        record.ticker ?? record.symbol,
                         null,
                         record.currency,
                         this.progress);
