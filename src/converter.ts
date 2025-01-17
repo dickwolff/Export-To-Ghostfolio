@@ -50,6 +50,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
         // Set cash balance update setting according to settings.
         result.updateCashBalance = `${process.env.GHOSTFOLIO_UPDATE_CASH}`.toLocaleLowerCase() === "true"
 
+        // Check if the output needs to be split into chunks. If so, calculate how many files need to be produced.
         const splitOutput = `${process.env.GHOSTFOLIO_SPLIT_OUTPUT}`.toLocaleLowerCase() === "true";
         const filesToProduce = !splitOutput ? 1 : Math.round(result.activities.length / 25);
 
