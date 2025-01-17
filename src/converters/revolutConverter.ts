@@ -35,7 +35,7 @@ export class RevolutConverter extends AbstractConverter {
                 if (context.column === "type") {
                     const action = columnValue.toLocaleLowerCase();
 
-                    if (action.indexOf("buy") > -1) {
+                    if (action.indexOf("buy") > -1 || action.indexOf("stock split") > -1) {
                         return "buy";
                     }
                     else if (action.indexOf("sell") > -1) {
@@ -53,6 +53,10 @@ export class RevolutConverter extends AbstractConverter {
                 if (context.column === "quantity" ||
                     context.column === "pricePerShare" ||
                     context.column === "totalAmount") {
+                    if (columnValue === "") {
+                        return 0;
+                    }
+                    
                     return parseFloat(columnValue.replace(/[$]/g, '').trim());
                 }
 
@@ -145,7 +149,7 @@ export class RevolutConverter extends AbstractConverter {
                     quantity = record.quantity;
                     unitPrice = record.pricePerShare;
                 }
-
+console.log(record)
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
