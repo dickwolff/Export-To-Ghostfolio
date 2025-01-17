@@ -1,7 +1,7 @@
 # Export to Ghostfolio
 
 [![Github-sponsors](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#EA4AAA)](https://github.com/sponsors/dickwolff) &nbsp;
-[![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/dickw0lff) 
+[![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/dickw0lff)
 
 ![Code Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/dickwolff/dd5dc24ffa62de59b3d836f856f48a10/raw/cov.json)
 
@@ -56,7 +56,6 @@ Login to your DEGIRO account and create an export file (via Inbox > Account Over
 
 Open the Delta app. Open the menu, then click "Settings". Go to "Devices & Data", then "Export data". Select the portfolio to export, then click the "Download" button to get the CSV file.
 
-
 ### Directa
 
 Open Directa App, select "Libera" mode and go on Transactions ("Movimenti").
@@ -64,7 +63,6 @@ Open Directa App, select "Libera" mode and go on Transactions ("Movimenti").
 
 Choose date range on the right and click on "Excel" icon, in the modal select "File separato da virgole (csv)" and "Estrai"
 ![Export instructions for Directa, Export](./assets/directa-export.png)
-
 
 ### eToro
 
@@ -170,12 +168,13 @@ The following parameters can be given to the Docker run command.
 | `--env USE_POLLING=true`                     | Y        | When set to true, the container will continously look for new files to process and the container will not stop.                                            |
 | `--env DEBUG_LOGGING=true`                   | Y        | When set to true, the container will show logs in more detail, useful for error tracing.                                                                   |
 | `--env PURGE_CACHE=true`                     | Y        | When set to true, the file cache will be purged on start.                                                                                                  |
+| `--env GHOSTFOLIO_SPLIT_OUTPUT=true`           | Y        | When set to true, the result file will be split into chunks of 25 activities, allowing it to be uploaded to [Ghostfolio's hosted service](https://ghostfol.io). |
 | `--env GHOSTFOLIO_VALIDATE=true`             | Y        | When set to true, the tool with automatically validate the generated file against Ghostfolio.                                                              |
 | `--env GHOSTFOLIO_IMPORT=true`               | Y        | When set to true, the tool will try to automatically import the generated file into Ghostfolio.                                                            |
 | `--env GHOSTFOLIO_URL=http://xxxxxxx`        | Y        | The endpoint of your **local** Ghostfolio instance. E.g. `http://192.168.1.15:3333`. **Use ONLY with a local Ghostfolio instance!**                        |
 | `--env GHOSTFOLIO_SECRET=xxxxxxx`            | Y        | The credentials of your Ghostfolio user. Used to authenticate with the `import` API endpoint. **Use ONLY with a local Ghostfolio instance!**               |
 
-[^1]: You can retrieve your Ghostfolio account ID by going to Accounts > Edit for your account and copying the Account ID field 
+[^1]: You can retrieve your Ghostfolio account ID by going to Accounts > Edit for your account and copying the Account ID field
 
 ![image](assets/account_settings.png)
 
@@ -216,8 +215,8 @@ Run `npm install` to install all required packages.
 The repository contains a sample `.env` file. Rename this from `.env.sample`.
 
 - Put your export file path in the `INPUT_FILE` variable. This has to be relative to the root of the project.
-- Put the Ghostfolio account name where you want your transactions to end up at in `GHOSTFOLIO_ACCOUNT_ID` 
-  - This can be retrieved by going to Accounts > select your account and copying the ID from the URL 
+- Put the Ghostfolio account name where you want your transactions to end up at in `GHOSTFOLIO_ACCOUNT_ID`
+  - This can be retrieved by going to Accounts > select your account and copying the ID from the URL
   
     ![image](https://user-images.githubusercontent.com/5620002/203353840-f5db7323-fb2f-4f4f-befc-e4e340466a74.png)
 - Optionally you can set the `GHOSTFOLIO_UPDATE_CASH` variable to `TRUE` to automatically update your Ghostfolio account cash balance after processing the activities.
@@ -262,6 +261,7 @@ The export file can now be imported in Ghostfolio by going to Portfolio > Activi
 ### Automatically (experimental)
 
 There is an experimental feature (since 0.12.0) with which you can automatically validate and import the generated file into Ghostfolio! To use this, set the corresponding environment variables:
+
 | Variable                              | Description                                                                                                                                  |
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--env GHOSTFOLIO_VALIDATE=true`      | When set to true, the tool with automatically validate the generated file against Ghostfolio.                                                |
@@ -275,7 +275,7 @@ There is an experimental feature (since 0.12.0) with which you can automatically
 
 We welcome any contribution to the repository. Feel free to create an [issue](https://github.com/dickwolff/Export-To-Ghostfolio/issues/new) or, even better, build it yourself and create a [pull request](https://github.com/dickwolff/Export-To-Ghostfolio/compare)!
 
-The tool can be run two ways, manually and via Docker. Both entrypoints of the tool can be found in the ‘src/‘ folder. 
+The tool can be run two ways, manually and via Docker. Both entrypoints of the tool can be found in the ‘src/‘ folder.
 The tool uses a mock in the tests, which allow the tests to be run in a consistent and repeatable manner. This way there is no necessity for a live Yahoo Finance service. The mock was added because of inconsistencies in between test runs and rate-limiting issues with Yahoo Finance (with multiple consequetive runs, especially when running locally).
 
 Whenever you add a new converter or create a fix for an existing one, please refer to the [Wiki](https://github.com/dickwolff/Export-To-Ghostfolio/wiki/Add-new-testdata-to-Yahoo-Finance-mock) for instructions on how to extend the mock with testdata.
