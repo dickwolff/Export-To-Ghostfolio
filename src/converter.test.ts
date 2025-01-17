@@ -16,7 +16,7 @@ for (let idx = 0; idx < 43; idx++) {
     }
 }
 
-describe("222converter", () => {
+describe("converter", () => {
 
     beforeAll(() => {
         jest.spyOn(console, "log").mockImplementation(jest.fn());
