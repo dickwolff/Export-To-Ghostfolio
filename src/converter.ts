@@ -27,7 +27,7 @@ import { DirectaConverter } from "./converters/directaConverter";
 
 import packageInfo from "../package.json";
 
-async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction) {
+async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction, securityService?: SecurityService) {
 
     // Verify if Ghostolio account ID is set (because without it there can be no valid output).
     if (!process.env.GHOSTFOLIO_ACCOUNT_ID) {
@@ -42,7 +42,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
     const converterTypeLc = converterType.toLocaleLowerCase();
 
     // Determine convertor type.
-    const converter = await createConverter(converterTypeLc);
+    const converter = await createConverter(converterTypeLc, securityService);
 
     // Map the file to a Ghostfolio import.
     converter.readAndProcessFile(inputFilePath, async (result: GhostfolioExport) => {
@@ -50,7 +50,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
         // Set cash balance update setting according to settings.
         result.updateCashBalance = `${process.env.GHOSTFOLIO_UPDATE_CASH}`.toLocaleLowerCase() === "true"
 
-        const splitOutput = `{process.env.GHOSTFOLIO_SPLIT_OUTPUT}`.toLocaleLowerCase() === "true";
+        const splitOutput = `${process.env.GHOSTFOLIO_SPLIT_OUTPUT}`.toLocaleLowerCase() === "true";
         const filesToProduce = !splitOutput ? 1 : Math.round(result.activities.length / 25);
 
         console.log(`[i] Processing complete, writing to ${filesToProduce === 1 ? "file" : filesToProduce + " files"}..`);
@@ -63,16 +63,18 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
 
         for (let fix = 0; fix < filesToProduce; fix++) {
 
-            // Check how many files need to be produced.
-            // If it's 1, then assign all activities. Otherwise, take the 25 that are currently relevant.
-            baseResult.activities = filesToProduce === 1 ? result.activities : result.activities.slice(fix * 25, 25)
+            // If only one file is to be produced, copy all activities.
+            // Otherwise, slice the activities into chunks of 25.
+            baseResult.activities = filesToProduce === 1
+                ? result.activities
+                : result.activities.slice(fix * 25, (fix + 1) * 25);
 
             // Write result to file.
             const outputFileName = path.join(outputFilePath, `ghostfolio-${converterTypeLc}${filesToProduce === 1 ? "" : "-" + (fix + 1)}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
             const fileContents = JSON.stringify(baseResult, null, spaces);
             fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
 
-            console.log(`[i] Wrote data to '${outputFileName}'${filesToProduce === 1 ? "" : " (" + fix + 1 + " of " + filesToProduce + ")"}+ "!`);
+            console.log(`[i] Wrote data to '${outputFileName}'${filesToProduce === 1 ? "" : " (" + (fix + 1) + " of " + filesToProduce + ")"}`);
 
             await tryAutomaticValidationAndImport(outputFileName);
         }
@@ -82,9 +84,12 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
     }, (error) => errorCallback(error));
 }
 
-async function createConverter(converterType: string): Promise<AbstractConverter> {
+async function createConverter(converterType: string, securityService?: SecurityService): Promise<AbstractConverter> {
 
-    const securityService = new SecurityService();
+    // If no security service is provided, create a new one.
+    if (!securityService) {
+        securityService = new SecurityService();
+    }
 
     const cacheSize = await securityService.loadCache();
     console.log(`[i] Restored ${cacheSize[0]} ISIN-symbol pairs and ${cacheSize[1]} symbols from cache..`);
