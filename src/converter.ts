@@ -50,16 +50,32 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
         // Set cash balance update setting according to settings.
         result.updateCashBalance = `${process.env.GHOSTFOLIO_UPDATE_CASH}`.toLocaleLowerCase() === "true"
 
-        console.log("[i] Processing complete, writing to file..")
+        const splitOutput = `{process.env.GHOSTFOLIO_SPLIT_OUTPUT}`.toLocaleLowerCase() === "true";
+        const filesToProduce = !splitOutput ? 1 : Math.round(result.activities.length / 25);
 
-        // Write result to file.
-        const outputFileName = path.join(outputFilePath, `ghostfolio-${converterTypeLc}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
-        const fileContents = JSON.stringify(result, null, spaces);
-        fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
+        console.log(`[i] Processing complete, writing to ${filesToProduce === 1 ? "file" : filesToProduce + " files"}..`);
 
-        console.log(`[i] Wrote data to '${outputFileName}'!`);
+        // Create a base result by copying everything but the activities.
+        const baseResult: GhostfolioExport = {
+            ...result,
+            activities: []
+        };
 
-        await tryAutomaticValidationAndImport(outputFileName);
+        for (let fix = 0; fix < filesToProduce; fix++) {
+
+            // Check how many files need to be produced.
+            // If it's 1, then assign all activities. Otherwise, take the 25 that are currently relevant.
+            baseResult.activities = filesToProduce === 1 ? result.activities : result.activities.slice(fix * 25, 25)
+
+            // Write result to file.
+            const outputFileName = path.join(outputFilePath, `ghostfolio-${converterTypeLc}${filesToProduce === 1 ? "" : "-" + (fix + 1)}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
+            const fileContents = JSON.stringify(baseResult, null, spaces);
+            fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
+
+            console.log(`[i] Wrote data to '${outputFileName}'${filesToProduce === 1 ? "" : " (" + fix + 1 + " of " + filesToProduce + ")"}+ "!`);
+
+            await tryAutomaticValidationAndImport(outputFileName);
+        }
 
         completionCallback();
 
