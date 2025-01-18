@@ -41,7 +41,7 @@ export class RevolutConverter extends AbstractConverter {
                     else if (action.indexOf("sell") > -1) {
                         return "sell";
                     }
-                    else if (action.indexOf("dividend") > -1) {
+                    else if (action.indexOf("dividend") > -1 || action.indexOf("reward") > -1) {
                         return "dividend";
                     }
                     else if (action.indexOf("fee") > -1) {
@@ -92,7 +92,7 @@ export class RevolutConverter extends AbstractConverter {
 
             for (let idx = 0; idx < records.length; idx++) {
                 const record = records[idx];
-
+console.log(record)
                 // Check if the record should be ignored.
                 if (this.isIgnoredRecord(record)) {
                     bar1.increment();
@@ -111,7 +111,7 @@ export class RevolutConverter extends AbstractConverter {
                         fee: feeAmount,
                         quantity: 1,
                         type: GhostfolioOrderType[record.type],
-                        unitPrice: feeAmount,
+                        unitPrice: 0,
                         currency: record.currency,
                         dataSource: "MANUAL",
                         date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
