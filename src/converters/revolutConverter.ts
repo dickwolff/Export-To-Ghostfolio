@@ -18,7 +18,7 @@ export class RevolutConverter extends AbstractConverter {
      */
     public processFileContents(input: string, successCallback: any, errorCallback: any): void {
 
-        if (input.split("\n")[0].split(",").length === 6) {
+        if (input.split("\n")[0].split(",").length === 7) {
             return this.processCryptoFileContents(input, successCallback, errorCallback);
         }
 
@@ -29,7 +29,7 @@ export class RevolutConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: RevolutRecord): boolean {
-        let ignoredRecordTypes = ["transfer from", "withdrawal", "top-up"];
+        let ignoredRecordTypes = ["transfer from", "withdrawal", "top-up", "stake", "send", "receive"];
 
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
     }
@@ -90,48 +90,27 @@ export class RevolutConverter extends AbstractConverter {
             delimiter: ",",
             fromLine: 2,
             columns: this.processHeaders(input),
-            cast: (columnValue, context) => {
+            on_record: (record) => {
 
                 // Custom mapping below.
 
+                const recordType = record.type.toLocaleLowerCase();
+                record.type = recordType === "buy" ? "buy" : recordType === "sell" ? "sell" : "dividend";
 
-                // Convert actions to Ghostfolio type.
-                if (context.column === "type") {
-                    const action = columnValue.toLocaleLowerCase();
+                record.currency = this.detectCurrency(record.price);
 
-                    if (action.indexOf("buy") > -1) {
-                        return "buy";
-                    }
-                    else if (action.indexOf("sell") > -1) {
-                        return "sell";
-                    }
-                    else if (action.indexOf("reward") > -1) {
-                        return "dividend";
-                    }
-                }
+                const priceAmount = record.price.match(/([\d.,]+)/g) ?? ["0"];
+                record.price = record.price !== "" ? parseFloat(priceAmount[0].replace(",", "")) : 0;
 
-                // Parse numbers to floats (from string).
-                if (context.column === "quantity") {
-                    if (columnValue === "") {
-                        return 0;
-                    }
+                const valueAmount = record.value.match(/([\d.,]+)/g);
+                record.value = record.value !== "" ? parseFloat(valueAmount[0].replace(",", "")) : 0;
 
-                    return parseFloat(columnValue.replace(/[$]/g, '').trim());
-                }
+                const feesAmount = record.fees.match(/([\d.,]+)/g);
+                record.fees = record.fees !== "" ? parseFloat(feesAmount[0].replace(",", "")) : 0;
 
-                // Fields below also contain the currency, so we need to split them.
-                if (context.column === "price" ||
-                    context.column === "value" ||
-                    context.column === "fees") {
+                record.quantity = parseFloat(record.quantity);
 
-                    if (columnValue === "") {
-                        return 0;
-                    }
-
-                    const match = columnValue.match(/^([\d,\.]+)\s*(\w+)$/);
-
-                    return columnValue;
-                }
+                return record;
             }
         }, async (err, records: RevolutRecord[]) => await this.processRevolutFile(err, records, successCallback, errorCallback));
     }
@@ -163,7 +142,7 @@ export class RevolutConverter extends AbstractConverter {
 
         for (let idx = 0; idx < records.length; idx++) {
             const record = records[idx];
-            console.log(record)
+
             // Check if the record should be ignored.
             if (this.isIgnoredRecord(record)) {
                 bar1.increment();
@@ -197,7 +176,7 @@ export class RevolutConverter extends AbstractConverter {
             try {
                 security = await this.securityService.getSecurity(
                     null,
-                    record.ticker ?? record.symbol,
+                    record.ticker ?? `${record.symbol}-${record.currency}`,
                     null,
                     record.currency,
                     this.progress);
@@ -209,7 +188,7 @@ export class RevolutConverter extends AbstractConverter {
 
             // Log whenever there was no match found.
             if (!security) {
-                this.progress.log(`[i] No result found for ${record.type} action for ${record.ticker} with currency ${record.currency}! Please add this manually..\n`);
+                this.progress.log(`[i] No result found for ${record.type} action for ${record.ticker ?? record.symbol} with currency ${record.currency}! Please add this manually..\n`);
                 bar1.increment();
                 continue;
             }
@@ -217,13 +196,13 @@ export class RevolutConverter extends AbstractConverter {
             let quantity, unitPrice;
 
             if (record.type === "dividend") {
-                quantity = 1;
-                unitPrice = Math.abs(record.totalAmount);
+                quantity = record.quantity ?? 1;
+                unitPrice = Math.abs(record.totalAmount ?? 1);
             } else {
                 quantity = record.quantity;
-                unitPrice = record.pricePerShare;
+                unitPrice = record.pricePerShare ?? record.price;
             }
-            console.log(record)
+
             // Add record to export.
             result.activities.push({
                 accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
@@ -244,5 +223,24 @@ export class RevolutConverter extends AbstractConverter {
         this.progress.stop()
 
         successCallback(result);
+    }
+
+    private detectCurrency(value: string) {
+
+        // Remove all the numbers from the string, so we can detect the currency.
+        const currency = value.replace(/([\d.,]+)/g, "").trim();
+
+        switch (currency.toLocaleUpperCase()) {
+            case "€":
+                return "EUR";
+            case "$":
+                return "USD";
+            case "£":
+                return "GBP";
+            case "SEK":
+                return "SEK";
+            default:
+                return "EUR";
+        }
     }
 }
