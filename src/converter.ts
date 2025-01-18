@@ -198,7 +198,7 @@ async function tryAutomaticValidationAndImport(outputFileName: string) {
         const ghostfolioService = new GhostfolioService();
 
         // When automatic validation is enabled, do this.
-        if (process.env.GHOSTFOLIO_VALIDATE === "true") {
+        if (`${process.env.GHOSTFOLIO_VALIDATE}` === "true") {
             console.log('[i] Automatic validation is allowed. Start validating..');
             const validationResult = await ghostfolioService.validate(outputFileName);
             console.log(`[i] Finished validation. ${validationResult ? 'Export was valid!' : 'Export was not valid!'}`);
