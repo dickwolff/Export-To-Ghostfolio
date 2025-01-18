@@ -26,7 +26,7 @@ export class XtbConverter extends AbstractConverter {
             delimiter: ";",
             fromLine: 2,
             skip_empty_lines: true,
-            columns: this.processHeaders(input, ";"),
+            columns: this.processHeaders(input),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
@@ -60,7 +60,7 @@ export class XtbConverter extends AbstractConverter {
                 }
 
                 // Parse numbers to floats (from string).
-                if (context.column === "amount") {
+                if (context.column === "id" || context.column === "amount") {
                     return parseFloat(columnValue);
                 }
 
@@ -185,7 +185,7 @@ export class XtbConverter extends AbstractConverter {
                 // Dividend usually goes with a dividend tax record, so look it up.
                 if (record.type.toLocaleLowerCase() === "dividend") {
 
-                    const taxRecord = this.lookupDividendTaxRecord(records, idx);
+                    const taxRecord = this.lookupDividendTaxRecord(record.id, records, idx);
 
                     // If there was a dividend tax record found, check if it matches the dividend record.
                     if (taxRecord && taxRecord.symbol === record.symbol && taxRecord.time === record.time) {
@@ -222,29 +222,47 @@ export class XtbConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
+    protected processHeaders(_: string): string[] {
+
+        // Generic header mapping from the XTB CSV export.
+        const csvHeaders = [
+            "id",
+            "type",
+            "time",
+            "symbol",
+            "comment",
+            "amount"];
+
+        return csvHeaders;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public isIgnoredRecord(record: XtbRecord): boolean {
         let ignoredRecordTypes = ["deposit", "withdrawal", "tax", "transfer"];
 
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
     }
 
-    private lookupDividendTaxRecord(records: XtbRecord[], idx: number): XtbRecord | undefined {
+    private lookupDividendTaxRecord(currentRecordId: number, records: XtbRecord[], idx: number): XtbRecord | undefined {
 
         let taxRecord;
 
         // Look ahead at the next record (if there are any records left).
         if (idx > 0 && records.length - 1 > idx + 1) {
             const nextRecord = records[idx + 1];
-
-
-            if (nextRecord.type.toLocaleLowerCase().indexOf("tax") > -1) {
+            if (nextRecord.type.toLocaleLowerCase().indexOf("tax") > -1 && (currentRecordId + 1) === nextRecord.id) {
                 taxRecord = nextRecord;
             }
         }
-        else {
-            // Look back at the previous record.
+
+        // If there is no tax record found, look back at the previous record.
+        if (!taxRecord) {
+
             const previousRecord = records[idx - 1];
-            if (previousRecord.type.toLocaleLowerCase().indexOf("tax") > -1) {
+            if (previousRecord.type.toLocaleLowerCase().indexOf("tax") > -1 && (currentRecordId + 1) === previousRecord.id) {
+                console.log("is set")
                 taxRecord = previousRecord;
             }
         }
