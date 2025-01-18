@@ -23,7 +23,7 @@ describe("revolutConverter", () => {
   });
 
   describe("should process sample", () => {
-    it("Invest CSV file", (done) => {
+    it("Revolut Invest CSV file", (done) => {
 
       // Arange
       const sut = new RevolutConverter(new SecurityService(new YahooFinanceServiceMock()));
@@ -41,7 +41,7 @@ describe("revolutConverter", () => {
       }, () => { done.fail("Should not have an error!"); });
     });
 
-    it("Crypto CSV file", (done) => {
+    it("Revolut Crypto CSV file", (done) => {
 
       // Arange
       const sut = new RevolutConverter(new SecurityService(new YahooFinanceServiceMock()));
