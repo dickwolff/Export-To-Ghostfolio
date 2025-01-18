@@ -262,7 +262,6 @@ export class XtbConverter extends AbstractConverter {
 
             const previousRecord = records[idx - 1];
             if (previousRecord.type.toLocaleLowerCase().indexOf("tax") > -1 && (currentRecordId + 1) === previousRecord.id) {
-                console.log("is set")
                 taxRecord = previousRecord;
             }
         }
