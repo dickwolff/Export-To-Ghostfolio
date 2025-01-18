@@ -22,22 +22,42 @@ describe("revolutConverter", () => {
     expect(sut).toBeTruthy();
   });
 
-  it("should process sample CSV file", (done) => {
+  describe("should process sample", () => {
+    it("Invest CSV file", (done) => {
 
-    // Arange
-    const sut = new RevolutConverter(new SecurityService(new YahooFinanceServiceMock()));
-    const inputFile = "samples/revolut-export.csv";
+      // Arange
+      const sut = new RevolutConverter(new SecurityService(new YahooFinanceServiceMock()));
+      const inputFile = "samples/revolut-invest-export.csv";
 
-    // Act
-    sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
+      // Act
+      sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
 
-      // Assert
-      expect(actualExport).toBeTruthy();
-      expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(5);
+        // Assert
+        expect(actualExport).toBeTruthy();
+        expect(actualExport.activities.length).toBeGreaterThan(0);
+        expect(actualExport.activities.length).toBe(5);
 
-      done();
-    }, () => { done.fail("Should not have an error!"); });
+        done();
+      }, () => { done.fail("Should not have an error!"); });
+    });
+
+    it("Crypto CSV file", (done) => {
+
+      // Arange
+      const sut = new RevolutConverter(new SecurityService(new YahooFinanceServiceMock()));
+      const inputFile = "samples/revolut-crypto-export.csv";
+
+      // Act
+      sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
+
+        // Assert
+        expect(actualExport).toBeTruthy();
+        expect(actualExport.activities.length).toBeGreaterThan(0);
+        expect(actualExport.activities.length).toBe(9);
+
+        done();
+      }, () => { done.fail("Should not have an error!"); });
+    });
   });
 
   describe("should throw an error if", () => {
