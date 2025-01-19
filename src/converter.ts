@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import { SecurityService } from "./securityService";
 import GhostfolioService from "./ghostfolioService";
 import { AbstractConverter } from "./converters/abstractconverter";
+import { AvanzaConverter } from "./converters/avanzaConverter";
 import { BitvavoConverter } from "./converters/bitvavoConverter";
 import { BuxConverter } from "./converters/buxConverter";
 import { DeGiroConverter } from "./converters/degiroConverter";
@@ -99,6 +100,10 @@ async function createConverter(converterType: string, securityService?: Security
 
     switch (converterType) {
 
+        case "avanza":
+            console.log("[i] Processing file using Avanza converter");
+            converter = new AvanzaConverter(securityService);
+            break;
         case "bv":
         case "bitvavo":
             console.log("[i] Processing file using Bitvavo converter");
