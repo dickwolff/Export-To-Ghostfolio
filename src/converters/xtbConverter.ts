@@ -74,9 +74,9 @@ export class XtbConverter extends AbstractConverter {
 
                 // Post processing steps.
 
-                // If a record is typed as interest, but is a correction, then change type to fee.
+                // If a record is typed as interest, but is a negative correction, then change type to fee.
                 if (record.type === "interest" && record.comment.toLocaleLowerCase().startsWith("corr")) {
-                    record.type = "fee";
+                    record.type = record.amount < 0 ? "fee" : "interest";
                 }
 
                 // If the record is a profit/loss, check if it should be a fee or interest.
