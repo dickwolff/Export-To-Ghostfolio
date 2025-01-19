@@ -7,6 +7,7 @@
 
 This tool allows you to convert a multiple transaction exports (CSV) to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for:
 
+- [Avanza](https://avanza.se)
 - [Bitvavo](https://bitvavo.com)
 - [BUX](https://bux.com)
 - [DEGIRO](https://degiro.com)
@@ -34,9 +35,13 @@ See the transaction export instructions for each of the supported brokers below.
 <details>
 <summary>View transaction export instructions</summary>
 
+### Avanza
+
+__to come__
+
 ### Bitvavo
 
-Login to your Bitvavo account and click on your name at the top-right. Next, click "Transaction history". Click the blue "Export" button at the to to create an export. Select one of the CSv options and again click "Export".
+Login to your Bitvavo account and click on your name at the top-right. Next, click "Transaction history". Click the blue "Export" button at the to to create an export. Select one of the CSV options and again click "Export".
 
 ![Export instructions for Bitvavo](./assets/export-bitvavo.jpg)
 
@@ -228,6 +233,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 
 | Exporter      | Run command                        |
 | ------------- | ---------------------------------- |
+| Avanza        | `run start avanza`                 |
 | Bitvavo       | `run start bitvavo` (or `bv`)      |
 | BUX           | `run start bux`                    |
 | DEGIRO        | `run start degiro`                 |
