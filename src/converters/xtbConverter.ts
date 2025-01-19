@@ -41,11 +41,16 @@ export class XtbConverter extends AbstractConverter {
                     else if (type.indexOf("stocks/etf sale") > -1 || type.indexOf("ações/etf vende") > -1) {
                         return "sell";
                     }
+                    else if (
+                        type.indexOf("sec fee") > -1 ||
+                        type.indexOf("swap") > -1 ||
+                        type.indexOf("commission") > -1 ||
+                        type.indexOf("free funds interests tax") > -1) {
+
+                        return "fee";
+                    }
                     else if (type.indexOf("free funds interests") > -1) {
                         return "interest";
-                    }
-                    else if (type.indexOf("sec fee") > -1 || type.indexOf("swap") > -1 || type.indexOf("commission") > -1) {
-                        return "fee";
                     }
                     else if (type.indexOf("dividend") > -1) {
                         return "dividend";
@@ -122,7 +127,7 @@ export class XtbConverter extends AbstractConverter {
                         fee: 0,
                         quantity: 1,
                         type: GhostfolioOrderType[record.type],
-                        unitPrice: record.amount,
+                        unitPrice: Math.abs(record.amount),
                         currency: process.env.XTB_ACCOUNT_CURRENCY || "EUR",
                         dataSource: "MANUAL",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
