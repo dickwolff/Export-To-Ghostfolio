@@ -72,6 +72,19 @@ export class XtbConverter extends AbstractConverter {
                 }
 
                 return columnValue;
+            },
+            on_record: (record: XtbRecord) => {
+
+                // Post processing steps.
+
+                // If a record is typed as interest, but is a correction, then change type to fee.
+                if (record.type === "interest" && record.comment.toLocaleLowerCase().startsWith("corr")) {
+                    record.type = "fee";
+                }
+
+                console.log(record);
+
+                return record;
             }
         }, async (err, records: XtbRecord[]) => {
 

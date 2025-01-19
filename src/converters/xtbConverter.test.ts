@@ -34,7 +34,7 @@ describe("xtbConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(27);
+      expect(actualExport.activities.length).toBe(28);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
