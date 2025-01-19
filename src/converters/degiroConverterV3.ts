@@ -304,14 +304,17 @@ export class DeGiroConverterV3 extends AbstractConverter {
     const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
     const feeAmount = record.getAbsoluteAmount();
 
+    const currency = this.getCurrencyIfConvertable(record.currency, security.currency)
+    const convertedFeeAmount = this.convertCurrencyIfConvertable(feeAmount, record.currency, security.currency);
+
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
       comment: record.orderId,
-      fee: this.formatFloat(feeAmount),
+      fee: this.formatFloat(convertedFeeAmount),
       quantity: 1,
       type: GhostfolioOrderType.fee,
       unitPrice: 0,
-      currency: record.currency ?? "",
+      currency: currency,
       dataSource: "MANUAL",
       date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
       // ghostfolio doesn't like two MANUAL records with same name, hence adding date & time.
@@ -354,14 +357,18 @@ export class DeGiroConverterV3 extends AbstractConverter {
     // Extract the fee from the transaction fee record and put it in the action record.
     const feeAmount = transactionFeeRecords.reduce((sum, r) => sum + r.getAbsoluteAmount(), 0);
 
+    const currency = this.getCurrencyIfConvertable(record.currency, security.currency)
+    const convertedFeeAmount = this.convertCurrencyIfConvertable(feeAmount, record.currency, security.currency);
+    const convertedUnitPrice = this.convertCurrencyIfConvertable(unitPrice, record.currency, security.currency);
+
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
       comment: record.orderId ?? `${orderType === GhostfolioOrderType.buy ? "Buy" : "Sell"} ${record.isin} @ ${record.date}T${record.time}`,
-      fee: this.formatFloat(feeAmount),
+      fee: this.formatFloat(convertedFeeAmount),
       quantity: this.formatFloat(quantity),
       type: orderType,
-      unitPrice: this.formatFloat(unitPrice),
-      currency: record.currency ?? "",
+      unitPrice: this.formatFloat(convertedUnitPrice),
+      currency: currency,
       dataSource: "YAHOO",
       date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
       symbol: security.symbol ?? "",
@@ -375,15 +382,19 @@ export class DeGiroConverterV3 extends AbstractConverter {
     const unitPrice = record.getAbsoluteAmount();
     const feeAmount = transactionFeeRecords.reduce((sum, r) => sum + r.getAbsoluteAmount(), 0);
 
+    const currency = this.getCurrencyIfConvertable(record.currency, security.currency)
+    const convertedFeeAmount = this.convertCurrencyIfConvertable(feeAmount, record.currency, security.currency);
+    const convertedUnitPrice = this.convertCurrencyIfConvertable(unitPrice, record.currency, security.currency);
+
     // Create the record.
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
       comment: `Dividend ${record.isin} @ ${record.date}T${record.time}`,
-      fee: this.formatFloat(feeAmount),
+      fee: this.formatFloat(convertedFeeAmount),
       quantity: 1,
       type: GhostfolioOrderType.dividend,
-      unitPrice: this.formatFloat(unitPrice),
-      currency: record.currency ?? "",
+      unitPrice: this.formatFloat(convertedUnitPrice),
+      currency: currency,
       dataSource: "YAHOO",
       date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
       symbol: security.symbol,
@@ -509,5 +520,25 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
   private formatFloat(val: number): number {
     return parseFloat(val.toFixed(3));
+  }
+
+  private getCurrencyIfConvertable(from_currency: string, to_currency: string): string {
+      if (from_currency == "GBP" && (to_currency == "GBp" || to_currency == "GBX"))
+          return to_currency
+
+      if ((from_currency == "GBp" || from_currency == "GBX") && to_currency == "GBP")
+          return to_currency;
+
+      return from_currency;
+  }
+
+  private convertCurrencyIfConvertable(val: number, from_currency: string, to_currency: string): number {
+      if (from_currency == "GBP" && (to_currency == "GBp" || to_currency == "GBX"))
+          return val * 100.0;
+
+      if (from_currency == "GBp" && to_currency == "GBP")
+          return val / 100.0;
+
+      return val;
   }
 }
