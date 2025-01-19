@@ -71,9 +71,8 @@ export class AvanzaConverter extends AbstractConverter {
             },
             on_record: (record: AvanzaRecord) => {
 
-                // If the record is a fee, but it's a tax return, then it's an interest payment.
-                if (record.type === "fee" && record.description.toLocaleLowerCase().indexOf("terbetalning") > -1) {
-                    record.type = "interest";
+                if (record.type.toLocaleLowerCase() === "fee" && record.isin) {
+                    record.type = "skip";
                 }
 
                 // If currency is empty, default to SEK.
@@ -122,7 +121,7 @@ export class AvanzaConverter extends AbstractConverter {
 
                 // Interest and fees do not have a security, so add those immediately.
                 if (isFee || isInterest) {
-                    console.log("fee or interest", record);
+                    
                     // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
@@ -216,7 +215,7 @@ export class AvanzaConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: AvanzaRecord): boolean {
-        let ignoredRecordTypes = ["insättning", "uttag"];
+        let ignoredRecordTypes = ["insättning", "uttag", "skip"];
 
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
     }
