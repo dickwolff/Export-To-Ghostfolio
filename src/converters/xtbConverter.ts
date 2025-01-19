@@ -153,9 +153,9 @@ export class XtbConverter extends AbstractConverter {
                     continue;
                 }
 
-                const match = record.comment.match(/(?:OPEN|CLOSE) BUY ((?:[0-9]*[.])?[0-9]+) @ ((?:[0-9]*[.])?[0-9]+)|((?:[0-9]*[.])?[0-9]+)(?:\/)/)
+                const match = record.comment.match(/(?:OPEN|CLOSE) BUY ([0-9]+(?:\.[0-9]+)?(?:\/[0-9]+(?:\.[0-9]+)?)?) @ ([0-9]+(?:\.[0-9]+)?)|(?:[A-Z\. ]+) ([0-9]+(?:\.[0-9]+)?)/)
 
-                let quantity = parseFloat(match[1]);
+                let quantity = parseFloat(match[1]?.split("/")[0]);
                 let unitPrice = parseFloat(match[2]);
                 const dividendPerShare = parseFloat(match[3]);
 
