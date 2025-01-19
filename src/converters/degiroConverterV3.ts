@@ -257,6 +257,16 @@ export class DeGiroConverterV3 extends AbstractConverter {
       return true;
     }
 
+    // Sometimes there are records like the following. They happen when an ETF changes ISIN.
+    // They have zero value and zero price. Let's ignore them
+    // 06-10-2022,10:13,06-10-2022,ETC ISSUANCE GMBH,DE000A3G01J0,WIJZIGING ISIN: Koop 12 @ 0 EUR,,EUR,0.00,EUR,
+    // 06-10-2022,08:16,14-09-2022,ETC ISSUANCE ETHETC - PHYSICAL,DE000A3G01J0,SPIN-OFF: Koop 12 @ 0 EUR,,EUR,0.00,EUR,
+    // 05-10-2022,15:43,14-09-2022,ETC ISSUANCE ETHETC - PHYSICAL,DE000A3G01J0,CLAIMEMISSIE: Verkoop 12 @ 0 EUR,,EUR,0.00,EUR,
+    // 05-10-2022,11:09,14-09-2022,ETC ISSUANCE ETHETC - PHYSICAL,DE000A3G01J0,CLAIMEMISSIE: Koop 12 @ 0 EUR,,EUR,0.00,EUR,
+    if (record.getAbsoluteAmount() == 0 && !record.fx) {
+      return true;
+    }
+
     const ignoredRecordTypes = [
       "ideal",
       "flatex",
