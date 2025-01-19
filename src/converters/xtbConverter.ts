@@ -44,8 +44,7 @@ export class XtbConverter extends AbstractConverter {
                     else if (
                         type.indexOf("sec fee") > -1 ||
                         type.indexOf("swap") > -1 ||
-                        type.indexOf("commission") > -1 ||
-                        type.indexOf("free funds interests tax") > -1) {
+                        type.indexOf("commission") > -1) {
 
                         return "fee";
                     }
@@ -120,11 +119,14 @@ export class XtbConverter extends AbstractConverter {
                 // Interest does not have a security, so add those immediately.
                 if (record.type.toLocaleLowerCase() === "interest") {
 
+                    // Interest records can have a tax record attached. Look it up (if present).
+                    const taxRecord = this.lookupTaxRecord(record, records, idx);
+
                     // Add interest record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                         comment: record.comment,
-                        fee: 0,
+                        fee: taxRecord ? Math.abs(taxRecord.amount) : 0,
                         quantity: 1,
                         type: GhostfolioOrderType[record.type],
                         unitPrice: Math.abs(record.amount),
@@ -190,7 +192,7 @@ export class XtbConverter extends AbstractConverter {
                 // Dividend usually goes with a dividend tax record, so look it up.
                 if (record.type.toLocaleLowerCase() === "dividend") {
 
-                    const taxRecord = this.lookupDividendTaxRecord(record.id, records, idx);
+                    const taxRecord = this.lookupTaxRecord(record, records, idx);
 
                     // If there was a dividend tax record found, check if it matches the dividend record.
                     if (taxRecord && taxRecord.symbol === record.symbol && taxRecord.time === record.time) {
@@ -250,14 +252,14 @@ export class XtbConverter extends AbstractConverter {
         return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
     }
 
-    private lookupDividendTaxRecord(currentRecordId: number, records: XtbRecord[], idx: number): XtbRecord | undefined {
+    private lookupTaxRecord(currentRecord: XtbRecord, records: XtbRecord[], idx: number): XtbRecord | undefined {
 
         let taxRecord;
 
         // Look ahead at the next record (if there are any records left).
         if (idx > 0 && records.length - 1 > idx + 1) {
             const nextRecord = records[idx + 1];
-            if (nextRecord.type.toLocaleLowerCase().indexOf("tax") > -1 && (currentRecordId + 1) === nextRecord.id) {
+            if (nextRecord.type.toLocaleLowerCase().indexOf("tax") > -1 && (currentRecord.id + 1 === nextRecord.id) || currentRecord.comment === nextRecord.comment.replace("Tax ", "")) {
                 taxRecord = nextRecord;
             }
         }
@@ -266,7 +268,7 @@ export class XtbConverter extends AbstractConverter {
         if (!taxRecord) {
 
             const previousRecord = records[idx - 1];
-            if (previousRecord.type.toLocaleLowerCase().indexOf("tax") > -1 && (currentRecordId + 1) === previousRecord.id) {
+            if (previousRecord.type.toLocaleLowerCase().indexOf("tax") > -1 && (currentRecord.id + 1 === previousRecord.id) || currentRecord.comment === previousRecord.comment.replace("Tax ", "")) {
                 taxRecord = previousRecord;
             }
         }
