@@ -41,9 +41,7 @@ export class XtbConverter extends AbstractConverter {
                     else if (type.indexOf("stocks/etf sale") > -1 || type.indexOf("ações/etf vende") > -1) {
                         return "sell";
                     }
-                    else if (type.indexOf("sec fee") > -1 ||
-                             type.indexOf("swap") > -1 ||
-                             type.indexOf("commission") > -1) {
+                    else if (type.indexOf("sec fee") > -1 || type.indexOf("swap") > -1 || type.indexOf("commission") > -1) {
 
                         return "fee";
                     }
@@ -81,7 +79,15 @@ export class XtbConverter extends AbstractConverter {
                     record.type = "fee";
                 }
 
-                console.log(record);
+                // If the record is a profit/loss, check if it should be a fee or interest.
+                if (record.type.toLocaleLowerCase() === "profitloss") {
+                    if (record.amount < 0) {
+                        record.type = "fee";
+                    }
+                    else {
+                        record.type = "interest";
+                    }
+                }
 
                 return record;
             }
@@ -120,16 +126,6 @@ export class XtbConverter extends AbstractConverter {
                 }
 
                 const date = dayjs(`${record.time}`, "DD.MM.YYYY HH:mm:ss");
-
-                // If the record is a profit/loss, check if it should be a fee or interest.
-                if (record.type.toLocaleLowerCase() === "profitloss") {
-                    if (record.amount < 0) {
-                        record.type = "fee";
-                    }
-                    else {
-                        record.type = "interest";
-                    }
-                }
 
                 // Interest does not have a security, so add those immediately.
                 if (record.type.toLocaleLowerCase() === "interest") {
