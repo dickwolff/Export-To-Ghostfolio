@@ -44,12 +44,12 @@ export class AvanzaConverter extends AbstractConverter {
                     else if (action.indexOf("utdelning") > -1) {
                         return "dividend";
                     }
-                    // else if (action.indexOf("interest") > -1) {
-                    //     return "interest";
-                    // }
-                    // else if (action.indexOf("fee") > -1) {
-                    //     return "fee";
-                    // }
+                    else if (action.indexOf("ränta") > -1) {
+                        return "interest";
+                    }
+                    else if (action.indexOf("övrigt") > -1 || action.indexOf("källskatt") > -1) {
+                        return "fee";
+                    }
                 }
 
                 // Parse numbers to floats (from string).
@@ -68,6 +68,20 @@ export class AvanzaConverter extends AbstractConverter {
                 }
 
                 return columnValue;
+            },
+            on_record: (record: AvanzaRecord) => {
+
+                // If the record is a fee, but it's a tax return, then it's an interest payment.
+                if (record.type === "fee" && record.description.toLocaleLowerCase().indexOf("terbetalning") > -1) {
+                    record.type = "interest";
+                }
+
+                // If currency is empty, default to SEK.
+                if (record.currency === "") {
+                    record.currency = "SEK";
+                }
+
+                return record;
             }
         }, async (err, records: AvanzaRecord[]) => {
 
@@ -99,6 +113,30 @@ export class AvanzaConverter extends AbstractConverter {
 
                 // Check if the record should be ignored.
                 if (this.isIgnoredRecord(record)) {
+                    bar1.increment();
+                    continue;
+                }
+
+                const isFee = record.type.toLocaleLowerCase() === "fee";
+                const isInterest = record.type.toLocaleLowerCase() === "interest";
+
+                // Interest and fees do not have a security, so add those immediately.
+                if (isFee || isInterest) {
+                    console.log("fee or interest", record);
+                    // Add record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: record.description,
+                        fee: isFee ? Math.abs(record.amount) : 0,
+                        quantity: 1,
+                        type: GhostfolioOrderType[record.type],
+                        unitPrice: isInterest ? Math.abs(record.amount) : 0,
+                        currency: record.currency,
+                        dataSource: "MANUAL",
+                        date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: record.description
+                    });
+
                     bar1.increment();
                     continue;
                 }
