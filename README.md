@@ -106,7 +106,9 @@ Login to Parquet and navigate to the "Activities" section (in German, "Aktivitä
 
 Login to Rabobank and navigate to your investments. Navigate to "Transactions & Contract Notes" (Mutaties & Nota's). Select the range you wish to export at the top. Then scroll to the bottom of the page and click "Export as .csv"
 
-### Revolut
+### Revolut (Invest and Crypto)
+
+_The steps below are similar for both Revolut Invest as Revolut Crypto. Simply replace "Invest" by "Crypto"._
 
 Open the Revolut app and open the "Invest"-tab. Press the "More"-button, and then choose "Documents". Select your investment account and select the first option, "Account statement". Choose the "Excel" option and select the date range. Then download the file and save it on your device. Convert the file from `.xlsx` to `.csv`. **Set the separation character to `,` (comma)!**
 
