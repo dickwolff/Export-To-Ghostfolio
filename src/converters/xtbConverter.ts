@@ -48,6 +48,9 @@ export class XtbConverter extends AbstractConverter {
 
                         return "fee";
                     }
+                    else if (type.indexOf("free funds interests tax") > -1) {
+                        return "tax";
+                    }
                     else if (type.indexOf("free funds interests") > -1) {
                         return "interest";
                     }
