@@ -306,15 +306,16 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
     return {
       accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-      comment: record.orderId ?? `Transaction fee ${record.isin} @ ${record.date}T${record.time}`,
+      comment: record.orderId,
       fee: this.formatFloat(feeAmount),
       quantity: 1,
       type: GhostfolioOrderType.fee,
       unitPrice: 0,
       currency: record.currency ?? "",
-      dataSource: "YAHOO",
+      dataSource: "MANUAL",
       date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-      symbol: security.symbol,
+      // ghostfolio doesn't like two MANUAL records with same name, hence adding date & time.
+      symbol: `Transaction fee ${security.symbol} @ ${record.date}T${record.time}`
     };
   }
 
