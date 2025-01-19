@@ -37,7 +37,7 @@ See the transaction export instructions for each of the supported brokers below.
 
 ### Avanza
 
-__to come__
+Login to your Avanza account and click "Min ekonomi". Select the ["Transaktioner tab"](https://www.avanza.se/min-ekonomi/transaktioner.html), then select the desired export timeframe. Finally, click "Exportera transaktioner" to download the CSV file.
 
 ### Bitvavo
 
