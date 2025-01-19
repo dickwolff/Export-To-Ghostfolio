@@ -41,10 +41,9 @@ export class XtbConverter extends AbstractConverter {
                     else if (type.indexOf("stocks/etf sale") > -1 || type.indexOf("ações/etf vende") > -1) {
                         return "sell";
                     }
-                    else if (
-                        type.indexOf("sec fee") > -1 ||
-                        type.indexOf("swap") > -1 ||
-                        type.indexOf("commission") > -1) {
+                    else if (type.indexOf("sec fee") > -1 ||
+                             type.indexOf("swap") > -1 ||
+                             type.indexOf("commission") > -1) {
 
                         return "fee";
                     }
