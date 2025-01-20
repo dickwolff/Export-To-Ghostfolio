@@ -28,8 +28,8 @@ ID;Type;Time;Symbol;Comment;Amount
 279465197;Profit/Loss (FX/CFD);22.07.2022 01:22:20;EURUSD;Profit of position #685669313;0.14
 279464049;Profit/Loss (FX/CFD);22.07.2022 01:14:25;US30;Profit of position #685669781;-0.15
 210658050;Swap;11.01.2022 16:16:01;GOLD;Swap of position #515856023;-0.
-579262992;Withholding tax;12.07.2024 13:01:17;XRAY.US;XRAY.US USD WHT 30%;-0.77
 579262991;Dividend;12.07.2024 13:01:17;XRAY.US;XRAY.US USD 0.1600/ SHR;2.56
+579262992;Withholding tax;12.07.2024 13:01:17;XRAY.US;XRAY.US USD WHT 30%;-0.77
 579262976;Withholding tax;12.07.2024 13:01:17;XRAY.US;XRAY.US USD WHT 30%;-3.84
 579262975;Dividend;12.07.2024 13:01:17;XRAY.US;XRAY.US USD 0.1600/ SHR;12.8
 579262887;Withholding tax;12.07.2024 13:01:17;XRAY.US;XRAY.US USD WHT 30%;-1.44
@@ -40,5 +40,6 @@ ID;Type;Time;Symbol;Comment;Amount
 543857396;Free funds interests tax;07.05.2024 09:36:50;;Free-funds Interest Tax 2024-04;-2
 543604525;Free funds interests;07.05.2024 03:16:39;;Free-funds Interest 2024-04;15.17
 597124174;Free funds interests;09.08.2024 19:38:51;;Corr Free-funds Interest 2024-07;0.5
+597343445;Free funds interests;010.09.2024 20:49:02;;Corr Free-funds Interest 2024-08;-0.5
 244234503;Spin off;13.04.2022 14:50:01;T.US;T.US USD 5.8970/ SHR;21.68
 121090131;Dividend;05.11.2020 22:00:01;US30.cash;US30.cash USD 6.5000/ Indices;-0.05
