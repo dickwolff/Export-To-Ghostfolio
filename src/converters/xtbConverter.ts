@@ -47,7 +47,7 @@ export class XtbConverter extends AbstractConverter {
                     else if (type.indexOf("free funds interests") > -1) {
                         return "interest";
                     }
-                    else if (type.indexOf("dividend") > -1 || type.indexOf("spin off") > -1) {
+                    else if (type.indexOf("dividend") > -1 || type.indexOf("spin off") > -1) { //verify spinoff
                         return "dividend";
                     }
                     else if (type.indexOf("profit/loss") > -1) {
@@ -69,6 +69,11 @@ export class XtbConverter extends AbstractConverter {
             on_record: (record: XtbRecord) => {
 
                 // Post processing steps.
+
+                // If a record is typed as dividend, but is a negative amount, then change type to fee.
+                if (record.type === "dividend" && record.amount < 0) {
+                    record.type = "fee";
+                }
 
                 // If a record is typed as interest, but is a negative correction, then change type to fee.
                 if (record.type === "interest" && record.comment.toLocaleLowerCase().startsWith("corr")) {
