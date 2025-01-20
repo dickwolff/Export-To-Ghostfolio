@@ -7,4 +7,10 @@ export class RevolutRecord {
     totalAmount: number;
     currency: string;
     fxRate: string;
+
+    // Revolut Crypto properties.
+    symbol: string;
+    price: number;
+    value: number;
+    fees: number;
 }
