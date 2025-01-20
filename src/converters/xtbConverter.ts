@@ -129,7 +129,7 @@ export class XtbConverter extends AbstractConverter {
                     // Add interest record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: record.comment,
+                        comment: `XTB ${record.id} - ${record.comment}`,
                         fee: 0,
                         quantity: 1,
                         type: GhostfolioOrderType[record.type],
@@ -149,7 +149,7 @@ export class XtbConverter extends AbstractConverter {
                     // Add interest record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: record.comment,
+                        comment: `XTB ${record.id} - ${record.comment}`,
                         fee: Math.abs(record.amount),
                         quantity: 1,
                         type: GhostfolioOrderType[record.type],
@@ -210,7 +210,7 @@ export class XtbConverter extends AbstractConverter {
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: record.comment,
+                    comment: `XTB ${record.id} - ${record.comment}`,
                     fee: feeAmount,
                     quantity: quantity,
                     type: GhostfolioOrderType[record.type],
