@@ -196,14 +196,14 @@ export class XtbConverter extends AbstractConverter {
                 // Dividend usually goes with a dividend tax record, so look it up.
                 if (record.type.toLocaleLowerCase() === "dividend") {
 
+                    unitPrice = dividendPerShare;
+                    quantity = parseFloat((record.amount / dividendPerShare).toFixed(2));
+
                     const taxRecord = this.lookupDividendTaxRecord(record.id, records, idx);
 
                     // If there was a dividend tax record found, check if it matches the dividend record.
                     if (taxRecord && taxRecord.symbol === record.symbol && taxRecord.time === record.time) {
-
                         feeAmount = Math.abs(taxRecord.amount);
-                        quantity = (record.amount / dividendPerShare);
-                        unitPrice = dividendPerShare;
                     }
                 }
 
@@ -272,7 +272,7 @@ export class XtbConverter extends AbstractConverter {
         if (!taxRecord) {
 
             const previousRecord = records[idx - 1];
-            if (previousRecord.type.toLocaleLowerCase().indexOf("tax") > -1 && currentRecordId + 1 === previousRecord.id) {
+            if (previousRecord?.type.toLocaleLowerCase().indexOf("tax") > -1 && currentRecordId + 1 === previousRecord?.id) {
                 taxRecord = previousRecord;
             }
         }
