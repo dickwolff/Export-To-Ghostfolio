@@ -175,20 +175,20 @@ describe("securityService", () => {
                     // Arrange
                     const yahooFinanceMock = new YahooFinanceServiceMock();
                     const searchSpy = jest.spyOn(yahooFinanceMock, "search")
-                    .mockResolvedValueOnce({
-                        quotes: [
-                            {
-                                symbol: "GOOGL.US"
-                            }
-                        ]
-                    })
-                    .mockResolvedValueOnce({
-                        quotes: [
-                            {
-                                symbol: "GOOGL"
-                            }
-                        ]
-                    });
+                        .mockResolvedValueOnce({
+                            quotes: [
+                                {
+                                    symbol: "GOOGL.US"
+                                }
+                            ]
+                        })
+                        .mockResolvedValueOnce({
+                            quotes: [
+                                {
+                                    symbol: "GOOGL"
+                                }
+                            ]
+                        });
                     const quoteSummarySpy = jest.spyOn(yahooFinanceMock, "quoteSummary")
                         .mockResolvedValueOnce({})
                         .mockResolvedValueOnce({
@@ -528,6 +528,7 @@ describe("securityService", () => {
             // Assert
             expect(cache[0]).toBe(0);
             expect(cache[1]).toBe(0);
+            expect(cache[2]).toBe(0);
         });
 
         it("after retrieving a symbol for the first time, does restore it from cache a second time", async () => {
@@ -557,7 +558,8 @@ describe("securityService", () => {
             // Assert I
             expect(cache[0]).toBe(0);
             expect(cache[1]).toBe(0);
-            
+            expect(cache[2]).toBe(0);
+
             // Act II
             await sut.getSecurity("US0378331005", null, null, null);
             cache = await sut.loadCache();
@@ -565,6 +567,33 @@ describe("securityService", () => {
             // Assert II
             expect(cache[0]).toBe(1);
             expect(cache[1]).toBe(1);
+            expect(cache[2]).toBe(0);
+        });
+
+        it("restores ISIN overrides from file, if it was present", async () => {
+
+            // Arrange
+            
+            // Override the environment variable and force Jest to reload all modules.
+            const oldEnv = process.env.E2G_ISIN_OVERRIDE_FILE;
+            process.env.E2G_ISIN_OVERRIDE_FILE = "isin-overrides-sample.txt";
+            jest.resetModules();
+            
+            // Re-import the SecurityService (with the new ENV).
+            const { SecurityService } = require("./securityService");
+            
+            // Prepare sut.
+            const yahooFinanceMock = new YahooFinanceServiceMock();
+            const sut = new SecurityService(yahooFinanceMock);
+
+            // Act
+            const cache = await sut.loadCache();
+
+            // Assert
+            expect(cache[2]).toBe(2);
+
+            // Cleanup
+            process.env.E2G_ISIN_OVERRIDE_FILE = oldEnv;
         });
     });
 });

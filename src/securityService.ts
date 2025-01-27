@@ -8,7 +8,7 @@ import { mapReplacer, mapReviver } from "./helpers/dictionaryHelpers";
 const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";
 
 /* istanbul ignore next */
-const symbolOverrideFile = process.env.E2G_SYMBOL_OVERRIDE_FILE || "symbol-overrides.txt";
+const symbolOverrideFile = process.env.E2G_ISIN_OVERRIDE_FILE || "isin-overrides.txt";
 
 export class SecurityService {
 
@@ -67,10 +67,10 @@ export class SecurityService {
 
         // When isin was given, check wether there is a ISIN-symbol conversion cached.
         if (isin) {
-            
-             // First, check if the symbol was manually overridden.
-             if (this.isinOverrideCache.has(isin)) {
-                
+
+            // First, check if the symbol was manually overridden.
+            if (this.isinOverrideCache.has(isin)) {
+
                 symbol = this.isinOverrideCache.get(isin);
                 this.logDebug(`Converted ISIN ${isin} to symbol ${symbol} as it was overridden!`, progress);
                 isinOverridden = true;
@@ -102,7 +102,7 @@ export class SecurityService {
                 this.logDebug(`getSecurity(): Not a single symbol found for ISIN ${isin}, trying by symbol ${symbol}`, progress);
                 symbols = await this.getSymbolsByQuery(symbol, progress);
             }
-        } 
+        }
         else {
 
             // If no ISIN was given, try by symbol directly.
@@ -208,7 +208,7 @@ export class SecurityService {
             for (let idx = 0; idx < overrides.length; idx++) {
                 const line = overrides[idx].split("=");
                 this.isinOverrideCache.set(line[0], line[1]);
-            }            
+            }
         }
 
         // Return cache sizes.
