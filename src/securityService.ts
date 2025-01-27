@@ -8,7 +8,7 @@ import { mapReplacer, mapReviver } from "./helpers/dictionaryHelpers";
 const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";
 
 /* istanbul ignore next */
-const symbolOverrideFile = process.env.E2G_ISIN_OVERRIDE_FILE || "isin-overrides.txt";
+const symbolOverrideFile = process.env.ISIN_OVERRIDE_FILE || "isin-overrides.txt";
 
 export class SecurityService {
 
