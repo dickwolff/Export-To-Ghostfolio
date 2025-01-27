@@ -52,8 +52,8 @@ Finpension.csv
 # Ignore export file
 ghostfolio-*.json
 
-# Ignore symbol overrides
-symbol-overrides*.txt
+# Ignore ISIN overrides
+isin-overrides*.txt
 
 # Ignore output folder
 e2g-output
