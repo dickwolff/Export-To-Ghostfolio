@@ -207,6 +207,12 @@ export class SecurityService {
             const overrides = readFileSync(symbolOverrideFile, "utf8").split("\n");
             for (let idx = 0; idx < overrides.length; idx++) {
                 const line = overrides[idx].split("=");
+                
+                // Sanitize input, skip what does not comply.
+                if (line.length !== 2 || line[0] === "" || line[1] === "") {
+                    continue;
+                }
+
                 this.isinOverrideCache.set(line[0], line[1]);
             }
         }

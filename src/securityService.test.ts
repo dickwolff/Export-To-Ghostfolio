@@ -1,6 +1,7 @@
 import * as cacache from "cacache";
 import { SecurityService } from "./securityService";
 import YahooFinanceServiceMock from "./testing/yahooFinanceServiceMock";
+import { writeFileSync } from "fs";
 
 describe("securityService", () => {
 
@@ -606,9 +607,18 @@ describe("securityService", () => {
 
             // Arrange
 
+            let file = "";
+            file += "IE00B3RBWM25=VWRL.AS\n";
+            file += "IE00B3RBWM25=\n";
+            file += "US0378331005=AAPL\n";
+            file += "=AAPL\n";
+            file += "===\n";
+
+            writeFileSync("isin-overrides-test.txt", file, { encoding: "utf8", flag: "w" });
+
             // Override the environment variable and force Jest to reload all modules.
             const oldEnv = process.env.E2G_ISIN_OVERRIDE_FILE;
-            process.env.E2G_ISIN_OVERRIDE_FILE = "isin-overrides-sample.txt";
+            process.env.E2G_ISIN_OVERRIDE_FILE = "isin-overrides-test.txt";
             jest.resetModules();
             const { SecurityService } = require("./securityService");
 

@@ -172,6 +172,7 @@ The following parameters can be given to the Docker run command.
 | `-v {local_out_folder}:/var/tmp/e2g-output`  | N        | The output folder where the Ghostfolio import JSON will be placed. Also the input file will be moved here when an error ocurred while processing the file. |
 | `-v {local_cache_folder}:/var/tmp/e2g-cache` | Y        | The folder where Yahoo Finance symbols will be cached                                                                                                      |
 | `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx`        | N        | Your Ghostolio account ID [^1]                                                                                                                             |
+| `--env isin-overrides.txt` | Y        | Specify a key-value pair file with ISIN overrides |
 | `--env USE_POLLING=true`                     | Y        | When set to true, the container will continously look for new files to process and the container will not stop.                                            |
 | `--env DEBUG_LOGGING=true`                   | Y        | When set to true, the container will show logs in more detail, useful for error tracing.                                                                   |
 | `--env PURGE_CACHE=true`                     | Y        | When set to true, the file cache will be purged on start.                                                                                                  |
@@ -255,6 +256,18 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 ### Caching
 
 The tool uses `cacache` to store data retrieved from Yahoo Finance on disk. This way the load on Yahoo Finance is reduced and the tool should run faster. The cached data is stored in `/var/tmp/e2g-cache`. If you feel you need to invalidate your cache, you can do so by removing the folder and the tool will recreate the cache when you run it the next time.
+
+### Symbol overriding
+
+Since 0.25.0 you can specify ISIN symbol overrides. This gives you more control to make Export to Ghostfolio to look for a specific symbol. For example `IE00B3RBWM25` (Vanguard FTSE All-World UCITS ETF) will by default return `VWRL.L`. If you bought `VWRL.AS` and want to have this reflected in the export file, you can add this to the overrides file.
+
+The file is a simple key-value pair `.txt` file, which you can provide by environment variable via Docker, or by locally renaming `isin-overrides-sample.txt` to `isin-overrides.txt`. The contenst look like:
+
+```txt
+IE00B3RBWM25=VWRL.AS
+IE00B02KXK85=FXAC.AS
+...=...
+```
 
 </details>
 
