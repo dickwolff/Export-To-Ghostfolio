@@ -1,4 +1,5 @@
 import * as cacache from "cacache";
+import { existsSync, readFileSync } from "fs";
 import YahooFinanceRecord from "./models/yahooFinanceRecord";
 import { YahooFinance, YahooFinanceService } from "./yahooFinanceService";
 import { mapReplacer, mapReviver } from "./helpers/dictionaryHelpers";
@@ -6,11 +7,17 @@ import { mapReplacer, mapReviver } from "./helpers/dictionaryHelpers";
 /* istanbul ignore next */
 const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";
 
+/* istanbul ignore next */
+const symbolOverrideFile = process.env.E2G_SYMBOL_OVERRIDE_FILE || "symbol-overrides.txt";
+
 export class SecurityService {
 
     // Local cache of earlier retrieved symbols.
     private isinSymbolCache: Map<string, string> = new Map<string, string>();
     private symbolCache: Map<string, YahooFinanceRecord> = new Map<string, YahooFinanceRecord>();
+
+    // Local cache of symbol overrides.
+    private isinOverrideCache: Map<string, string> = new Map<string, string>();
 
     private preferedExchangePostfix: string = null;
 
@@ -56,9 +63,22 @@ export class SecurityService {
      */
     public async getSecurity(isin?, symbol?, name?, expectedCurrency?, progress?): Promise<YahooFinanceRecord> {
 
-        // When isin was given, check wether there is a symbol conversion cached. Then change map.
-        if (isin && this.isinSymbolCache.has(isin)) {
-            symbol = this.isinSymbolCache.get(isin);
+        let isinOverridden = false;
+
+        // When isin was given, check wether there is a ISIN-symbol conversion cached.
+        if (isin) {
+            
+             // First, check if the symbol was manually overridden.
+             if (this.isinOverrideCache.has(isin)) {
+                
+                symbol = this.isinOverrideCache.get(isin);
+                this.logDebug(`Converted ISIN ${isin} to symbol ${symbol} as it was overridden!`, progress);
+                isinOverridden = true;
+            }
+            // If not, check if the ISIN is known in the cache.
+            else if (this.isinSymbolCache.has(isin)) {
+                symbol = this.isinSymbolCache.get(isin);
+            }
         }
 
         // Second, check if the requested security is known by symbol (if given).
@@ -71,9 +91,9 @@ export class SecurityService {
         // The security is not known. Try to find it
         let symbols: YahooFinanceRecord[] = [];
 
-        // First try by ISIN.
+        // First try by ISIN (if it was not overridden).
         // If no ISIN was given as a parameter, just skip this part.
-        if (isin) {
+        if (!isinOverridden && isin) {
             symbols = await this.getSymbolsByQuery(isin, progress);
             this.logDebug(`getSecurity(): Found ${symbols.length} match${symbols.length === 1 ? "" : "es"} by ISIN ${isin}`, progress);
 
@@ -82,7 +102,8 @@ export class SecurityService {
                 this.logDebug(`getSecurity(): Not a single symbol found for ISIN ${isin}, trying by symbol ${symbol}`, progress);
                 symbols = await this.getSymbolsByQuery(symbol, progress);
             }
-        } else {
+        } 
+        else {
 
             // If no ISIN was given, try by symbol directly.
             symbols = await this.getSymbolsByQuery(symbol, progress);
@@ -162,7 +183,7 @@ export class SecurityService {
      *
      * @returns The size of the loaded cache
      */
-    public async loadCache(): Promise<[number, number]> {
+    public async loadCache(): Promise<[number, number, number]> {
 
         // Verify if there is data in the ISIN-Symbol cache. If so, restore to the local variable.
         const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");
@@ -180,8 +201,18 @@ export class SecurityService {
             this.symbolCache = cacheAsJson;
         }
 
+        // If a symbol override file exists, load it into cache.
+        if (await existsSync(symbolOverrideFile)) {
+            console.log("[i] Found symbol override file. Loading..");
+            const overrides = readFileSync(symbolOverrideFile, "utf8").split("\n");
+            for (let idx = 0; idx < overrides.length; idx++) {
+                const line = overrides[idx].split("=");
+                this.isinOverrideCache.set(line[0], line[1]);
+            }            
+        }
+
         // Return cache sizes.
-        return [this.isinSymbolCache.size, this.symbolCache.size];
+        return [this.isinSymbolCache.size, this.symbolCache.size, this.isinOverrideCache.size];
     }
 
     /**
