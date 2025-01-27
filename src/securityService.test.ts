@@ -1,7 +1,7 @@
 import * as cacache from "cacache";
+import { writeFileSync } from "fs";
 import { SecurityService } from "./securityService";
 import YahooFinanceServiceMock from "./testing/yahooFinanceServiceMock";
-import { writeFileSync } from "fs";
 
 describe("securityService", () => {
 
@@ -513,8 +513,8 @@ describe("securityService", () => {
                 // Arrange
 
                 // Override the environment variable and force Jest to reload all modules.        
-                const oldEnv = process.env.E2G_ISIN_OVERRIDE_FILE;
-                process.env.E2G_ISIN_OVERRIDE_FILE = "isin-overrides-sample.txt";
+                const oldEnv = process.env.ISIN_OVERRIDE_FILE;
+                process.env.ISIN_OVERRIDE_FILE = "isin-overrides-sample.txt";
                 jest.resetModules();
                 const { SecurityService } = require("./securityService");
 
@@ -537,7 +537,7 @@ describe("securityService", () => {
                 expect(searchSpy).toHaveBeenCalledTimes(1);
 
                 // Cleanup
-                process.env.E2G_ISIN_OVERRIDE_FILE = oldEnv;
+                process.env.ISIN_OVERRIDE_FILE = oldEnv;
             });
         });
     });
@@ -617,8 +617,8 @@ describe("securityService", () => {
             writeFileSync("isin-overrides-test.txt", file, { encoding: "utf8", flag: "w" });
 
             // Override the environment variable and force Jest to reload all modules.
-            const oldEnv = process.env.E2G_ISIN_OVERRIDE_FILE;
-            process.env.E2G_ISIN_OVERRIDE_FILE = "isin-overrides-test.txt";
+            const oldEnv = process.env.ISIN_OVERRIDE_FILE;
+            process.env.ISIN_OVERRIDE_FILE = "isin-overrides-test.txt";
             jest.resetModules();
             const { SecurityService } = require("./securityService");
 
@@ -633,7 +633,7 @@ describe("securityService", () => {
             expect(cache[2]).toBe(2);
 
             // Cleanup
-            process.env.E2G_ISIN_OVERRIDE_FILE = oldEnv;
+            process.env.ISIN_OVERRIDE_FILE = oldEnv;
         });
     });
 });
