@@ -506,6 +506,38 @@ describe("securityService", () => {
                 expect(searchSpy).toHaveBeenCalledTimes(1);
                 expect(quoteSummarySpy).toHaveBeenCalledTimes(1);
             });
+
+            it("when having ISIN overrides, uses specified symbol", async () => {
+
+                // Arrange
+
+                // Override the environment variable and force Jest to reload all modules.        
+                const oldEnv = process.env.E2G_ISIN_OVERRIDE_FILE;
+                process.env.E2G_ISIN_OVERRIDE_FILE = "isin-overrides-sample.txt";
+                jest.resetModules();
+                const { SecurityService } = require("./securityService");
+
+                const yahooFinanceMock = new YahooFinanceServiceMock();
+                const searchSpy = jest.spyOn(yahooFinanceMock, "search").mockResolvedValue({
+                    quotes: [
+                        {
+                            symbol: "VWRL.AS"
+                        }
+                    ]
+                });
+
+                const sut = new SecurityService(yahooFinanceMock);
+                await sut.loadCache();
+
+                // Act                
+                await sut.getSecurity("IE00B3RBWM25", null, null, "EUR");
+
+                // Assert
+                expect(searchSpy).toHaveBeenCalledTimes(1);
+
+                // Cleanup
+                process.env.E2G_ISIN_OVERRIDE_FILE = oldEnv;
+            });
         });
     });
 
@@ -573,15 +605,13 @@ describe("securityService", () => {
         it("restores ISIN overrides from file, if it was present", async () => {
 
             // Arrange
-            
+
             // Override the environment variable and force Jest to reload all modules.
             const oldEnv = process.env.E2G_ISIN_OVERRIDE_FILE;
             process.env.E2G_ISIN_OVERRIDE_FILE = "isin-overrides-sample.txt";
             jest.resetModules();
-            
-            // Re-import the SecurityService (with the new ENV).
             const { SecurityService } = require("./securityService");
-            
+
             // Prepare sut.
             const yahooFinanceMock = new YahooFinanceServiceMock();
             const sut = new SecurityService(yahooFinanceMock);
