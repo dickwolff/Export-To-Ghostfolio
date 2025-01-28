@@ -10,6 +10,7 @@ This tool allows you to convert CSV transaction exports to an import file that c
 - [Avanza](https://avanza.se)
 - [Bitvavo](https://bitvavo.com)
 - [BUX](https://bux.com)
+- [Coinbase](https://coinbase.com)
 - [CoinTracking.info](https://cointracking.info)
 - [DEGIRO](https://degiro.com)
 - [Delta](https://delta.app)
@@ -52,6 +53,10 @@ Login to your Bitvavo account and click on your name at the top-right. Next, cli
 Open the app and go to "Account Value", and then "View History". Click the download icon in the top right corner to download your transaction history. The export will be sent to your email address.
 
 _Due to limitations by BUX, you can request up to 3 CSV exports per day!_.
+
+### Coinbase
+
+_to come_
 
 ### CoinTracking.info
 
@@ -247,6 +252,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | Avanza        | `run start avanza`                 |
 | Bitvavo       | `run start bitvavo` (or `bv`)      |
 | BUX           | `run start bux`                    |
+| Coinbase      | `run start coinbase` (or `cb`)     |
 | CoinTracking  | `run start cointracking` (or `ct`) |
 | DEGIRO        | `run start degiro`                 |
 | Delta         | `run start delta`                  |
