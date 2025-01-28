@@ -7,6 +7,7 @@ import { AbstractConverter } from "./converters/abstractconverter";
 import { AvanzaConverter } from "./converters/avanzaConverter";
 import { BitvavoConverter } from "./converters/bitvavoConverter";
 import { BuxConverter } from "./converters/buxConverter";
+import { CoinbaseConverter } from "./converters/coinbaseConverter";
 import { CointrackingConverter } from "./converters/cointrackingConverter";
 import { DeGiroConverter } from "./converters/degiroConverter";
 import { DeGiroConverterV2 } from "./converters/degiroConverterV2";
@@ -114,6 +115,11 @@ async function createConverter(converterType: string, securityService?: Security
         case "bux":
             console.log("[i] Processing file using Bux converter");
             converter = new BuxConverter(securityService);
+            break;
+        case "cb":
+        case "coinbase":
+            console.log("[i] Processing file using Coinbase converter");
+            converter = new CoinbaseConverter(securityService);
             break;
         case "ct":
         case "cointracking":
