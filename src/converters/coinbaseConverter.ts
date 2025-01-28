@@ -1,8 +1,8 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
 import { SecurityService } from "../securityService";
-import { CoinbaseRecord } from "../models/coinbaseRecord";
 import { AbstractConverter } from "./abstractconverter";
+import { CoinbaseRecord } from "../models/coinbaseRecord";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
