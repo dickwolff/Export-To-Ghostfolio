@@ -43,6 +43,7 @@ export class BitvavoConverter extends AbstractConverter {
 
                 // Parse numbers to floats (from string).
                 if (context.column === "amount" ||
+                    context.column === "quotePrice" || 
                     context.column === "price" ||
                     context.column === "amountReceivedPaid" ||
                     context.column === "feeAmount") {
