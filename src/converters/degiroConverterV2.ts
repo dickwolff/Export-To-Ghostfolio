@@ -320,7 +320,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
           fee: feeAmount,
           quantity: numberShares,
           type: orderType,
-          unitPrice: unitPrice,
+          unitPrice: !isNaN(unitPrice) ? unitPrice : 0,
           currency: actionRecord.currency,
           dataSource: "YAHOO",
           date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
