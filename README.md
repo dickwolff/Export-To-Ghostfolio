@@ -56,7 +56,7 @@ _Due to limitations by BUX, you can request up to 3 CSV exports per day!_.
 
 ### Coinbase
 
-_to come_
+Go to Coinbase.com. Click on your account in the top-right, then click your name to go to your profile. Choose "Account statements" in the left menu (second to last from the bottom). Select a pre-generated transaction export (choose "CSV"), or create a custom CSV export.
 
 ### CoinTracking.info
 
