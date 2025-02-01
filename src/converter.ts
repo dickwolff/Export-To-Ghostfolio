@@ -206,10 +206,13 @@ async function createConverter(converterType: string, securityService?: Security
 async function tryAutomaticValidationAndImport(outputFileName: string) {
 
     try {
-        const ghostfolioService = new GhostfolioService();
+        let ghostfolioService;
 
         // When automatic validation is enabled, do this.
         if (`${process.env.GHOSTFOLIO_VALIDATE}` === "true") {
+
+            ghostfolioService = new GhostfolioService();
+
             console.log('[i] Automatic validation is allowed. Start validating..');
             const validationResult = await ghostfolioService.validate(outputFileName);
             console.log(`[i] Finished validation. ${validationResult ? 'Export was valid!' : 'Export was not valid!'}`);
@@ -219,7 +222,10 @@ async function tryAutomaticValidationAndImport(outputFileName: string) {
         }
 
         // When automatic import is enabled, do this.
-        if (process.env.GHOSTFOLIO_IMPORT === "true") {
+        if (`${process.env.GHOSTFOLIO_IMPORT}` === "true") {
+
+            ghostfolioService = ghostfolioService ?? new GhostfolioService();
+
             console.log('[i] Automatic import is allowed. Start importing..');
             console.log('[i] THIS IS AN EXPERIMENTAL FEATURE!! Use this at your own risk!');
             const importResult = await ghostfolioService.import(outputFileName);
