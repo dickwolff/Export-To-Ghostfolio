@@ -48,7 +48,6 @@ export class Trading212Converter extends AbstractConverter {
                 // Parse numbers to floats (from string).
                 if (context.column === "noOfShares" ||
                     context.column === "priceShare" ||
-                    context.column === "result" ||
                     context.column === "total") {
                     return parseFloat(columnValue);
                 }
@@ -61,6 +60,21 @@ export class Trading212Converter extends AbstractConverter {
                 }
 
                 return columnValue;
+            },
+            on_record: (record) => {
+
+                // On stock distributions, some fields need rearranging.
+                if (record.action.toLocaleLowerCase() === "stock distribution") {
+
+                    record.action = "buy";
+                    record.noOfShares = parseFloat(record.currencyPriceShare);
+                    record.priceShare = 0;
+                    record.currencyPriceShare = record.result;
+                }
+                console.log(record);
+                console.log("-----------------");
+
+                return record;
             }
         }, async (err, records: Trading212Record[]) => {
 
@@ -139,7 +153,7 @@ export class Trading212Converter extends AbstractConverter {
                     bar1.increment();
                     continue;
                 }
-
+                console.log(record);
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
