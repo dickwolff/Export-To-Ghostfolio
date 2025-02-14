@@ -190,6 +190,28 @@ export class EtoroConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
+    protected processHeaders(_: string): string[] {
+
+        // Generic header mapping from the DEGIRO CSV export.
+        const csvHeaders = [
+            "date",
+            "type",
+            "details",
+            "amount",
+            "units",
+            "realizedEquityChange",
+            "realizedEquity",
+            "balance:",
+            "positionId",
+            "assetType",
+            "nwa"];
+
+        return csvHeaders;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public isIgnoredRecord(record: EtoroRecord): boolean {
         let ignoredRecordTypes = ["deposit", "withdraw", "conversion"];
 
