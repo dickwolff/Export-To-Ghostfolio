@@ -98,7 +98,6 @@ export class TradeRepublicConverter extends AbstractConverter {
                     bar1.increment();
                     continue;
                 }
-                console.log(record)
 
                 let security: YahooFinanceRecord;
                 try {
@@ -120,7 +119,7 @@ export class TradeRepublicConverter extends AbstractConverter {
                     bar1.increment();
                     continue;
                 }
-                
+
                 const date = dayjs(`${record.date}`, "YYYY-MM-DD");
                 const unitPrice = Math.abs(parseFloat((record.value / record.amount).toFixed(2)));
 
