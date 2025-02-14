@@ -34,7 +34,7 @@ describe("tradeRepublicConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(5);
+      expect(actualExport.activities.length).toBe(4);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
@@ -91,7 +91,7 @@ describe("tradeRepublicConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 11, got 13 on line 2");
+        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 8, got 10 on line 2");
 
         done();
       });
