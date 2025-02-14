@@ -26,8 +26,8 @@ import { RevolutConverter } from "./converters/revolutConverter";
 import { SaxoConverter } from "./converters/saxoConverter";
 import { SchwabConverter } from "./converters/schwabConverter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
-import { Trading212Converter } from "./converters/trading212Converter";
 import { TradeRepublicConverter } from "./converters/tradeRepublicConverter";
+import { Trading212Converter } from "./converters/trading212Converter";
 import { XtbConverter } from "./converters/xtbConverter";
 
 import packageInfo from "../package.json";

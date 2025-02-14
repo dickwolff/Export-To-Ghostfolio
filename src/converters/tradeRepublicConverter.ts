@@ -45,17 +45,24 @@ export class TradeRepublicConverter extends AbstractConverter {
                     context.column === "costs" ||
                     context.column === "tax") {
 
-                    return parseFloat(columnValue);
+                    if (columnValue === "") {
+                        return 0;
+                    }
+
+                    return parseFloat(columnValue.replace(",", "."));
                 }
 
                 return columnValue;
             },
             on_record: (record: TradeRepublicRecord) => {
 
-                if (record.transactionType !== "dividend") {
-                    record.transactionType = record.value > 0 ? "buy" : "sell";
+                if (["verkoop"].some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)) {
+                    record.transactionType = "sell";
                 }
-                
+                if (["aankoop"].some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)) {
+                    record.transactionType = "buy";
+                }
+
                 return record;
             }
         }, async (err, records: TradeRepublicRecord[]) => {
@@ -91,8 +98,7 @@ export class TradeRepublicConverter extends AbstractConverter {
                     bar1.increment();
                     continue;
                 }
-
-                const date = dayjs(`${record.date}`, "YYYY-MM-DD HH:mm:ss");
+                console.log(record)
 
                 let security: YahooFinanceRecord;
                 try {
@@ -114,17 +120,18 @@ export class TradeRepublicConverter extends AbstractConverter {
                     bar1.increment();
                     continue;
                 }
-
-                const unitPrice = parseFloat((record.value / record.amount).toFixed(2));
+                
+                const date = dayjs(`${record.date}`, "YYYY-MM-DD");
+                const unitPrice = Math.abs(parseFloat((record.value / record.amount).toFixed(2)));
 
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: "",
                     fee: 0,
-                    quantity: record.amount,
+                    quantity: record.transactionType === "dividend" ? 1 : Math.abs(record.amount),
                     type: GhostfolioOrderType[record.transactionType],
-                    unitPrice: unitPrice,
+                    unitPrice: record.transactionType === "dividend" ? record.value : unitPrice,
                     currency: "EUR",
                     dataSource: "YAHOO",
                     date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
