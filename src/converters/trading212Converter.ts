@@ -71,8 +71,6 @@ export class Trading212Converter extends AbstractConverter {
                     record.priceShare = 0;
                     record.currencyPriceShare = record.result;
                 }
-                console.log(record);
-                console.log("-----------------");
 
                 return record;
             }
@@ -153,7 +151,7 @@ export class Trading212Converter extends AbstractConverter {
                     bar1.increment();
                     continue;
                 }
-                console.log(record);
+
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
