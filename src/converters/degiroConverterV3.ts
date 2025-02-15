@@ -272,7 +272,10 @@ export class DeGiroConverterV3 extends AbstractConverter {
   }
 
   private findMatchByOrderId(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
-    return records.find(r => r.orderId === currentRecord.orderId);
+    return records.find(r => r.orderId === currentRecord.orderId
+      && dayjs(r.date).isSame(dayjs(currentRecord.date), 'day')
+      && !this.isIgnoredRecord(r)
+    );
   }
 
   private findMatchByIsin(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
