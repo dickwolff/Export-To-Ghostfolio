@@ -71,3 +71,5 @@ Datum,Tijd,Valutadatum,Product,ISIN,Omschrijving,FX,Mutatie,,Saldo,,Order Id
 09-06-2020,12:05,08-06-2020,EUR CASH FUND FUNDSHARE,NL0010661914,"Conversion Fonds Monétaires finalisée: Vente 1 046,3825 @ 0,9854 EUR",,EUR,-4.81,EUR,84.89,
 01-01-2025,06:46,31-12-2024,,,FX Credit,,EUR,12.28,EUR,217.01,
 01-01-2025,06:46,31-12-2024,,,FX Debit,1.0379,USD,-12.75,USD,0.00,
+30-12-2024,07:25,27-12-2024,ISHARES CHINA CNY BOND UCITS ETF USD,IE00BYPC1H27,Dividend,,USD,0.23,USD,0.23,
+18-12-2024,18:15,18-12-2024,,,"Overboeking naar uw geldrekening bij flatexDEGIRO Bank: 0,4 EUR",,,,EUR,26.39,
