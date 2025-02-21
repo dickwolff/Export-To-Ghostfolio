@@ -175,13 +175,21 @@ export class XtbConverter extends AbstractConverter {
                 let unitPrice = parseFloat(match[2]);
                 const dividendPerShare = parseFloat(match[3]);
 
+                // By default, there is no expected currency.
+                let expectedCurrency = null;
+
+                // For dividends and spin-offs, the currency is in the comment.
+                if (record.type.toLocaleLowerCase() === "dividend") {
+                    expectedCurrency = record.comment.split(" ")[1];
+                }
+
                 let security: YahooFinanceRecord;
                 try {
                     security = await this.securityService.getSecurity(
                         null,
                         record.symbol,
                         null,
-                        null,
+                        expectedCurrency,
                         this.progress);
                 }
                 catch (err) {
