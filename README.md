@@ -235,7 +235,7 @@ Next, clone the repo to your local machine and open with your editor of choice (
 
 Run `npm install` to install all required packages.
 
-The repository contains a sample `.env` file. Rename this from `.env.sample`.
+The repository contains a sample configuration file. Rename this from `.env.sample` to `.env`.
 
 - Put your export file path in the `INPUT_FILE` variable. This has to be relative to the root of the project.
 - Put the Ghostfolio account name where you want your transactions to end up at in `GHOSTFOLIO_ACCOUNT_ID`
