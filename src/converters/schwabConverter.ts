@@ -37,13 +37,21 @@ export class SchwabConverter extends AbstractConverter {
                     // Schwab supports dividend reinvest. 
                     // These transactions are exported as separate transactions.
                     // "Reinvest shares" actions should be interpreted as "buy".
+                    // "Stock Div Dist" actions should be interpreted as "buy".
+                    // "Spin-off" actions should be interpreted as "buy".
                     if (action.indexOf("buy") > -1 ||
                         action.indexOf("reinvest shares") > -1 ||
                         action.indexOf("stock split") > -1 ||
-                        action.indexOf("stock div dist") > -1) {
+                        action.indexOf("stock div dist") > -1 ||
+                        action.indexOf("spin-off") > -1) {
                         return "buy";
                     }
-                    else if (action.indexOf("sell") > -1) {
+                    else if (
+                        action.indexOf("sell") > -1 ||
+                        action.indexOf("reverse split") > -1 ||
+                        action.indexOf("stock merger") > -1 ||
+                        action.indexOf("name change") > -1 ||
+                        action.indexOf("conversion") > -1) {
                         return "sell";
                     }
                     else if (action.indexOf("non-qual") > -1) {
@@ -51,8 +59,8 @@ export class SchwabConverter extends AbstractConverter {
                     }
                     else if (action.indexOf("dividend") > -1 ||
                         action.indexOf("qual") > -1 ||
-                        action.indexOf("cash div") > -1 ||
-                        action.endsWith("reinvest")) {
+                        action.endsWith("reinvest") ||
+                        action.indexOf("cash div") > -1) {
                         return "dividend";
                     }
                     else if (action.indexOf("advisor fee") > -1 ||
@@ -79,6 +87,15 @@ export class SchwabConverter extends AbstractConverter {
                 }
 
                 return columnValue;
+            },
+            on_record: (record, _) => {
+
+                // For sell records with a negative quantity, set the action to buy.
+                if (record.action === "sell" && record.quantity > 0) {
+                    record.action = "buy";
+                }
+
+                return record;
             }
         }, async (err, records: SchwabRecord[]) => {
 
