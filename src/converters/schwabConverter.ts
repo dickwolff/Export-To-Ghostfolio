@@ -39,7 +39,8 @@ export class SchwabConverter extends AbstractConverter {
                     // "Reinvest shares" actions should be interpreted as "buy".
                     if (action.indexOf("buy") > -1 ||
                         action.indexOf("reinvest shares") > -1 ||
-                        action.indexOf("stock split") > -1) {
+                        action.indexOf("stock split") > -1 ||
+                        action.indexOf("stock div dist") > -1) {
                         return "buy";
                     }
                     else if (action.indexOf("sell") > -1) {
@@ -50,6 +51,7 @@ export class SchwabConverter extends AbstractConverter {
                     }
                     else if (action.indexOf("dividend") > -1 ||
                         action.indexOf("qual") > -1 ||
+                        action.indexOf("cash div") > -1 ||
                         action.endsWith("reinvest")) {
                         return "dividend";
                     }
