@@ -145,7 +145,7 @@ Login to your Swissquote account. From the bar menu click on "Transactions". Sel
 
 **NOTE:** For Swissquote it's important you have set your display language as English. You can do this by logging into your Swissquote account and then select "My Account" (Mein Konto). Click the "Settings"-button (Einstellungen), then change your display language (displaysprache) to English. After this change, your Swissquote export will be in English.
 
-### TradeRepublic
+### TradeRepublic (experimental)
 
 > **As TradeRepublic itself does not offer CSV exports, this can be achieved using a community tool called [`pytr`](https://github.com/pytr-org/pytr/). The instructions below are based on that tool!**
 

@@ -202,6 +202,7 @@ async function createConverter(converterType: string, securityService?: Security
         case "tr":
         case "traderepublic":
             console.log("[i] Processing file using TradeRepublic converter");
+            console.log("[i] NOTE: This converted is currently experimental");
             converter = new TradeRepublicConverter(securityService);
             break;
         case "t212":
