@@ -27,6 +27,10 @@ export class SaxoConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
+                if (context.column === "type" && columnValue.toLocaleLowerCase() === "corporate action") {
+                    return "dividend";
+                }
+
                 if (context.column === "instrumentCurrency" && columnValue === "GBX") {
                     return "GBp";
                 }
@@ -113,9 +117,8 @@ export class SaxoConverter extends AbstractConverter {
                     return errorCallback(err);
                 }
 
-                const action = record.amount < 0 ? "buy" : "sell";
-
-                // Todo: dividend
+                // Detect action type.
+                const action = record.type === "dividend" ? "dividend" : record.amount < 0 ? "buy" : "sell";
 
                 // Log whenever there was no match found.
                 if (!security) {
@@ -124,11 +127,21 @@ export class SaxoConverter extends AbstractConverter {
                     continue;
                 }
 
-                const actionDetails = record.event.match(/(\d+)\s+@\s+([\d.]+)/)
+                let numberOfShares;
+                let assetPrice;
 
-                // Make negative numbers (on sell records) absolute.
-                let numberOfShares = parseFloat(actionDetails[1]);
-                let assetPrice = parseFloat(actionDetails[2]);
+                if (action === "dividend") {
+                    numberOfShares = 1;
+                    assetPrice = record.amount;
+                }
+                else {
+
+                    const actionDetails = record.event.match(/(\d+)\s+@\s+([\d.]+)/)
+
+                    // Make negative numbers (on sell records) absolute.
+                    numberOfShares = parseFloat(actionDetails[1]);
+                    assetPrice = parseFloat(actionDetails[2]);
+                }
 
                 // Add record to export.
                 result.activities.push({
