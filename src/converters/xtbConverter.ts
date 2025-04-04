@@ -23,7 +23,7 @@ export class XtbConverter extends AbstractConverter {
 
         // Parse the CSV and convert to Ghostfolio import format.
         parse(input, {
-            delimiter: ";",
+            delimiter: ",",
             fromLine: 2,
             skip_empty_lines: true,
             columns: this.processHeaders(input),
@@ -44,7 +44,7 @@ export class XtbConverter extends AbstractConverter {
                     else if (type.indexOf("sec fee") > -1 || type.indexOf("swap") > -1 || type.indexOf("commission") > -1 || type.indexOf("free funds interests tax") > -1) {
                         return "fee";
                     }
-                    else if (type.indexOf("free funds interests") > -1) {
+                    else if (type.indexOf("free funds interests") > -1 || type.indexOf("free-funds interest") > -1) {
                         return "interest";
                     }
                     else if (type.indexOf("dividend") > -1 || type.indexOf("spin off") > -1) { //verify spinoff
@@ -62,6 +62,12 @@ export class XtbConverter extends AbstractConverter {
                 // Parse numbers to floats (from string).
                 if (context.column === "id" || context.column === "amount") {
                     return parseFloat(columnValue);
+                }
+
+                // Depending on the locale, XTB uses US date format (MM/DD/YYYY), so we need to convert it.
+                if (context.column === "time" && columnValue.includes("/")) {
+                    const usDate = dayjs(columnValue, "MM/DD/YYYY HH:mm:ss");
+                    return usDate.format("DD.MM.YYYY HH:mm:ss");
                 }
 
                 return columnValue;
@@ -171,9 +177,27 @@ export class XtbConverter extends AbstractConverter {
 
                 const match = record.comment.match(/(?:OPEN|CLOSE) BUY ([0-9]+(?:\.[0-9]+)?(?:\/[0-9]+(?:\.[0-9]+)?)?) @ ([0-9]+(?:\.[0-9]+)?)|(?:[A-Z\. ]+) ([0-9]+(?:\.[0-9]+)?)/)
 
-                let quantity = parseFloat(match[1]?.split("/")[0]);
-                let unitPrice = parseFloat(match[2]);
-                const dividendPerShare = parseFloat(match[3]);
+                let quantity = 0;
+                let unitPrice = 0;
+                let dividendPerShare = 0;
+
+                if (match && match[1] && match[2]) {
+
+                    // We found matched data so assign information related to buy/sell accordingly.
+                    quantity = parseFloat(match[1].split("/")[0]);
+                    unitPrice = parseFloat(match[2]);
+                } else if (match && match[3]) {
+
+                    // We found matched data so assign information related to dividend accordingly.
+                    dividendPerShare = parseFloat(match[3]);
+                }
+
+                // Check if any data was found.
+                if (quantity === 0 && unitPrice === 0 && dividendPerShare === 0) {
+                    this.progress.log(`[i] No quantity, unit price or dividend per share found for action ${record.type}, symbol ${record.symbol} and comment ${record.comment}! Please add this manually..\n`);
+                    bar1.increment();
+                    continue;
+                }
 
                 // By default, there is no expected currency.
                 let expectedCurrency = null;
@@ -253,8 +277,8 @@ export class XtbConverter extends AbstractConverter {
             "id",
             "type",
             "time",
-            "symbol",
             "comment",
+            "symbol",
             "amount"];
 
         return csvHeaders;

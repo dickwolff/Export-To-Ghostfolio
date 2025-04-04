@@ -34,7 +34,7 @@ describe("xtbConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(34);
+      expect(actualExport.activities.length).toBe(36);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
@@ -64,7 +64,7 @@ describe("xtbConverter", () => {
       const sut = new XtbConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileContent = "";
-      tempFileContent += "ID;Type;Time;Symbol;Comment;Amount\n";
+      tempFileContent += "ID,Type,Time,Comment,Symbol,Amount\n";
 
       // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -83,9 +83,8 @@ describe("xtbConverter", () => {
       const sut = new XtbConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileContent = "";
-      tempFileContent += "ID;Type;Time;Symbol;Comment;Amount\n";
-      
-      tempFileContent += `513492358;Stocks/ETF purchase;11.03.2024 10:05:05;SPYL.DE;OPEN BUY 8 @ 11.2835;-90.27;;`;
+      tempFileContent += "ID,Type,Time,Comment,Symbol,Amount\n";
+      tempFileContent += `513492358,Stocks/ETF purchase,11.03.2024 10:05:05,OPEN BUY 8 @ 11.2835,SPYL.DE,-90.27,,`;
 
       // Act
       sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -102,8 +101,8 @@ describe("xtbConverter", () => {
 
       // Arrange
       let tempFileContent = "";
-      tempFileContent += "ID;Type;Time;Symbol;Comment;Amount\n";
-      tempFileContent += `513492358;Stocks/ETF purchase;11.03.2024 10:05:05;SPYL.DE;OPEN BUY 8 @ 11.2835;-90.27`;
+      tempFileContent += "ID,Type,Time,Comment,Symbol,Amount\n";
+      tempFileContent += `513492358,Stocks/ETF purchase,11.03.2024 10:05:05,OPEN BUY 8 @ 11.2835,SPYL.DE,-90.27`;
 
       // Mock Yahoo Finance service to throw error.
       const yahooFinanceServiceMock = new YahooFinanceServiceMock();
@@ -126,8 +125,8 @@ describe("xtbConverter", () => {
 
     // Arrange
     let tempFileContent = "";
-    tempFileContent += "ID;Type;Time;Symbol;Comment;Amount\n";
-    tempFileContent += `513492358;Stocks/ETF purchase;11.03.2024 10:05:05;SPYL.DE;OPEN BUY 8 @ 11.2835;-90.27`;
+    tempFileContent += "ID,Type,Time,Comment,Symbol,Amount\n";
+    tempFileContent += `513492358,Stocks/ETF purchase,11.03.2024 10:05:05,OPEN BUY 8 @ 11.2835,SPYL.DE,-90.27`;
 
     // Mock Yahoo Finance service to return no quotes.
     const yahooFinanceServiceMock = new YahooFinanceServiceMock();
