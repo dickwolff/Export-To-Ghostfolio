@@ -76,9 +76,11 @@ Open the Delta app. Open the menu, then click "Settings". Go to "Devices & Data"
 ### Directa
 
 Open Directa App, select "Libera" mode and go on Transactions ("Movimenti").
+
 ![Export instructions for Directa, Transactions](./assets/directa-transactions.png)
 
 Choose date range on the right and click on "Excel" icon, in the modal select "File separato da virgole (csv)" and "Estrai"
+
 ![Export instructions for Directa, Export](./assets/directa-export.png)
 
 ### eToro
