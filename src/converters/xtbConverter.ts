@@ -279,7 +279,11 @@ export class XtbConverter extends AbstractConverter {
             "time",
             "comment",
             "symbol",
-            "amount"];
+            "amount",
+            "c1", // Not used, but needed for parsing.
+            "c2", // Not used, but needed for parsing.
+            "c3", // Not used, but needed for parsing.
+            "c4"] // Not used, but needed for parsing.
 
         return csvHeaders;
     }
