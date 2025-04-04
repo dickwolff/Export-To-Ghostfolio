@@ -181,12 +181,12 @@ export class XtbConverter extends AbstractConverter {
                 let unitPrice = 0;
                 let dividendPerShare = 0;
 
-                if (match && match[1] && match[2]) {
+                if (match && match?.[1] && match?.[2]) {
 
                     // We found matched data so assign information related to buy/sell accordingly.
                     quantity = parseFloat(match[1].split("/")[0]);
                     unitPrice = parseFloat(match[2]);
-                } else if (match && match[3]) {
+                } else if (match && match?.[3]) {
 
                     // We found matched data so assign information related to dividend accordingly.
                     dividendPerShare = parseFloat(match[3]);
