@@ -1,4 +1,6 @@
 Client ID,Trade Date,Value Date,Type,Instrument,Instrument ISIN,Instrument currency,Exchange Description,Instrument Symbol,Event,Amount,Order ID,Conversion Rate
+,02-Apr-2025,02-Apr-2025,Corporate action,Vanguard FTSE All-World UCITS ETF,IE00B3RBWM25,EUR,Euronext Amsterdam,VWRL:xams,Dividend,1.83,,0.92139706
+,02-Apr-2025,02-Apr-2025,Corporate action,Vanguard S&P 500 Dist UCITS ETF,IE00B3XXRP09,EUR,Euronext Amsterdam,VUSA:xams,Dividend,0.46,,0.92139706
 ,02-Jan-2025,02-Jan-2025,Trade,Vanguard FTSE All-World UCITS ETF,IE00BK5BQT80,USD,London Stock Exchange (ETFs),VWRA:xlon,Sell 3 @ 139.74 USD,"419,22",,1
 ,02-Jan-2025,02-Jan-2025,Cash amount,,,USD,,,Custody Fee,"-3,91",,1
 ,02-Jan-2025,02-Jan-2025,Cash amount,,,USD,,,Custody Fee,"-5,2",,1
