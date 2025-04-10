@@ -57,7 +57,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
 
         // Check if the output needs to be split into chunks. If so, calculate how many files need to be produced.
         const splitOutput = `${process.env.GHOSTFOLIO_SPLIT_OUTPUT}`.toLocaleLowerCase() === "true";
-        const filesToProduce = !splitOutput ? 1 : Math.round(result.activities.length / 25);
+        const filesToProduce = !splitOutput ? 1 : Math.ceil(result.activities.length / 25);
 
         console.log(`[i] Processing complete, writing to ${filesToProduce === 1 ? "file" : filesToProduce + " files"}..`);
 
