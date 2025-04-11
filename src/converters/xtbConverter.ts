@@ -47,7 +47,7 @@ export class XtbConverter extends AbstractConverter {
                     else if (type.indexOf("free funds interests") > -1 || type.indexOf("free-funds interest") > -1) {
                         return "interest";
                     }
-                    else if (type.indexOf("dividend") > -1 || type.indexOf("spin off") > -1) { //verify spinoff
+                    else if (type.indexOf("dividend") > -1 || type.indexOf("divident") > -1 || type.indexOf("spin off") > -1) { //verify spinoff
                         return "dividend";
                     }
                     else if (type.indexOf("profit/loss") > -1) {
