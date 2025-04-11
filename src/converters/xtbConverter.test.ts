@@ -91,7 +91,7 @@ describe("xtbConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 10; got 12 on line 2");
+        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 10, got 12 on line 2");
 
         done();
       });
@@ -139,7 +139,7 @@ describe("xtbConverter", () => {
     // Act
     sut.processFileContents(tempFileContent, () => {
 
-      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for action buy; symbol SPYL.DE and comment OPEN BUY 8 @ 11.2835! Please add this manually..\n");
+      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for action buy, symbol SPYL.DE and comment OPEN BUY 8 @ 11.2835! Please add this manually..\n");
 
       done();
     }, () => done.fail("Should not have an error!"));
