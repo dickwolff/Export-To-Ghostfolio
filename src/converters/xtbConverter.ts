@@ -35,7 +35,7 @@ export class XtbConverter extends AbstractConverter {
                 if (context.column === "type") {
                     const type = columnValue.toLocaleLowerCase();
 
-                    if (type.indexOf("stocks/etf purchase") > -1 || type.indexOf("ações/etf compra") > -1) {
+                    if (type.indexOf("stocks/etf purchase") > -1 || type.indexOf("stocks purchase") > -1 || type.indexOf("etf purchase") > -1 || type.indexOf("ações/etf compra") > -1) {
                         return "buy";
                     }
                     else if (type.indexOf("stocks/etf sale") > -1 || type.indexOf("ações/etf vende") > -1) {
@@ -181,12 +181,12 @@ export class XtbConverter extends AbstractConverter {
                 let unitPrice = 0;
                 let dividendPerShare = 0;
 
-                if (match && match?.[1] && match?.[2]) {
+                if (match?.[1] && match?.[2]) {
 
                     // We found matched data so assign information related to buy/sell accordingly.
                     quantity = parseFloat(match[1].split("/")[0]);
                     unitPrice = parseFloat(match[2]);
-                } else if (match && match?.[3]) {
+                } else if (match?.[3]) {
 
                     // We found matched data so assign information related to dividend accordingly.
                     dividendPerShare = parseFloat(match[3]);
@@ -313,7 +313,7 @@ export class XtbConverter extends AbstractConverter {
         if (!taxRecord) {
 
             const previousRecord = records[idx - 1];
-            if (previousRecord?.type.toLocaleLowerCase().indexOf("tax") > -1 && currentRecordId + 1 === previousRecord?.id) {
+            if (previousRecord && previousRecord.type.toLocaleLowerCase().indexOf("tax") > -1 && currentRecordId + 1 === previousRecord?.id) {
                 taxRecord = previousRecord;
             }
         }
