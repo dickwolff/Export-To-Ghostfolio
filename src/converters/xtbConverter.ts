@@ -23,7 +23,7 @@ export class XtbConverter extends AbstractConverter {
 
         // Parse the CSV and convert to Ghostfolio import format.
         parse(input, {
-            delimiter: ",",
+            delimiter: ";",
             fromLine: 2,
             skip_empty_lines: true,
             columns: this.processHeaders(input),
