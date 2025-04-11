@@ -38,7 +38,7 @@ export class XtbConverter extends AbstractConverter {
                     if (type.indexOf("stocks/etf purchase") > -1 || type.indexOf("stocks purchase") > -1 || type.indexOf("etf purchase") > -1 || type.indexOf("ações/etf compra") > -1) {
                         return "buy";
                     }
-                    else if (type.indexOf("stocks/etf sale") > -1 || type.indexOf("ações/etf vende") > -1) {
+                    else if (type.indexOf("stocks/etf sale") > -1 || type.indexOf("stock sale") > -1 || type.indexOf("etf sale") > -1 || type.indexOf("ações/etf vende") > -1) {
                         return "sell";
                     }
                     else if (type.indexOf("sec fee") > -1 || type.indexOf("swap") > -1 || type.indexOf("commission") > -1 || type.indexOf("free funds interests tax") > -1) {
