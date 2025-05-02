@@ -14,7 +14,7 @@ on:
     paths:
       - "src/**"
       - package.json
-      - .github/workflows/docker.yml #temp
+      - .github/*
   workflow_dispatch: # Also allow manual triggering
 
 jobs:
