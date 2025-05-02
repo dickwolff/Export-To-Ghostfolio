@@ -98,7 +98,7 @@ chokidar
         }, 5000);
     });
 
-// Prep header set.
+// Prep header sets.
 const headers: Map<string, string> = new Map<string, string>();
 headers.set(`Datum;Konto;Typ av transaktion;Värdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat`, "avanza");
 headers.set(`Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,Received / Paid Currency,Received / Paid Amount,Fee currency,Fee amount,Status,Transaction ID,Address`, "bitvavo");
