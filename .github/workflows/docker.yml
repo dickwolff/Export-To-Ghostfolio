@@ -29,10 +29,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.base.ref }}
           fetch-depth: 0
 
       - name: Checkout source branch
-        run: git checkout ${{ github.event.pull_request.head.ref }}
+        run: |
+          # Fetch the head branch explicitly
+          git fetch origin ${{ github.event.pull_request.head.ref }}:${{ github.event.pull_request.head.ref }}
+          # Checkout the source branch
+          git checkout ${{ github.event.pull_request.head.ref }}
 
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v0.10.2
