@@ -17,6 +17,7 @@ on:
       - .github/*
   workflow_dispatch: # Also allow manual triggering
 
+
 jobs:
   docker:
     env:
