@@ -7,26 +7,27 @@ on:
       - main
     paths:
       - "src/**"
-      - "package.json"
+      - "GitVersion.yml"
   pull_request:
     branches:
       - main
     paths:
       - "src/**"
       - "package.json"
+      - "GitVersion.yml"
   workflow_dispatch: # Also allow manual triggering
 
 jobs:
-  docker:    
+  docker:
     env:
       dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
-    
+
     name: Publish Docker Image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -40,6 +41,46 @@ jobs:
         with:
           useConfigFile: true
 
+      - name: Determine image version
+        run: |
+          if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
+            echo "IMAGE_VERSION=${{ env.GitVersion_SemVer }}" >> $GITHUB_ENV
+          else
+            echo "IMAGE_VERSION=${{ env.GitVersion_MajorMinorPatch }}" >> $GITHUB_ENV
+          fi
+
+      - name: Automatically increase GitVersion
+        if: github.event_name == 'pull_request'
+        shell: bash 
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+          # Check if GitVersion.yml was already updated in the diff with the target branch.
+          ALREADY_UPDATED=$(git diff ${{ github.event.pull_request.base.ref }} GitVersion.yml | grep "+next-version: ${{ env.GitVersion_MajorMinorPatch }}" || true);
+          if [ -z "$ALREADY_UPDATED" ]
+          then
+            LOCAL_BRANCH="${{ github.event.pull_request.head.ref }}"; # Use the direct head.ref
+            git checkout $LOCAL_BRANCH;
+            echo "Working on local branch: $LOCAL_BRANCH";
+            
+            # Update GitVersion.yml using sed.
+            sed -i "s/\(next-version:.*[0-9]\)/next-version: ${{ env.GitVersion_MajorMinorPatch }}/g" GitVersion.yml;
+
+            # Add and commit the changes.
+            git add "GitVersion.yml";
+            git commit -m "Automatically incremented GitVersion.yml version to ${{ env.GitVersion_MajorMinorPatch }}";
+            git push origin $LOCAL_BRANCH;
+          else
+            echo "GitVersion was already updated to ${{ env.GitVersion_MajorMinorPatch }}"
+          fi
+
+      - name: Update version in package file
+        run: |
+          sed -i "s/\"version\": \"__VERSION__\"/\"version\": \"${{ env.IMAGE_VERSION }}\"/" package.json
+          echo "Updated package.json:"
+          cat package.json
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -52,15 +93,6 @@ jobs:
         with:
           username: ${{ env.dockerhub_username }}
           password: ${{ env.dockerhub_token }}
-
-      - name: Determine image version
-    #    shell: bash
-        run: |
-          if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
-            echo "IMAGE_VERSION=${{ env.GitVersion_SemVer }}" >> $GITHUB_ENV
-          else
-            echo "IMAGE_VERSION=${{ env.GitVersion_MajorMinorPatch }}" >> $GITHUB_ENV
-          fi
 
       - name: Build and push (PR)
         uses: docker/build-push-action@v5
