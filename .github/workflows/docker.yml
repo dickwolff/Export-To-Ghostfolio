@@ -73,7 +73,8 @@ jobs:
             # Add and commit the changes.
             git add "GitVersion.yml";
             git commit -m "Automatically incremented GitVersion.yml version to $IMAGE_VERSION";
-
+            git status
+            git branch -vv
             # Push the changes back to the source branch.
             # You need to push to the origin with a token that has write access to the repository.
             # The GITHUB_TOKEN provided by GitHub Actions usually has this permission for the source branch of a PR.
