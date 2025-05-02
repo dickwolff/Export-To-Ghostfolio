@@ -15,6 +15,7 @@ on:
       - "src/**"
       - "package.json"
       - "GitVersion.yml"
+      - .github/*
   workflow_dispatch: # Also allow manual triggering
 
 jobs:
