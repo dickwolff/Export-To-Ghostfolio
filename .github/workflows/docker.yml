@@ -96,8 +96,7 @@ jobs:
 
       - name: Update versions in package files
         run: |
-          sed -i "s/\"version\": \".*\"/\"version\": \"${{ env.IMAGE_VERSION }}\"/" package.json
-          sed -i "s/\"version\": \".*\"/\"version\": \"${{ env.IMAGE_VERSION }}\"/" package-lock.json
+          sed -i "s/\"version\": \"__VERSION__\"/\"version\": \"${{ env.IMAGE_VERSION }}\"/" package.json
 
       - name: Build and push (PR)
         uses: docker/build-push-action@v5
