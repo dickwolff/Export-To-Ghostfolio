@@ -50,7 +50,7 @@ jobs:
           fi
 
       - name: Automatically increase GitVersion
-        if: github.event_name == "pull_request"
+        if: github.event_name == 'pull_request'
         shell: bash 
         run: |
           git config --global user.name "${{ github.actor }}"
