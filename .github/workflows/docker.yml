@@ -7,13 +7,13 @@ on:
       - main
     paths:
       - "src/**"
-      - "package.json"
+      - "GitVersion.yml"
   pull_request:
     branches:
       - main
     paths:
       - "src/**"
-      - "package.json"
+      - "GitVersion.yml"
   workflow_dispatch: # Also allow manual triggering
 
 jobs:
@@ -54,13 +54,17 @@ jobs:
           password: ${{ env.dockerhub_token }}
 
       - name: Determine image version
-    #    shell: bash
         run: |
           if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
             echo "IMAGE_VERSION=${{ env.GitVersion_SemVer }}" >> $GITHUB_ENV
           else
             echo "IMAGE_VERSION=${{ env.GitVersion_MajorMinorPatch }}" >> $GITHUB_ENV
           fi
+
+      - name: Update versions in package files
+        run: |
+          sed -i "s/\"version\": \".*\"/\"version\": \"${{ env.IMAGE_VERSION }}\"/" package.json
+          sed -i "s/\"version\": \".*\"/\"version\": \"${{ env.IMAGE_VERSION }}\"/" package-lock.json
 
       - name: Build and push (PR)
         uses: docker/build-push-action@v5
