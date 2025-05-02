@@ -158,6 +158,13 @@ export class SchwabConverter extends AbstractConverter {
                     continue;
                 }
 
+                // Check if the record has a CUSIP, if so, convert it to ISIN.
+                if (record.symbol.match(/^[A-Z0-9]{8}[A-Z0-9*@#]$/)) {
+                    const symbol = this.cusipToIsin(record.symbol);
+                    this.progress.log(`[i] CUSIP "${record.symbol}" detected, converted to ISIN "${symbol}"\n`);
+                    record.symbol = symbol;
+                }
+
                 let security: YahooFinanceRecord;
                 try {
                     security = await this.securityService.getSecurity(
@@ -233,5 +240,37 @@ export class SchwabConverter extends AbstractConverter {
         }
 
         return ignore;
+    }
+
+    private cusipToIsin(cusip: string): string {
+        if (cusip.length !== 9) {
+            throw new Error('CUSIP must be 9 characters long');
+        }
+
+        const base = "US" + cusip;
+        const numeric = base
+            .toUpperCase()
+            .split('')
+            .map(char => {
+                if (/[0-9]/.test(char)) return char;
+                return (char.charCodeAt(0) - 55).toString(); // A=10, B=11, ..., Z=35
+            })
+            .join('');
+
+        const digits = numeric
+            .split('')
+            .map(Number)
+            .flatMap((digit, idx) => {
+                if ((numeric.length - idx) % 2 === 0) {
+                    const doubled = digit * 2;
+                    return doubled > 9 ? [1, doubled - 10] : [doubled];
+                }
+                return [digit];
+            });
+
+        const sum = digits.reduce((acc, val) => acc + val, 0);
+        const checkDigit = (10 - (sum % 10)) % 10;
+
+        return base + checkDigit;
     }
 }
