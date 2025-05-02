@@ -29,15 +29,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.base.ref }}
           fetch-depth: 0
-
-      - name: Checkout source branch
-        run: |
-          # Fetch the head branch explicitly
-          git fetch origin ${{ github.event.pull_request.head.ref }}:${{ github.event.pull_request.head.ref }}
-          # Checkout the source branch
-          git checkout ${{ github.event.pull_request.head.ref }}
 
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v0.10.2
@@ -66,7 +58,7 @@ jobs:
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
           # Check if GitVersion.yml was already updated in the diff with the target branch.
-          ALREADY_UPDATED=$(git diff ${{ github.event.pull_request.base.ref }} GitVersion.yml | grep "+next-version: $IMAGE_VERSION" || true);
+          ALREADY_UPDATED=$(git diff ${{ github.event.pull_request.base.ref }} GitVersion.yml | grep "+next-version: ${{ env.GitVersion_SemVer }}" || true);
           if [ -z "$ALREADY_UPDATED" ]
           then
             LOCAL_BRANCH="${{ github.event.pull_request.head.ref }}"; # Use the direct head.ref
@@ -76,12 +68,12 @@ jobs:
             git checkout $LOCAL_BRANCH;
 
             # Update GitVersion.yml using sed.
-            sed -i "s/\(next-version:.*[0-9]\)/next-version: $IMAGE_VERSION/g" GitVersion.yml;
+            sed -i "s/\(next-version:.*[0-9]\)/next-version: ${{ env.GitVersion_SemVer }}/g" GitVersion.yml;
 
             # Add and commit the changes.
             git add "GitVersion.yml";
             git status
-            git commit -m "Automatically incremented GitVersion.yml version to $IMAGE_VERSION";
+            git commit -m "Automatically incremented GitVersion.yml version to ${{ env.GitVersion_SemVer }}";
             git status
             git branch -vv
             # Push the changes back to the source branch.
@@ -89,7 +81,7 @@ jobs:
             # The GITHUB_TOKEN provided by GitHub Actions usually has this permission for the source branch of a PR.
             git push origin $LOCAL_BRANCH;
           else
-            echo "GitVersion was already updated to $IMAGE_VERSION"
+            echo "GitVersion was already updated to ${{ env.GitVersion_SemVer }}"
           fi
 
       - name: Update versions in package files
