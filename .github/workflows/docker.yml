@@ -61,6 +61,7 @@ jobs:
         if: github.event_name == 'pull_request'
         shell: bash 
         run: |
+          git status
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
@@ -72,7 +73,7 @@ jobs:
             echo "Working on Local Branch: $LOCAL_BRANCH";
             # In GitHub Actions, the checkout action usually puts you on the correct branch.
             # Explicit checkout might not be needed unless you've switched branches previously.
-            # git checkout $LOCAL_BRANCH;
+            git checkout $LOCAL_BRANCH;
 
             # Update GitVersion.yml using sed.
             sed -i "s/\(next-version:.*[0-9]\)/next-version: $IMAGE_VERSION/g" GitVersion.yml;
