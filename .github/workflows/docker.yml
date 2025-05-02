@@ -70,7 +70,7 @@ jobs:
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
           # Check if GitVersion.yml was already updated in the diff with the target branch.
-          ALREADY_UPDATED=$(git diff ${{ github.event.pull_request.base.ref }} GitVersion.yml | grep "+next-version: $IMAGE_VERSION");
+          ALREADY_UPDATED=$(git diff ${{ github.event.pull_request.base.ref }} GitVersion.yml | grep "+next-version: $IMAGE_VERSION" || true);
           echo "ALREADY_UPDATED: $ALREADY_UPDATED";
           # if [ -z "$ALREADY_UPDATED" ]
           # then
