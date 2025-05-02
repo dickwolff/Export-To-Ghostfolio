@@ -1,4 +1,4 @@
-next-version: 0.29.3-PullRequest0206.23
+next-version: 0.29.2
 assembly-informational-format: "{NuGetVersion}"
 mode: ContinuousDeployment
 branches:
