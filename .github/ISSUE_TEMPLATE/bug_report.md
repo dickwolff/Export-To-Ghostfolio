@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Something not working as expected? Report a bug!
-title: "[Converter]: Short description of bug."
+title: "[<Insert converter name here>]: <Short description of bug>"
 labels: Bug
 assignees: ''
 
