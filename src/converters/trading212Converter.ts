@@ -31,10 +31,12 @@ export class Trading212Converter extends AbstractConverter {
                 if (context.column === "action") {
                     const action = columnValue.toLocaleLowerCase();
 
-                    if (action.indexOf("buy") > -1) {
+                    if (action.indexOf("buy") > -1 ||
+                        action.indexOf("stock split open") > -1) {
                         return "buy";
                     }
-                    else if (action.indexOf("sell") > -1) {
+                    else if (action.indexOf("sell") > -1 ||
+                        action.indexOf("stock split close") > -1) {
                         return "sell";
                     }
                     else if (action.indexOf("dividend") > -1) {
@@ -179,7 +181,7 @@ export class Trading212Converter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: Trading212Record): boolean {
-        let ignoredRecordTypes = ["deposit", "withdraw", "cash", "currency conversion"];
+        let ignoredRecordTypes = ["deposit", "withdraw", "cash", "currency conversion", "transfer out"];
 
         return ignoredRecordTypes.some(t => record.action.toLocaleLowerCase().indexOf(t) > -1)
     }
