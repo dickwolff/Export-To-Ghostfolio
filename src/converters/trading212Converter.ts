@@ -31,12 +31,10 @@ export class Trading212Converter extends AbstractConverter {
                 if (context.column === "action") {
                     const action = columnValue.toLocaleLowerCase();
 
-                    if (action.indexOf("buy") > -1 ||
-                        action.indexOf("stock split open") > -1) {
+                    if (action.indexOf("buy") > -1) {
                         return "buy";
                     }
-                    else if (action.indexOf("sell") > -1 ||
-                        action.indexOf("stock split close") > -1) {
+                    else if (action.indexOf("sell") > -1) {
                         return "sell";
                     }
                     else if (action.indexOf("dividend") > -1) {
@@ -65,12 +63,24 @@ export class Trading212Converter extends AbstractConverter {
             },
             on_record: (record) => {
 
+                const action = record.action.toLocaleLowerCase();
+
                 // On stock distributions, some fields need rearranging.
-                if (record.action.toLocaleLowerCase() === "stock distribution") {
+                if (action === "stock distribution") {
 
                     record.action = "buy";
                     record.noOfShares = parseFloat(record.currencyPriceShare);
                     record.priceShare = 0;
+                    record.currencyPriceShare = record.result;
+                }
+
+                // On stock splits, some fields need rearranging.
+                if (action === "stock split open" ||
+                    action === "stock split close") {
+
+                    record.action = action.indexOf("open") > -1 ? "buy" : "sell";
+                    record.noOfShares = parseFloat(record.currencyPriceShare);
+                    record.priceShare = parseFloat(record.exchangeRate)
                     record.currencyPriceShare = record.result;
                 }
 
