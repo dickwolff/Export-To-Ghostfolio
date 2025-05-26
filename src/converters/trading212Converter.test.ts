@@ -34,7 +34,7 @@ describe("trading212Converter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(9);
+      expect(actualExport.activities.length).toBe(11);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
