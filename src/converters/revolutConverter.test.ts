@@ -35,7 +35,11 @@ describe("revolutConverter", () => {
         // Assert
         expect(actualExport).toBeTruthy();
         expect(actualExport.activities.length).toBeGreaterThan(0);
-        expect(actualExport.activities.length).toBe(5);
+        expect(actualExport.activities.length).toBe(6);
+        actualExport.activities.forEach(activity => {
+          expect(activity.unitPrice).not.toBeNaN();
+          expect(activity.quantity).not.toBeNaN();
+        })
 
         done();
       }, () => { done.fail("Should not have an error!"); });
@@ -163,5 +167,53 @@ describe("revolutConverter", () => {
 
       done();
     }, () => done.fail("Should not have an error!"));
+  });
+
+  describe("parse numeric values", () => {
+    [
+      {input: "1.63453043", expected: 1.63453043},
+      {input: "$52.07", expected: 52.07},
+      {input: "€85.11", expected: 85.11},
+      {input: "", expected: 0},
+    ].forEach((c) => {
+      it(`should parse currency value "${c.input}" into ${c.expected}`, () => {
+        // Act
+        const result = RevolutConverter.parseNumericValue(c.input);
+
+        // Assert
+        expect(result).toBe(c.expected);
+      });
+    });
+
+    [
+      "USD",
+      " ",
+      ",",
+      ".",
+      "notANumeric"
+    ].forEach((c) => {
+      it(`should throw an error when parsing "${c}" as a numeric value`, () => {
+        // Act
+        expect(() => RevolutConverter.parseNumericValue(c)).toThrow();
+      });
+    });
+
+    it("end-to-end parsing", (done) => {
+      // Arrange
+      const sut = new RevolutConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+      let tempFileContent = "";
+      tempFileContent += `Date,Ticker,Type,Quantity,Price per share,Total Amount,Currency,FX Rate\n`;
+      tempFileContent += `2023-09-22T13:30:10.514Z,O,BUY - MARKET,1.63453043,NOT_A_PRICE_PER_SHARE,$85.11,USD,1.0665,,\n`;
+      tempFileContent += `2023-09-22T13:30:20.514Z,O,BUY - MARKET,1.63453043,$52.07,$85.11,USD,1.0665`;
+
+      // Act
+      sut.processFileContents(tempFileContent, () => { done.fail("should not have succeeded"); }, (err: Error) => {
+        expect(err).toBeTruthy();
+        expect(err.message).toBe("An error ocurred while parsing! Details: NOT_A_PRICE_PER_SHARE is not a currency value");
+
+        done();
+      });
+    });
   });
 });
