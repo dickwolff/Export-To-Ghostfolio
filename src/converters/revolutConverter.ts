@@ -71,11 +71,7 @@ export class RevolutConverter extends AbstractConverter {
                 if (context.column === "quantity" ||
                     context.column === "pricePerShare" ||
                     context.column === "totalAmount") {
-                    if (columnValue === "") {
-                        return 0;
-                    }
-
-                    return parseFloat(columnValue.replace(/[$]/g, '').trim());
+                    return RevolutConverter.parseNumericValue(columnValue);
                 }
 
                 return columnValue;
@@ -99,14 +95,9 @@ export class RevolutConverter extends AbstractConverter {
 
                 record.currency = this.detectCurrency(record.price);
 
-                const priceAmount = record.price.match(/([\d.,]+)/g) ?? ["0"];
-                record.price = record.price !== "" ? parseFloat(priceAmount[0].replace(",", "")) : 0;
-
-                const valueAmount = record.value.match(/([\d.,]+)/g);
-                record.value = record.value !== "" ? parseFloat(valueAmount[0].replace(",", "")) : 0;
-
-                const feesAmount = record.fees.match(/([\d.,]+)/g);
-                record.fees = record.fees !== "" ? parseFloat(feesAmount[0].replace(",", "")) : 0;
+                record.price = RevolutConverter.parseNumericValue(record.price);
+                record.value = RevolutConverter.parseNumericValue(record.value);
+                record.fees = RevolutConverter.parseNumericValue(record.fees);
 
                 record.quantity = parseFloat(record.quantity);
 
@@ -242,5 +233,29 @@ export class RevolutConverter extends AbstractConverter {
             default:
                 return "EUR";
         }
+    }
+
+    /**
+     * Converts a currency field into its numeric conterpart.
+     * 
+     * Assumes there is only one numeric value in the field.
+     * 
+     * @param value the string value of the currency field
+     * @returns the numeric value in the field
+     * @internal
+     */
+    /* @internal */
+    static parseNumericValue(value: string): number {
+        if (value === "") {
+            return 0;
+        }
+        const amount = value.match(/([\d.,]+)/g);
+        if (amount) {
+            const result = parseFloat(amount[0].replace(/,/g, ""));
+            if (!Number.isNaN(result)) {
+                return result;
+            }
+        }
+        throw Error(`${value} is not a currency value`);
     }
 }
