@@ -56,10 +56,10 @@ export class TradeRepublicConverter extends AbstractConverter {
             },
             on_record: (record: TradeRepublicRecord) => {
 
-                if (["verkoop"].some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)) {
+                if (["verkoop","sell"].some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)) {
                     record.transactionType = "sell";
                 }
-                if (["aankoop"].some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)) {
+                if (["aankoop","buy"].some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)) {
                     record.transactionType = "buy";
                 }
 
@@ -127,7 +127,7 @@ export class TradeRepublicConverter extends AbstractConverter {
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                     comment: "",
-                    fee: 0,
+                    fee: Math.abs(record.costs),
                     quantity: record.transactionType === "dividend" ? 1 : Math.abs(record.amount),
                     type: GhostfolioOrderType[record.transactionType],
                     unitPrice: record.transactionType === "dividend" ? record.value : unitPrice,
@@ -169,7 +169,7 @@ export class TradeRepublicConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: TradeRepublicRecord): boolean {
-        let ignoredRecordTypes = ["onttrekking", "storting"];
+        let ignoredRecordTypes = ["onttrekking", "storting","interest","removal","deposit"];
 
         return ignoredRecordTypes.some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)
     }
