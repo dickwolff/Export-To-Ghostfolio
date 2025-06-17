@@ -1,4 +1,4 @@
-next-version: 0.29.6
+next-version: 0.29.7
 assembly-informational-format: "{NuGetVersion}"
 mode: ContinuousDeployment
 branches:
