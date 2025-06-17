@@ -1,4 +1,4 @@
-name: frameworkTesting
+name: "Test Converters"
 run-name: Test Converters
 
 on: 
