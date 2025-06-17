@@ -56,10 +56,10 @@ export class TradeRepublicConverter extends AbstractConverter {
             },
             on_record: (record: TradeRepublicRecord) => {
 
-                if (["verkoop","sell"].some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)) {
+                if (["verkoop", "sell"].some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)) {
                     record.transactionType = "sell";
                 }
-                if (["aankoop","buy"].some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)) {
+                if (["aankoop", "buy"].some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)) {
                     record.transactionType = "buy";
                 }
 
@@ -169,7 +169,7 @@ export class TradeRepublicConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: TradeRepublicRecord): boolean {
-        let ignoredRecordTypes = ["onttrekking", "storting","interest","removal","deposit"];
+        const ignoredRecordTypes = ["onttrekking", "storting", "interest", "removal", "deposit"];
 
         return ignoredRecordTypes.some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)
     }
