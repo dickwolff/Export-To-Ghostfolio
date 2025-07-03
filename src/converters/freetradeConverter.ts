@@ -30,7 +30,7 @@ export class FreetradeConverter extends AbstractConverter {
                     if (action.indexOf("interest_from_cash") > -1) {
                         return "interest";
                     }
-                    else if (action.indexOf("dividend") > -1) {
+                    else if (action.indexOf("dividend") > -1 || action.indexOf("property") > -1) {
                         return "dividend";
                     }
                 }
@@ -132,7 +132,7 @@ export class FreetradeConverter extends AbstractConverter {
                 }
 
                 let action: string
-                if (record.type.toLocaleLowerCase() === "order") {
+                if (record.type.toLocaleLowerCase() === "order" || record.type.toLocaleLowerCase() === "freeshare_order") {
                     action = record.buySell.toLocaleLowerCase();
                 } else {
                     action = record.type.toLocaleLowerCase();

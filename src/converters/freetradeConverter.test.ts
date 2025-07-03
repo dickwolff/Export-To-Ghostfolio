@@ -35,7 +35,7 @@ describe("freetradeConverter", () => {
       expect(err).toBeFalsy();
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(7);
+      expect(actualExport.activities.length).toBe(9);
 
       done();
     }, (err: any) => { done(err); });
