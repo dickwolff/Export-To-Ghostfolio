@@ -186,7 +186,7 @@ select.auto-detected {
 .output-content {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
+    padding: 1rem;
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 0.9rem;
     line-height: 1.5;
@@ -197,7 +197,6 @@ select.auto-detected {
 
 .log-line {
     margin-bottom: 8px;
-    padding: 4px 0;
 }
 
 .log-line.info {

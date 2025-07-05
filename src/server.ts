@@ -10,6 +10,17 @@ import { createAndRunConverter } from "./converter";
 
 dotenv.config();
 
+// Add global error handlers to prevent process exit
+process.on('uncaughtException', (error) => {
+    console.error('[e] Uncaught Exception:', error);
+    // Don't exit the process, just log the error
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('[e] Unhandled Rejection at:', promise, 'reason:', reason);
+    // Don't exit the process, just log the error
+});
+
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
@@ -72,9 +83,17 @@ io.on("connection", (socket) => {
 // Override console.log to send logs to connected clients
 const originalConsoleLog = console.log;
 console.log = function(...args) {
-    const message = args.join(" ");
-    originalConsoleLog.apply(console, args);
-    io.emit("log", message);
+    try {
+        const message = args.join(" ");
+        originalConsoleLog.apply(console, args);
+        io.emit("log", message);
+    } 
+    catch (loggingError) {
+
+        // If there's an error in logging, just use original console.log
+        originalConsoleLog.apply(console, args);
+        originalConsoleLog("[e] Error in log forwarding:", loggingError.message);
+    }
 };
 
 app.get("/", (req, res) => {
@@ -129,46 +148,97 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
         process.env.INPUT_FILE = inputFile;
 
         // Run the converter
-        createAndRunConverter(
-            converter,
-            inputFile,
-            outputDir,
-            () => {
+        try {
+            await new Promise<void>((resolve, reject) => {
+                try {
+                    createAndRunConverter(
+                        converter,
+                        inputFile,
+                        outputDir,
+                        () => {
+                            // Success callback
+                            try {
+                                if (socketId) {
+                                    io.to(socketId).emit("log", "[i] Conversion completed successfully!");
+                                    io.to(socketId).emit("conversionComplete", { success: true });
+                                }
+                                
+                                // Clean up uploaded file
+                                if (fs.existsSync(inputFile)) {
+                                    fs.unlinkSync(inputFile);
+                                }
+                                
+                                resolve();
+                            } catch (cleanupError) {
+                                console.error("Error in success callback:", cleanupError);
+                                if (socketId) {
+                                    io.to(socketId).emit("log", `[e] Post-processing error: ${cleanupError.message}`);
+                                    io.to(socketId).emit("conversionComplete", { success: false, error: cleanupError.message });
+                                }
+                                reject(cleanupError);
+                            }
+                        },
+                        (error) => {
+                            // Error callback
+                            try {
+                                const errorMessage = `[e] Conversion failed: ${error.message}`;
+                                console.error("Conversion error:", error);
+                                
+                                if (socketId) {
+                                    io.to(socketId).emit("log", errorMessage);
+                                    io.to(socketId).emit("conversionComplete", { success: false, error: error.message });
+                                }
+                                
+                                // Clean up uploaded file
+                                if (fs.existsSync(inputFile)) {
+                                    fs.unlinkSync(inputFile);
+                                }
+                                
+                                reject(error);
+                            } catch (cleanupError) {
+                                console.error("Error in error callback:", cleanupError);
+                                if (socketId) {
+                                    io.to(socketId).emit("log", `[e] Critical error during cleanup: ${cleanupError.message}`);
+                                    io.to(socketId).emit("conversionComplete", { success: false, error: "Critical error occurred" });
+                                }
+                                reject(cleanupError);
+                            }
+                        }
+                    );
+                } 
+                catch (syncError) {
+                    // Catch any synchronous errors from createAndRunConverter
+                    console.error("Synchronous error starting converter:", syncError);
+                    reject(syncError);
+                }
+            });
 
-                // Success callback
-                if (socketId) {
-                    io.to(socketId).emit("log", "[i] Conversion completed successfully!");
-                    io.to(socketId).emit("conversionComplete", { success: true });
-                }
-                
-                // Clean up uploaded file
-                fs.unlinkSync(inputFile);
-                
-                res.json({ 
-                    success: true, 
-                    message: "File processed successfully",
-                    outputDir: outputDir
-                });
-            },
-            (error) => {
-                // Error callback
-                const errorMessage = `[e] Conversion failed: ${error.message}`;
-                if (socketId) {
-                    io.to(socketId).emit("log", errorMessage);
-                    io.to(socketId).emit("conversionComplete", { success: false, error: error.message });
-                }
-                
-                // Clean up uploaded file
-                if (fs.existsSync(inputFile)) {
-                    fs.unlinkSync(inputFile);
-                }
-                
-                res.status(500).json({ 
-                    success: false, 
-                    error: error.message 
-                });
+            // If we get here, the conversion was successful
+            res.json({ 
+                success: true, 
+                message: "File processed successfully",
+                outputDir: outputDir
+            });
+
+        } catch (converterError) {
+            console.error("Error during conversion process:", converterError);
+            const errorMessage = `Failed during conversion: ${converterError.message}`;
+            
+            if (socketId) {
+                io.to(socketId).emit("log", `[e] ${errorMessage}`);
+                io.to(socketId).emit("conversionComplete", { success: false, error: converterError.message });
             }
-        );
+            
+            // Clean up uploaded file
+            if (fs.existsSync(inputFile)) {
+                fs.unlinkSync(inputFile);
+            }
+            
+            res.status(500).json({ 
+                success: false, 
+                error: converterError.message 
+            });
+        }
 
     } catch (error) {
         console.error("Upload error:", error);
