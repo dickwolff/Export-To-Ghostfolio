@@ -42,15 +42,15 @@ export class FileTypeMatcher {
 
         // Use closest-match algorithm (simplified implementation)
         const closestMatch = this.findClosestMatch(firstLine, Array.from(this.headers.keys()));
-        
+
         if (closestMatch) {
             let converter = this.headers.get(closestMatch);
-            
+
             // Apply DEGIRO V3 logic if environment variable is set
             if (converter === "degiro" && `${process.env.DEGIRO_FORCE_V3}` === "true") {
                 converter = "degiro-v3";
             }
-            
+
             return converter || null;
         }
 
@@ -82,7 +82,7 @@ export class FileTypeMatcher {
     private static findClosestMatch(target: string, candidates: string[]): string | null {
         let bestMatch: string | null = null;
         let bestScore = 0;
-        
+
         for (const candidate of candidates) {
             const similarity = this.calculateSimilarity(target, candidate);
             if (similarity > bestScore) {
@@ -90,7 +90,7 @@ export class FileTypeMatcher {
                 bestMatch = candidate;
             }
         }
-        
+
         // Only return a match if similarity is above a threshold
         return bestScore > 0.7 ? bestMatch : null;
     }
@@ -104,9 +104,9 @@ export class FileTypeMatcher {
     private static calculateSimilarity(str1: string, str2: string): number {
         const shorter = str1.length < str2.length ? str1 : str2;
         const longer = str1.length < str2.length ? str2 : str1;
-        
+
         if (longer.length === 0) return 1.0;
-        
+
         const editDistance = this.getEditDistance(shorter, longer);
         return (longer.length - editDistance) / longer.length;
     }
@@ -119,15 +119,15 @@ export class FileTypeMatcher {
      */
     private static getEditDistance(str1: string, str2: string): number {
         const matrix: number[][] = [];
-        
+
         for (let i = 0; i <= str2.length; i++) {
             matrix[i] = [i];
         }
-        
+
         for (let j = 0; j <= str1.length; j++) {
             matrix[0][j] = j;
         }
-        
+
         for (let i = 1; i <= str2.length; i++) {
             for (let j = 1; j <= str1.length; j++) {
                 if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
@@ -141,7 +141,7 @@ export class FileTypeMatcher {
                 }
             }
         }
-        
+
         return matrix[str2.length][str1.length];
     }
 }
