@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Export-To-Ghostfolio Web UI</title>
+    <title>Export to Ghostfolio</title>
     <link rel="stylesheet" href="styles.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
@@ -38,7 +38,10 @@
                 </form>
                 
                 <div class="files-section">
-                    <h3 class="section-title">Recent Output Files</h3>
+                    <div class="files-header">
+                        <h3 class="section-title">Recent Output Files</h3>
+                        <a href="/files.html" class="view-all-link">All Files</a>
+                    </div>
                     <div class="file-list" id="fileList">
                         <p style="text-align: center; color: #718096;">No files generated yet</p>
                     </div>

@@ -100,6 +100,10 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(process.cwd(), "public", "index.html"));
 });
 
+app.get("/files.html", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "public", "files.html"));
+});
+
 app.post("/api/detect-file-type", upload.single("file"), (req, res) => {
     try {
         if (!req.file) {
@@ -249,7 +253,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
 app.get("/api/output-files", (req, res) => {
     try {
         const limit = parseInt(req.query.limit as string, 10) || 10;
-        const files = fs.readdirSync(outputDir)
+        let files = fs.readdirSync(outputDir)
             .filter(file => file.endsWith(".json"))
             .map(file => {
                 const filePath = path.join(outputDir, file);
@@ -260,8 +264,12 @@ app.get("/api/output-files", (req, res) => {
                     created: stats.birthtime
                 };
             })
-            .sort((a, b) => b.created.getTime() - a.created.getTime())
-            .slice(0, limit);
+            .sort((a, b) => b.created.getTime() - a.created.getTime());
+
+        // If limit is -1, return all files, otherwise slice to limit
+        if (limit !== -1) {
+            files = files.slice(0, limit);
+        }
 
         res.json(files);
     } catch (error) {
