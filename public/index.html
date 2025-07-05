@@ -11,7 +11,6 @@
     <div class="container">
         <div class="header">
             <h1>Export To Ghostfolio</h1>
-            <p>Convert transaction history export from your favorite broker to a format that can be imported in Ghostfolio.</p>
         </div>
         
         <div class="main-content">
@@ -21,15 +20,14 @@
                 <form id="uploadForm" enctype="multipart/form-data">
                     <div class="upload-area" id="uploadArea">
                         <div class="upload-icon">📁</div>
-                        <div class="upload-text">Drop your CSV file here or click to browse</div>
-                        <div class="upload-subtext">Supports all major broker export formats</div>
+                        <div class="upload-text">Drop your CSV file here, or click to browse</div>
                         <input type="file" id="fileInput" name="file" accept=".csv" style="display: none;">
                     </div>
                     
                     <div class="form-group">
-                        <label for="converterSelect">Select Broker/Platform:</label>
+                        <label for="converterSelect">Select converter:</label>
                         <select id="converterSelect" name="converter" required>
-                            <option value="">Choose your broker...</option>
+                            <option value="">Choose...</option>
                         </select>
                     </div>
                     
@@ -136,7 +134,7 @@
                 });
                 
                 const result = await response.json();
-                
+                console.log("Auto-detect result:", result);
                 if (result.detectedType) {
                     addLogLine(`Auto-detected: ${result.detectedType.toUpperCase()}`, "success");
                     
@@ -247,9 +245,11 @@
         
         function handleFileSelect(file) {
             selectedFile = file;
-            document.querySelector(".upload-text").textContent = `Selected: ${file.name}`;
-            document.querySelector(".upload-subtext").textContent = `${(file.size / 1024).toFixed(1)} KB`;
+            document.querySelector(".upload-text").textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
             uploadArea.classList.add("active");
+            
+            // Clear the console output when a new file is selected
+            outputContent.innerHTML = "";
             
             // Auto-detect file type via API
             detectFileType(file).then(detectedType => {
