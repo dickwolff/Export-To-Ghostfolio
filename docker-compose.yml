@@ -30,8 +30,8 @@ services:
       
       # Ghostfolio Integration (required for validation/import)
       - GHOSTFOLIO_ACCOUNT_ID=
-      - GHOSTFOLIO_URL=
-      - GHOSTFOLIO_SECRET=
+      #- GHOSTFOLIO_URL=
+      #- GHOSTFOLIO_SECRET=
       #- GHOSTFOLIO_VALIDATE=false
       #- GHOSTFOLIO_IMPORT=false
       #- GHOSTFOLIO_UPDATE_CASH=false

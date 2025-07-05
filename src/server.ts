@@ -211,6 +211,22 @@ app.get("/api/download/:filename", (req, res) => {
     }
 });
 
+app.delete("/api/delete/:filename", (req, res) => {
+    try {
+        const filename = req.params.filename;
+        const filePath = path.join(outputDir, filename);
+        
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ error: "File not found" });
+        }
+        
+        fs.unlinkSync(filePath);
+        res.json({ success: true, message: `File ${filename} deleted successfully` });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 server.listen(PORT, () => {
     console.log(`[i] Export-To-Ghostfolio Web UI running on http://localhost:${PORT}`);
     console.log(`[i] Make sure to set your environment variables (GHOSTFOLIO_ACCOUNT_ID, etc.)`);
