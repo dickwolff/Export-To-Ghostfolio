@@ -43,7 +43,7 @@
                         <a href="/files.html" class="view-all-link">All Files</a>
                     </div>
                     <div class="file-list" id="fileList">
-                        <p style="text-align: center; color: #718096;">No files generated yet</p>
+                        <p class="no-files-message">No files generated yet..</p>
                     </div>
                 </div>
             </div>
@@ -159,7 +159,7 @@
                 const files = await response.json();
                 
                 if (files.length === 0) {
-                    fileList.innerHTML = `<p style="text-align: center; color: #718096;">No files generated yet</p>`;
+                    fileList.innerHTML = `<p class="no-files-message">No files generated yet..</p>`;
                     return;
                 }
                 

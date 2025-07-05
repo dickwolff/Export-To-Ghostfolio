@@ -419,12 +419,15 @@ select.auto-detected {
 }
 
 .empty-state {
-    text-align: center;
-    padding: 3rem 1rem;
     color: #718096;
 }
 
 .empty-state-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
+}
+
+.no-files-message {
+    color: #718096;
+    font-style: italic;
 }

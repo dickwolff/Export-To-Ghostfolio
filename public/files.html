@@ -13,7 +13,7 @@
         </div>
         
         <div class="main-content">
-            <div class="upload-section">
+            <div class="upload-section" style="height: 100%;">
                 <div style="margin-bottom: 1.5rem;">
                     <a href="/" class="view-all-link">← Back</a>
                 </div>
@@ -63,9 +63,7 @@
             if (files.length === 0) {
                 filesGrid.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-state-icon">📁</div>
-                        <p>No files generated yet</p>
-                        <p><a href="/" class="view-all-link">Go to Upload & Convert</a></p>
+                        <p class="no-files-message">No files generated yet..</p>
                     </div>
                 `;
                 return;
