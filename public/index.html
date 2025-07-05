@@ -135,6 +135,11 @@
             border-color: #667eea;
         }
 
+        select.auto-detected {
+            border-color: #48bb78;
+            background-color: #f0fff4;
+        }
+
         .btn-convert {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -381,6 +386,33 @@
         // Initialize Socket.io
         const socket = io();
         
+        // Static list of converters with their display names
+        const converters = [
+            { value: 'avanza', name: 'Avanza' },
+            { value: 'bitvavo', name: 'Bitvavo' },
+            { value: 'bux', name: 'BUX' },
+            { value: 'coinbase', name: 'Coinbase' },
+            { value: 'cointracking', name: 'CoinTracking' },
+            { value: 'degiro', name: 'DEGIRO' },
+            { value: 'degiro-v3', name: 'DEGIRO V3' },
+            { value: 'delta', name: 'Delta' },
+            { value: 'directa', name: 'Directa' },
+            { value: 'etoro', name: 'eToro' },
+            { value: 'finpension', name: 'Finpension' },
+            { value: 'freetrade', name: 'Freetrade' },
+            { value: 'ibkr', name: 'Interactive Brokers (IBKR)' },
+            { value: 'investimental', name: 'Investimental' },
+            { value: 'parqet', name: 'Parqet' },
+            { value: 'rabobank', name: 'Rabobank' },
+            { value: 'revolut', name: 'Revolut' },
+            { value: 'saxo', name: 'Saxo' },
+            { value: 'schwab', name: 'Schwab' },
+            { value: 'swissquote', name: 'Swissquote' },
+            { value: 'traderepublic', name: 'Trade Republic' },
+            { value: 'trading212', name: 'Trading 212' },
+            { value: 'xtb', name: 'XTB' }
+        ];
+        
         // DOM elements
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
@@ -397,20 +429,48 @@
         
         let selectedFile = null;
         
-        // Load available converters
-        async function loadConverters() {
+        // Load converters into dropdown
+        function loadConverters() {
+            converters.forEach(converter => {
+                const option = document.createElement('option');
+                option.value = converter.value;
+                option.textContent = converter.name;
+                converterSelect.appendChild(option);
+            });
+        }
+        
+        // Auto-detect file type via API
+        async function detectFileType(file) {
             try {
-                const response = await fetch('/api/converters');
-                const converters = await response.json();
+                const formData = new FormData();
+                formData.append('file', file);
                 
-                converters.forEach(converter => {
-                    const option = document.createElement('option');
-                    option.value = converter;
-                    option.textContent = converter.charAt(0).toUpperCase() + converter.slice(1);
-                    converterSelect.appendChild(option);
+                addLogLine('🔍 Analyzing file...', 'info');
+                
+                const response = await fetch('/api/detect-file-type', {
+                    method: 'POST',
+                    body: formData
                 });
+                
+                const result = await response.json();
+                
+                if (result.detectedType) {
+                    addLogLine(`✅ Auto-detected: ${result.detectedType.toUpperCase()}`, 'success');
+                    
+                    // Apply DEGIRO V3 tip if needed
+                    if (result.detectedType === 'degiro') {
+                        addLogLine('💡 Tip: If you have issues with DEGIRO, try the DEGIRO V3 converter', 'info');
+                    }
+                    
+                    return result.detectedType;
+                } else {
+                    addLogLine('⚠️ Could not auto-detect file type from header', 'info');
+                    addLogLine('🤔 Please manually select the correct converter', 'info');
+                    return null;
+                }
             } catch (error) {
-                console.error('Failed to load converters:', error);
+                addLogLine(`❌ Detection failed: ${error.message}`, 'error');
+                return null;
             }
         }
         
@@ -475,10 +535,23 @@
             document.querySelector('.upload-text').textContent = `Selected: ${file.name}`;
             document.querySelector('.upload-subtext').textContent = `${(file.size / 1024).toFixed(1)} KB`;
             uploadArea.classList.add('active');
-            updateConvertButton();
+            
+            // Auto-detect file type via API
+            detectFileType(file).then(detectedType => {
+                if (detectedType) {
+                    converterSelect.value = detectedType;
+                    converterSelect.classList.add('auto-detected');
+                } else {
+                    converterSelect.classList.remove('auto-detected');
+                }
+                updateConvertButton();
+            });
         }
         
-        converterSelect.addEventListener('change', updateConvertButton);
+        converterSelect.addEventListener('change', () => {
+            converterSelect.classList.remove('auto-detected');
+            updateConvertButton();
+        });
         
         function updateConvertButton() {
             const canConvert = selectedFile && converterSelect.value;
