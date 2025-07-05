@@ -130,8 +130,6 @@
                 const formData = new FormData();
                 formData.append("file", file);
                 
-                addLogLine("🔍 Analyzing file...", "info");
-                
                 const response = await fetch("/api/detect-file-type", {
                     method: "POST",
                     body: formData
@@ -140,21 +138,21 @@
                 const result = await response.json();
                 
                 if (result.detectedType) {
-                    addLogLine(`✅ Auto-detected: ${result.detectedType.toUpperCase()}`, "success");
+                    addLogLine(`Auto-detected: ${result.detectedType.toUpperCase()}`, "success");
                     
                     // Apply DEGIRO V3 tip if needed
                     if (result.detectedType === "degiro") {
-                        addLogLine("💡 Tip: If you have issues with DEGIRO, try the DEGIRO V3 converter", "info");
+                        addLogLine("Tip: If you have issues with DEGIRO, try the DEGIRO V3 converter", "info");
                     }
                     
                     return result.detectedType;
                 } else {
-                    addLogLine("⚠️ Could not auto-detect file type from header", "info");
-                    addLogLine("🤔 Please manually select the correct converter", "info");
+                    addLogLine("Could not auto-detect file type from header", "info");
+                    addLogLine("Please manually select the correct converter", "info");
                     return null;
                 }
             } catch (error) {
-                addLogLine(`❌ Detection failed: ${error.message}`, "error");
+                addLogLine(`Detection failed: ${error.message}`, "error");
                 return null;
             }
         }

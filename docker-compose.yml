@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  export-to-ghostfolio:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./e2g-output:/app/e2g-output
+    environment:
+      - PORT=3000
+      
+      # Folder Configuration
+      - E2G_INPUT_FOLDER=/var/tmp/e2g-input
+      - E2G_OUTPUT_FOLDER=e2g-output
+      - E2G_CACHE_FOLDER=/var/tmp/e2g-cache
+      
+      # File Configuration
+      #- ISIN_OVERRIDE_FILE=isin-overrides.txt
+      
+      # Watcher Configuration
+      #- USE_POLLING=true
+      #- PURGE_CACHE=false
+      
+      # Debug Configuration
+      #- DEBUG_LOGGING=false
+      
+      # Service Configuration
+      - RUN_MODE=both  # Options: web (web UI only), watcher (file watcher only), both (default)
+      
+      # Ghostfolio Integration (required for validation/import)
+      - GHOSTFOLIO_ACCOUNT_ID=
+      - GHOSTFOLIO_URL=
+      - GHOSTFOLIO_SECRET=
+      #- GHOSTFOLIO_VALIDATE=false
+      #- GHOSTFOLIO_IMPORT=false
+      #- GHOSTFOLIO_UPDATE_CASH=false
+      #- GHOSTFOLIO_SPLIT_OUTPUT=false
+      
+      # Broker-specific Configuration
+      #- DEGIRO_FORCE_V3=false
+      #- DEGIRO_PREFERED_EXCHANGE_POSTFIX=
+      #- XTB_ACCOUNT_CURRENCY=EUR
+    
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
