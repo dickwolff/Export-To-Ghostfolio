@@ -25,7 +25,6 @@ RUN mkdir /app/uploads
 
 # Copy startup script and environment template
 COPY docker-entrypoint.sh /usr/local/bin/
-COPY .env.example /app/.env.example
 
 # Make startup script executable
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh

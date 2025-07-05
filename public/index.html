@@ -176,7 +176,10 @@
                                 ${(file.size / 1024).toFixed(1)} KB • ${new Date(file.created).toLocaleString()}
                             </div>
                         </div>
-                        <button class="btn-download" onclick="downloadFile('${file.name}')">Download</button>
+                        <div class="file-actions">
+                            <button class="btn-download" onclick="downloadFile('${file.name}')">💾</button>
+                            <button class="btn-delete" onclick="deleteFile('${file.name}')">🗑️</button>
+                        </div>
                     </div>
                 `).join("");
             } catch (error) {
@@ -192,6 +195,30 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+        
+        // Delete file
+        async function deleteFile(filename) {
+            if (!confirm(`Are you sure you want to delete "${filename}"?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/delete/${filename}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLogLine(`Deleted file: ${filename}`, "info");
+                    loadOutputFiles(); // Refresh file list
+                } else {
+                    addLogLine(`Failed to delete file: ${result.error}`, "error");
+                }
+            } catch (error) {
+                addLogLine(`Error deleting file: ${error.message}`, "error");
+            }
         }
         
         // File upload handling

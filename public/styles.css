@@ -261,19 +261,37 @@ select.auto-detected {
     color: #718096;
 }
 
+.file-actions {
+    display: flex;
+    gap: 8px;
+}
+
 .btn-download {
     background: #48bb78;
     color: white;
     border: none;
-    padding: 6px 12px;
+    padding: 0.5rem;
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.9rem;
-    margin-left: 10px;
 }
 
 .btn-download:hover {
     background: #38a169;
+}
+
+.btn-delete {
+    background: #e53e3e;
+    color: white;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-delete:hover {
+    background: #c53030;
 }
 
 .progress-bar {
