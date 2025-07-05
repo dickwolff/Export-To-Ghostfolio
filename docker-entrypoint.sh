@@ -1,9 +1,9 @@
 #!/bin/sh
 
-# Docker startup script for Export-To-Ghostfolio
+# Docker startup script for Export to Ghostfolio
 # Supports running both file watcher and web UI
 
-echo "🚀 Starting Export-To-Ghostfolio Docker Container..."
+echo "🚀 Starting Export to Ghostfolio Docker Container..."
 
 # Create .env file if it doesn't exist
 if [ ! -f .env ]; then
