@@ -84,7 +84,8 @@ app.get("/", (req, res) => {
 app.post("/api/detect-file-type", upload.single("file"), (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ error: "No file uploaded" });
+            res.status(400).json({ error: "No file uploaded" });
+            return;
         }
 
         const fileContent = fs.readFileSync(req.file.path, "utf-8");
@@ -105,12 +106,14 @@ app.post("/api/detect-file-type", upload.single("file"), (req, res) => {
 app.post("/api/upload", upload.single("file"), async (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ error: "No file uploaded" });
+            res.status(400).json({ error: "No file uploaded" });
+            return;
         }
 
         const { converter } = req.body;
         if (!converter) {
-            return res.status(400).json({ error: "Converter type not specified" });
+            res.status(400).json({ error: "Converter type not specified" });
+            return;
         }
 
         const inputFile = req.file.path;
@@ -202,7 +205,8 @@ app.get("/api/download/:filename", (req, res) => {
         const filePath = path.join(outputDir, filename);
         
         if (!fs.existsSync(filePath)) {
-            return res.status(404).json({ error: "File not found" });
+            res.status(404).json({ error: "File not found" });
+            return;
         }
         
         res.download(filePath);
@@ -217,7 +221,8 @@ app.delete("/api/delete/:filename", (req, res) => {
         const filePath = path.join(outputDir, filename);
         
         if (!fs.existsSync(filePath)) {
-            return res.status(404).json({ error: "File not found" });
+            res.status(404).json({ error: "File not found" });
+            return;
         }
         
         fs.unlinkSync(filePath);
