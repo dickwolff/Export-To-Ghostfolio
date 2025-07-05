@@ -9,6 +9,8 @@ import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class RevolutConverter extends AbstractConverter {
 
+    private isCrypto = false;
+
     constructor(securityService: SecurityService) {
         super(securityService);
     }
@@ -19,6 +21,7 @@ export class RevolutConverter extends AbstractConverter {
     public processFileContents(input: string, successCallback: any, errorCallback: any): void {
 
         if (input.split("\n")[0].split(",").length === 7) {
+            this.isCrypto = true;
             return this.processCryptoFileContents(input, successCallback, errorCallback);
         }
 
@@ -192,6 +195,11 @@ export class RevolutConverter extends AbstractConverter {
             } else {
                 quantity = record.quantity;
                 unitPrice = record.pricePerShare ?? record.price;
+            }
+
+            // For USD crypto securities, remove the dash (as Ghostfolio otherwise won't accept it).
+            if (this.isCrypto && record.currency.toLocaleUpperCase() === "USD") {
+                security.symbol = security.symbol.replace(/-/, "");
             }
 
             // Add record to export.
