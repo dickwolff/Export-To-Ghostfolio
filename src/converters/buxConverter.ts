@@ -63,6 +63,13 @@ export class BuxConverter extends AbstractConverter {
                 }
 
                 return columnValue;
+            },
+            on_record: (record: BuxRecord, context) => {
+
+                // Default exchange rate to 1 if not provided.
+                if (!record.exchangeRate) {
+                    record.exchangeRate = 1; 
+                }
             }
         }, async (err, records: BuxRecord[]) => {
 
