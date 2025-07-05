@@ -11,14 +11,27 @@ LABEL version="$IMAGE_VERSION"
 WORKDIR /
 
 COPY ./src ./src
+COPY ./public ./public
 COPY package.json .
 COPY package-lock.json .
+COPY tsconfig.json .
 
 RUN npm install --omit=dev
 
 RUN mkdir /var/tmp/e2g-input
 RUN mkdir /var/tmp/e2g-output
 RUN mkdir /var/tmp/e2g-cache
+RUN mkdir /app/uploads
 
-ENTRYPOINT [ "npm" ]
-CMD ["run", "watch"]
+# Copy startup script and environment template
+COPY docker-entrypoint.sh /usr/local/bin/
+COPY .env.example /app/.env.example
+
+# Make startup script executable
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Expose port for web UI
+EXPOSE 3000
+
+# Use custom entrypoint that supports both watch and web modes
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
