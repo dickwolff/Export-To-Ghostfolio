@@ -6,6 +6,7 @@ import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import { createAndRunConverter } from './converter.js';
+import { FileTypeMatcher } from './helpers/fileTypeMatcher.js';
 
 dotenv.config();
 
@@ -79,15 +80,25 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
 
-app.get('/api/converters', (req, res) => {
-    // List of available converters based on the code
-    const converters = [
-        'avanza', 'bitvavo', 'bux', 'coinbase', 'cointracking', 'degiro', 'degiro-v3',
-        'delta', 'directa', 'etoro', 'finpension', 'freetrade', 'ibkr', 'investimental',
-        'parqet', 'rabobank', 'revolut', 'saxo', 'schwab', 'swissquote', 'traderepublic',
-        'trading212', 'xtb'
-    ];
-    res.json(converters);
+app.post('/api/detect-file-type', upload.single('file'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        const fileContent = fs.readFileSync(req.file.path, 'utf-8');
+        const detectedType = FileTypeMatcher.detectFileType(fileContent);
+        
+        // Clean up uploaded file
+        fs.unlinkSync(req.file.path);
+        
+        res.json({ 
+            detectedType,
+            filename: req.file.originalname 
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.post('/api/upload', upload.single('file'), async (req, res) => {
