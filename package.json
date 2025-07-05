@@ -6,7 +6,7 @@
   "scripts": {
     "start": "tsx ./src/manual.ts",
     "watch": "tsx ./src/watcher.ts",
-    "web": "tsx ./src/web-server.ts",
+    "web": "tsx ./src/server.ts",
     "test": "jest --coverage"
   },
   "author": "Dick Wolff",

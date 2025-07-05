@@ -1,12 +1,12 @@
-import express from 'express';
-import multer from 'multer';
-import { Server } from 'socket.io';
-import { createServer } from 'http';
-import path from 'path';
-import fs from 'fs';
-import dotenv from 'dotenv';
-import { createAndRunConverter } from './converter.js';
-import { FileTypeMatcher } from './helpers/fileTypeMatcher.js';
+import fs from "fs";
+import path from "path";
+import dotenv from "dotenv";
+import multer from "multer";
+import express from "express";
+import { Server } from "socket.io";
+import { createServer } from "http";
+import { FileTypeMatcher } from "./helpers/fileTypeMatcher";
+import { createAndRunConverter } from "./converter";
 
 dotenv.config();
 
@@ -15,10 +15,10 @@ const server = createServer(app);
 const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
-const uploadDir = 'uploads';
-const outputDir = process.env.E2G_OUTPUT_FOLDER || 'e2g-output';
+const uploadDir = "uploads";
+const outputDir = process.env.E2G_OUTPUT_FOLDER || "e2g-output";
 
-// Ensure directories exist
+// Ensure directories exist.
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -26,13 +26,14 @@ if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
 }
 
-// Configure multer for file uploads
+// Configure multer for file uploads.
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
+    destination: function (_, __, cb) {
         cb(null, uploadDir);
     },
-    filename: function (req, file, cb) {
-        // Keep original filename but add timestamp to avoid conflicts
+    filename: function (_, file, cb) {
+        
+        // Keep original filename but add timestamp to avoid conflicts.
         const timestamp = Date.now();
         const ext = path.extname(file.originalname);
         const name = path.basename(file.originalname, ext);
@@ -42,12 +43,13 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
     storage: storage,
-    fileFilter: (req, file, cb) => {
-        // Accept CSV files
-        if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+    fileFilter: (_, file, cb) => {
+        
+        // Only accept CSV files
+        if (file.mimetype === "text/csv" || file.originalname.endsWith(".csv")) {
             cb(null, true);
         } else {
-            cb(new Error('Only CSV files are allowed'));
+            cb(new Error("Only CSV files are allowed"));
         }
     },
     limits: {
@@ -55,38 +57,37 @@ const upload = multer({
     }
 });
 
-// Serve static files
-app.use(express.static('public'));
+// Serve static files.
+app.use(express.static("public"));
 
-// Socket.io connection handling
-io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
+// Socket.io connection handling.
+io.on("connection", (socket) => {
+    console.log("Client connected:", socket.id);
     
-    socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
+    socket.on("disconnect", () => {
+        console.log("Client disconnected:", socket.id);
     });
 });
 
 // Override console.log to send logs to connected clients
 const originalConsoleLog = console.log;
 console.log = function(...args) {
-    const message = args.join(' ');
+    const message = args.join(" ");
     originalConsoleLog.apply(console, args);
-    io.emit('log', message);
+    io.emit("log", message);
 };
 
-// API Routes
-app.get('/', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
+app.get("/", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "public", "index.html"));
 });
 
-app.post('/api/detect-file-type', upload.single('file'), (req, res) => {
+app.post("/api/detect-file-type", upload.single("file"), (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
+            return res.status(400).json({ error: "No file uploaded" });
         }
 
-        const fileContent = fs.readFileSync(req.file.path, 'utf-8');
+        const fileContent = fs.readFileSync(req.file.path, "utf-8");
         const detectedType = FileTypeMatcher.detectFileType(fileContent);
         
         // Clean up uploaded file
@@ -101,15 +102,15 @@ app.post('/api/detect-file-type', upload.single('file'), (req, res) => {
     }
 });
 
-app.post('/api/upload', upload.single('file'), async (req, res) => {
+app.post("/api/upload", upload.single("file"), async (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
+            return res.status(400).json({ error: "No file uploaded" });
         }
 
         const { converter } = req.body;
         if (!converter) {
-            return res.status(400).json({ error: 'Converter type not specified' });
+            return res.status(400).json({ error: "Converter type not specified" });
         }
 
         const inputFile = req.file.path;
@@ -117,8 +118,8 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 
         // Send initial status
         if (socketId) {
-            io.to(socketId).emit('log', `[i] Starting conversion with ${converter} converter...`);
-            io.to(socketId).emit('log', `[i] Processing file: ${req.file.originalname}`);
+            io.to(socketId).emit("log", `[i] Starting conversion with ${converter} converter...`);
+            io.to(socketId).emit("log", `[i] Processing file: ${req.file.originalname}`);
         }
 
         // Set the INPUT_FILE environment variable for the converter
@@ -130,10 +131,11 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
             inputFile,
             outputDir,
             () => {
+
                 // Success callback
                 if (socketId) {
-                    io.to(socketId).emit('log', '[i] Conversion completed successfully!');
-                    io.to(socketId).emit('conversionComplete', { success: true });
+                    io.to(socketId).emit("log", "[i] Conversion completed successfully!");
+                    io.to(socketId).emit("conversionComplete", { success: true });
                 }
                 
                 // Clean up uploaded file
@@ -141,7 +143,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
                 
                 res.json({ 
                     success: true, 
-                    message: 'File processed successfully',
+                    message: "File processed successfully",
                     outputDir: outputDir
                 });
             },
@@ -149,8 +151,8 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
                 // Error callback
                 const errorMessage = `[e] Conversion failed: ${error.message}`;
                 if (socketId) {
-                    io.to(socketId).emit('log', errorMessage);
-                    io.to(socketId).emit('conversionComplete', { success: false, error: error.message });
+                    io.to(socketId).emit("log", errorMessage);
+                    io.to(socketId).emit("conversionComplete", { success: false, error: error.message });
                 }
                 
                 // Clean up uploaded file
@@ -166,15 +168,16 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         );
 
     } catch (error) {
-        console.error('Upload error:', error);
+        console.error("Upload error:", error);
         res.status(500).json({ error: error.message });
     }
 });
 
-app.get('/api/output-files', (req, res) => {
+app.get("/api/output-files", (req, res) => {
     try {
+        const limit = parseInt(req.query.limit as string, 10) || 10;
         const files = fs.readdirSync(outputDir)
-            .filter(file => file.endsWith('.json'))
+            .filter(file => file.endsWith(".json"))
             .map(file => {
                 const filePath = path.join(outputDir, file);
                 const stats = fs.statSync(filePath);
@@ -184,21 +187,22 @@ app.get('/api/output-files', (req, res) => {
                     created: stats.birthtime
                 };
             })
-            .sort((a, b) => b.created.getTime() - a.created.getTime());
-        
+            .sort((a, b) => b.created.getTime() - a.created.getTime())
+            .slice(0, limit);
+
         res.json(files);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-app.get('/api/download/:filename', (req, res) => {
+app.get("/api/download/:filename", (req, res) => {
     try {
         const filename = req.params.filename;
         const filePath = path.join(outputDir, filename);
         
         if (!fs.existsSync(filePath)) {
-            return res.status(404).json({ error: 'File not found' });
+            return res.status(404).json({ error: "File not found" });
         }
         
         res.download(filePath);

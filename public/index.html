@@ -4,329 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Export-To-Ghostfolio Web UI</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="/socket.io/socket.io.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 300;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1rem;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0;
-            min-height: 600px;
-        }
-
-        .upload-section {
-            padding: 40px;
-            background: #f8f9fa;
-            border-right: 1px solid #e9ecef;
-        }
-
-        .output-section {
-            padding: 40px;
-            background: #ffffff;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 25px;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
-        .upload-area {
-            border: 3px dashed #cbd5e0;
-            border-radius: 12px;
-            padding: 40px;
-            text-align: center;
-            transition: all 0.3s ease;
-            background: white;
-            margin-bottom: 25px;
-            cursor: pointer;
-        }
-
-        .upload-area:hover, .upload-area.dragover {
-            border-color: #667eea;
-            background: #f7fafc;
-            transform: translateY(-2px);
-        }
-
-        .upload-area.active {
-            border-color: #667eea;
-            background: #edf2f7;
-        }
-
-        .upload-icon {
-            font-size: 3rem;
-            color: #a0aec0;
-            margin-bottom: 15px;
-        }
-
-        .upload-text {
-            color: #4a5568;
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-        }
-
-        .upload-subtext {
-            color: #718096;
-            font-size: 0.9rem;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2d3748;
-        }
-
-        select, input[type="file"] {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        select:focus, input[type="file"]:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        select.auto-detected {
-            border-color: #48bb78;
-            background-color: #f0fff4;
-        }
-
-        .btn-convert {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            transition: transform 0.2s ease;
-            font-weight: 600;
-        }
-
-        .btn-convert:hover:not(:disabled) {
-            transform: translateY(-2px);
-        }
-
-        .btn-convert:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .output-container {
-            background: #1a202c;
-            border-radius: 8px;
-            overflow: hidden;
-            height: 400px;
-            position: relative;
-        }
-
-        .output-header {
-            background: #2d3748;
-            padding: 15px 20px;
-            color: white;
-            font-weight: 600;
-            border-bottom: 1px solid #4a5568;
-        }
-
-        .output-content {
-            height: calc(100% - 60px);
-            overflow-y: auto;
-            padding: 20px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: #e2e8f0;
-            background: #1a202c;
-        }
-
-        .log-line {
-            margin-bottom: 8px;
-            padding: 4px 0;
-        }
-
-        .log-line.info {
-            color: #63b3ed;
-        }
-
-        .log-line.error {
-            color: #f56565;
-        }
-
-        .log-line.success {
-            color: #68d391;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 10px;
-            background: #718096;
-        }
-
-        .status-indicator.processing {
-            background: #ed8936;
-            animation: pulse 1.5s infinite;
-        }
-
-        .status-indicator.success {
-            background: #48bb78;
-        }
-
-        .status-indicator.error {
-            background: #f56565;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .files-section {
-            margin-top: 30px;
-        }
-
-        .file-list {
-            background: #f7fafc;
-            border-radius: 8px;
-            padding: 20px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .file-item {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            padding: 10px;
-            background: white;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .file-info {
-            flex: 1;
-        }
-
-        .file-name {
-            font-weight: 600;
-            color: #2d3748;
-        }
-
-        .file-meta {
-            font-size: 0.8rem;
-            color: #718096;
-        }
-
-        .btn-download {
-            background: #48bb78;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            margin-left: 10px;
-        }
-
-        .btn-download:hover {
-            background: #38a169;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: #e2e8f0;
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 15px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .upload-section {
-                border-right: none;
-                border-bottom: 1px solid #e9ecef;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-        }
-
-        .hidden {
-            display: none;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Export-To-Ghostfolio</h1>
-            <p>Convert broker exports to Ghostfolio import format</p>
+            <h1>Export To Ghostfolio</h1>
+            <p>Convert transaction history export from your favorite broker to a format that can be imported in Ghostfolio.</p>
         </div>
         
         <div class="main-content">
@@ -388,51 +73,51 @@
         
         // Static list of converters with their display names
         const converters = [
-            { value: 'avanza', name: 'Avanza' },
-            { value: 'bitvavo', name: 'Bitvavo' },
-            { value: 'bux', name: 'BUX' },
-            { value: 'coinbase', name: 'Coinbase' },
-            { value: 'cointracking', name: 'CoinTracking' },
-            { value: 'degiro', name: 'DEGIRO' },
-            { value: 'degiro-v3', name: 'DEGIRO V3' },
-            { value: 'delta', name: 'Delta' },
-            { value: 'directa', name: 'Directa' },
-            { value: 'etoro', name: 'eToro' },
-            { value: 'finpension', name: 'Finpension' },
-            { value: 'freetrade', name: 'Freetrade' },
-            { value: 'ibkr', name: 'Interactive Brokers (IBKR)' },
-            { value: 'investimental', name: 'Investimental' },
-            { value: 'parqet', name: 'Parqet' },
-            { value: 'rabobank', name: 'Rabobank' },
-            { value: 'revolut', name: 'Revolut' },
-            { value: 'saxo', name: 'Saxo' },
-            { value: 'schwab', name: 'Schwab' },
-            { value: 'swissquote', name: 'Swissquote' },
-            { value: 'traderepublic', name: 'Trade Republic' },
-            { value: 'trading212', name: 'Trading 212' },
-            { value: 'xtb', name: 'XTB' }
+            { value: "avanza", name: "Avanza" },
+            { value: "bitvavo", name: "Bitvavo" },
+            { value: "bux", name: "BUX" },
+            { value: "coinbase", name: "Coinbase" },
+            { value: "cointracking", name: "CoinTracking" },
+            { value: "degiro", name: "DEGIRO" },
+            { value: "degiro-v3", name: "DEGIRO V3" },
+            { value: "delta", name: "Delta" },
+            { value: "directa", name: "Directa" },
+            { value: "etoro", name: "eToro" },
+            { value: "finpension", name: "Finpension" },
+            { value: "freetrade", name: "Freetrade" },
+            { value: "ibkr", name: "Interactive Brokers (IBKR)" },
+            { value: "investimental", name: "Investimental" },
+            { value: "parqet", name: "Parqet" },
+            { value: "rabobank", name: "Rabobank" },
+            { value: "revolut", name: "Revolut" },
+            { value: "saxo", name: "Saxo" },
+            { value: "schwab", name: "Schwab" },
+            { value: "swissquote", name: "Swissquote" },
+            { value: "traderepublic", name: "Trade Republic" },
+            { value: "trading212", name: "Trading 212" },
+            { value: "xtb", name: "XTB" }
         ];
         
         // DOM elements
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const converterSelect = document.getElementById('converterSelect');
-        const uploadForm = document.getElementById('uploadForm');
-        const convertBtn = document.getElementById('convertBtn');
-        const convertText = document.getElementById('convertText');
-        const statusIndicator = document.getElementById('statusIndicator');
-        const outputContent = document.getElementById('outputContent');
-        const outputStatus = document.getElementById('outputStatus');
-        const progressBar = document.getElementById('progressBar');
-        const progressFill = document.getElementById('progressFill');
-        const fileList = document.getElementById('fileList');
+        const uploadArea = document.getElementById("uploadArea");
+        const fileInput = document.getElementById("fileInput");
+        const converterSelect = document.getElementById("converterSelect");
+        const uploadForm = document.getElementById("uploadForm");
+        const convertBtn = document.getElementById("convertBtn");
+        const convertText = document.getElementById("convertText");
+        const statusIndicator = document.getElementById("statusIndicator");
+        const outputContent = document.getElementById("outputContent");
+        const outputStatus = document.getElementById("outputStatus");
+        const progressBar = document.getElementById("progressBar");
+        const progressFill = document.getElementById("progressFill");
+        const fileList = document.getElementById("fileList");
         
         let selectedFile = null;
         
         // Load converters into dropdown
         function loadConverters() {
             converters.forEach(converter => {
-                const option = document.createElement('option');
+                const option = document.createElement("option");
                 option.value = converter.value;
                 option.textContent = converter.name;
                 converterSelect.appendChild(option);
@@ -443,33 +128,33 @@
         async function detectFileType(file) {
             try {
                 const formData = new FormData();
-                formData.append('file', file);
+                formData.append("file", file);
                 
-                addLogLine('🔍 Analyzing file...', 'info');
+                addLogLine("🔍 Analyzing file...", "info");
                 
-                const response = await fetch('/api/detect-file-type', {
-                    method: 'POST',
+                const response = await fetch("/api/detect-file-type", {
+                    method: "POST",
                     body: formData
                 });
                 
                 const result = await response.json();
                 
                 if (result.detectedType) {
-                    addLogLine(`✅ Auto-detected: ${result.detectedType.toUpperCase()}`, 'success');
+                    addLogLine(`✅ Auto-detected: ${result.detectedType.toUpperCase()}`, "success");
                     
                     // Apply DEGIRO V3 tip if needed
-                    if (result.detectedType === 'degiro') {
-                        addLogLine('💡 Tip: If you have issues with DEGIRO, try the DEGIRO V3 converter', 'info');
+                    if (result.detectedType === "degiro") {
+                        addLogLine("💡 Tip: If you have issues with DEGIRO, try the DEGIRO V3 converter", "info");
                     }
                     
                     return result.detectedType;
                 } else {
-                    addLogLine('⚠️ Could not auto-detect file type from header', 'info');
-                    addLogLine('🤔 Please manually select the correct converter', 'info');
+                    addLogLine("⚠️ Could not auto-detect file type from header", "info");
+                    addLogLine("🤔 Please manually select the correct converter", "info");
                     return null;
                 }
             } catch (error) {
-                addLogLine(`❌ Detection failed: ${error.message}`, 'error');
+                addLogLine(`❌ Detection failed: ${error.message}`, "error");
                 return null;
             }
         }
@@ -477,11 +162,11 @@
         // Load output files
         async function loadOutputFiles() {
             try {
-                const response = await fetch('/api/output-files');
+                const response = await fetch("/api/output-files?limit=3");
                 const files = await response.json();
                 
                 if (files.length === 0) {
-                    fileList.innerHTML = '<p style="text-align: center; color: #718096;">No files generated yet</p>';
+                    fileList.innerHTML = `<p style="text-align: center; color: #718096;">No files generated yet</p>`;
                     return;
                 }
                 
@@ -493,38 +178,38 @@
                                 ${(file.size / 1024).toFixed(1)} KB • ${new Date(file.created).toLocaleString()}
                             </div>
                         </div>
-                        <button class="btn-download" onclick="downloadFile('${file.name}')">Download</button>
+                        <button class="btn-download" onclick="downloadFile("${file.name}")">Download</button>
                     </div>
-                `).join('');
+                `).join("");
             } catch (error) {
-                console.error('Failed to load output files:', error);
+                console.error("Failed to load output files:", error);
             }
         }
         
         // Download file
         function downloadFile(filename) {
-            window.open(`/api/download/${filename}`, '_blank');
+            window.open(`/api/download/${filename}`, "_blank");
         }
         
         // File upload handling
-        uploadArea.addEventListener('click', () => fileInput.click());
-        uploadArea.addEventListener('dragover', (e) => {
+        uploadArea.addEventListener("click", () => fileInput.click());
+        uploadArea.addEventListener("dragover", (e) => {
             e.preventDefault();
-            uploadArea.classList.add('dragover');
+            uploadArea.classList.add("dragover");
         });
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
+        uploadArea.addEventListener("dragleave", () => {
+            uploadArea.classList.remove("dragover");
         });
-        uploadArea.addEventListener('drop', (e) => {
+        uploadArea.addEventListener("drop", (e) => {
             e.preventDefault();
-            uploadArea.classList.remove('dragover');
+            uploadArea.classList.remove("dragover");
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 handleFileSelect(files[0]);
             }
         });
         
-        fileInput.addEventListener('change', (e) => {
+        fileInput.addEventListener("change", (e) => {
             if (e.target.files.length > 0) {
                 handleFileSelect(e.target.files[0]);
             }
@@ -532,24 +217,24 @@
         
         function handleFileSelect(file) {
             selectedFile = file;
-            document.querySelector('.upload-text').textContent = `Selected: ${file.name}`;
-            document.querySelector('.upload-subtext').textContent = `${(file.size / 1024).toFixed(1)} KB`;
-            uploadArea.classList.add('active');
+            document.querySelector(".upload-text").textContent = `Selected: ${file.name}`;
+            document.querySelector(".upload-subtext").textContent = `${(file.size / 1024).toFixed(1)} KB`;
+            uploadArea.classList.add("active");
             
             // Auto-detect file type via API
             detectFileType(file).then(detectedType => {
                 if (detectedType) {
                     converterSelect.value = detectedType;
-                    converterSelect.classList.add('auto-detected');
+                    converterSelect.classList.add("auto-detected");
                 } else {
-                    converterSelect.classList.remove('auto-detected');
+                    converterSelect.classList.remove("auto-detected");
                 }
                 updateConvertButton();
             });
         }
         
-        converterSelect.addEventListener('change', () => {
-            converterSelect.classList.remove('auto-detected');
+        converterSelect.addEventListener("change", () => {
+            converterSelect.classList.remove("auto-detected");
             updateConvertButton();
         });
         
@@ -559,7 +244,7 @@
         }
         
         // Form submission
-        uploadForm.addEventListener('submit', async (e) => {
+        uploadForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             
             if (!selectedFile || !converterSelect.value) {
@@ -567,77 +252,77 @@
             }
             
             const formData = new FormData();
-            formData.append('file', selectedFile);
-            formData.append('converter', converterSelect.value);
-            formData.append('socketId', socket.id);
+            formData.append("file", selectedFile);
+            formData.append("converter", converterSelect.value);
+            formData.append("socketId", socket.id);
             
             // Update UI for processing
             convertBtn.disabled = true;
-            convertText.textContent = 'Processing...';
-            statusIndicator.classList.add('processing');
-            outputStatus.classList.add('processing');
-            progressBar.classList.remove('hidden');
-            progressFill.style.width = '30%';
+            convertText.textContent = "Processing...";
+            statusIndicator.classList.add("processing");
+            outputStatus.classList.add("processing");
+            progressBar.classList.remove("hidden");
+            progressFill.style.width = "30%";
             
             // Clear output
-            outputContent.innerHTML = '';
+            outputContent.innerHTML = "";
             
             try {
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
+                const response = await fetch("/api/upload", {
+                    method: "POST",
                     body: formData
                 });
                 
-                progressFill.style.width = '60%';
+                progressFill.style.width = "60%";
                 
                 const result = await response.json();
                 
                 if (result.success) {
-                    progressFill.style.width = '100%';
+                    progressFill.style.width = "100%";
                     setTimeout(() => {
-                        progressBar.classList.add('hidden');
-                        progressFill.style.width = '0%';
+                        progressBar.classList.add("hidden");
+                        progressFill.style.width = "0%";
                     }, 1000);
                 } else {
                     throw new Error(result.error);
                 }
                 
             } catch (error) {
-                addLogLine(`Error: ${error.message}`, 'error');
-                statusIndicator.classList.remove('processing');
-                statusIndicator.classList.add('error');
-                outputStatus.classList.remove('processing');
-                outputStatus.classList.add('error');
-                progressBar.classList.add('hidden');
-                progressFill.style.width = '0%';
+                addLogLine(`Error: ${error.message}`, "error");
+                statusIndicator.classList.remove("processing");
+                statusIndicator.classList.add("error");
+                outputStatus.classList.remove("processing");
+                outputStatus.classList.add("error");
+                progressBar.classList.add("hidden");
+                progressFill.style.width = "0%";
             }
         });
         
         // Socket.io event handlers
-        socket.on('log', (message) => {
+        socket.on("log", (message) => {
             addLogLine(message);
         });
         
-        socket.on('conversionComplete', (data) => {
+        socket.on("conversionComplete", (data) => {
             convertBtn.disabled = false;
-            convertText.textContent = 'Convert File';
-            statusIndicator.classList.remove('processing');
-            outputStatus.classList.remove('processing');
+            convertText.textContent = "Convert File";
+            statusIndicator.classList.remove("processing");
+            outputStatus.classList.remove("processing");
             
             if (data.success) {
-                statusIndicator.classList.add('success');
-                outputStatus.classList.add('success');
-                addLogLine('Conversion completed successfully!', 'success');
+                statusIndicator.classList.add("success");
+                outputStatus.classList.add("success");
+                addLogLine("Conversion completed successfully!", "success");
                 loadOutputFiles(); // Refresh file list
             } else {
-                statusIndicator.classList.add('error');
-                outputStatus.classList.add('error');
-                addLogLine(`Conversion failed: ${data.error}`, 'error');
+                statusIndicator.classList.add("error");
+                outputStatus.classList.add("error");
+                addLogLine(`Conversion failed: ${data.error}`, "error");
             }
         });
         
-        function addLogLine(message, type = 'info') {
-            const logLine = document.createElement('div');
+        function addLogLine(message, type = "info") {
+            const logLine = document.createElement("div");
             logLine.className = `log-line ${type}`;
             logLine.textContent = message;
             outputContent.appendChild(logLine);
