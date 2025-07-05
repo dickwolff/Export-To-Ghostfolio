@@ -63,6 +63,7 @@ export class IbkrConverter extends AbstractConverter {
         }, async (err, records: IbkrRecord[]) => {
 
             try {
+
                 // Check if parsing failed..
                 if (err || records === undefined || records.length === 0) {
                     let errorMsg = "An error occurred while parsing!";
@@ -278,7 +279,6 @@ export class IbkrConverter extends AbstractConverter {
                         bar1.increment();
                     }
                 }
-
                 this.progress.stop();
 
                 successCallback(result);
