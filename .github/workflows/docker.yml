@@ -1,6 +1,10 @@
 name: "Build Docker Container"
 run-name: Build Docker Container
 
+permissions:
+  contents: read
+  pull-requests: write
+
 on:
   push:
     branches:
