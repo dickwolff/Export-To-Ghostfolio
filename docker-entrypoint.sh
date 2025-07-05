@@ -10,12 +10,6 @@ RUN_MODE=${RUN_MODE:-both}
 
 echo "Run mode: $RUN_MODE"
 
-# Create .env file if it doesn't exist
-if [ ! -f .env ]; then
-    echo "Creating .env file from template..."
-    cp .env.example .env
-fi
-
 # Check if GHOSTFOLIO_ACCOUNT_ID is set
 if [ -z "$GHOSTFOLIO_ACCOUNT_ID" ]; then
     echo "WARNING: GHOSTFOLIO_ACCOUNT_ID not set!"
