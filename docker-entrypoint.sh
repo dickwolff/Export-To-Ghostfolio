@@ -6,7 +6,7 @@
 echo "Starting Export to Ghostfolio Docker Container..."
 
 # Set default run mode if not specified
-RUN_MODE=${RUN_MODE:-both}
+RUN_MODE=${RUN_MODE:-watcher}
 
 echo "Run mode: $RUN_MODE"
 
