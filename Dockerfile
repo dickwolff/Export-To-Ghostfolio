@@ -30,7 +30,7 @@ COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Expose port for web UI
-EXPOSE 3000
+EXPOSE 3334
 
 # Use custom entrypoint that supports both watch and web modes
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

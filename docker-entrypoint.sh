@@ -20,7 +20,7 @@ fi
 # Determine startup mode based on RUN_MODE environment variable
 case $RUN_MODE in
     "web")
-        echo "Starting Web UI only (port 3000)..."
+        echo "Starting Web UI only (port 3334)..."
         exec npm run web
         ;;
     "watcher")
@@ -28,7 +28,7 @@ case $RUN_MODE in
         exec npm run watch
         ;;
     "both"|*)
-        echo "Starting Web UI (port 3000) and Watcher..."
+        echo "Starting Web UI (port 3334) and Watcher..."
         
         # Start file watcher in background
         echo "Starting Watcher in background..."
@@ -36,7 +36,7 @@ case $RUN_MODE in
         WATCH_PID=$!
         
         # Start web UI in foreground
-        echo "Starting Web UI on port 3000..."
+        echo "Starting Web UI on port 3334..."
         npm run web &
         WEB_PID=$!
         

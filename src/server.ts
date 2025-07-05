@@ -25,7 +25,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3334;
 const uploadDir = "uploads";
 const outputDir = process.env.E2G_OUTPUT_FOLDER || "e2g-output";
 
