@@ -6,8 +6,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./e2g-input:/app/e2g-input
-      - ./e2g-output:/app/e2g-output
+      - ./e2g-input:/var/tmp/e2g-input
+      - ./e2g-output:/var/tmp/e2g-output
     environment:
       - PORT=3000
       
@@ -20,7 +20,7 @@ services:
       #- ISIN_OVERRIDE_FILE=isin-overrides.txt
       
       # Watcher Configuration
-      #- USE_POLLING=true
+      - USE_POLLING=true
       #- PURGE_CACHE=false
       
       # Debug Configuration
