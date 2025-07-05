@@ -35,10 +35,6 @@
                         <span class="status-indicator" id="statusIndicator"></span>
                         <span id="convertText">Convert File</span>
                     </button>
-                    
-                    <div class="progress-bar hidden" id="progressBar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
                 </form>
                 
                 <div class="files-section">
@@ -106,8 +102,6 @@
         const statusIndicator = document.getElementById("statusIndicator");
         const outputContent = document.getElementById("outputContent");
         const outputStatus = document.getElementById("outputStatus");
-        const progressBar = document.getElementById("progressBar");
-        const progressFill = document.getElementById("progressFill");
         const fileList = document.getElementById("fileList");
         
         let selectedFile = null;
@@ -210,7 +204,7 @@
                 
                 if (result.success) {
                     addLogLine(`Deleted file: ${filename}`, "info");
-                    loadOutputFiles(); // Refresh file list
+                    loadOutputFiles();
                 } else {
                     addLogLine(`Failed to delete file: ${result.error}`, "error");
                 }
@@ -248,10 +242,10 @@
             document.querySelector(".upload-text").textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
             uploadArea.classList.add("active");
             
-            // Clear the console output when a new file is selected
+            // Clear the console output when a new file is selected.
             outputContent.innerHTML = "";
             
-            // Auto-detect file type via API
+            // Auto-detect file type via API.
             detectFileType(file).then(detectedType => {
                 if (detectedType) {
                     converterSelect.value = detectedType;
@@ -291,8 +285,6 @@
             convertText.textContent = "Processing...";
             statusIndicator.classList.add("processing");
             outputStatus.classList.add("processing");
-            progressBar.classList.remove("hidden");
-            progressFill.style.width = "30%";
             
             // Clear output
             outputContent.innerHTML = "";
@@ -303,17 +295,9 @@
                     body: formData
                 });
                 
-                progressFill.style.width = "60%";
-                
                 const result = await response.json();
                 
-                if (result.success) {
-                    progressFill.style.width = "100%";
-                    setTimeout(() => {
-                        progressBar.classList.add("hidden");
-                        progressFill.style.width = "0%";
-                    }, 1000);
-                } else {
+                if (!result.success) {
                     throw new Error(result.error);
                 }
                 
@@ -323,8 +307,6 @@
                 statusIndicator.classList.add("error");
                 outputStatus.classList.remove("processing");
                 outputStatus.classList.add("error");
-                progressBar.classList.add("hidden");
-                progressFill.style.width = "0%";
             }
         });
         
