@@ -6,13 +6,14 @@ services:
     ports:
       - "3000:3000"
     volumes:
+      - ./e2g-input:/app/e2g-input
       - ./e2g-output:/app/e2g-output
     environment:
       - PORT=3000
       
       # Folder Configuration
       - E2G_INPUT_FOLDER=/var/tmp/e2g-input
-      - E2G_OUTPUT_FOLDER=e2g-output
+      - E2G_OUTPUT_FOLDER=/var/tmp/e2g-output
       - E2G_CACHE_FOLDER=/var/tmp/e2g-cache
       
       # File Configuration
