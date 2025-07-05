@@ -178,7 +178,7 @@
                                 ${(file.size / 1024).toFixed(1)} KB • ${new Date(file.created).toLocaleString()}
                             </div>
                         </div>
-                        <button class="btn-download" onclick="downloadFile("${file.name}")">Download</button>
+                        <button class="btn-download" onclick="downloadFile('${file.name}')">Download</button>
                     </div>
                 `).join("");
             } catch (error) {
@@ -188,7 +188,12 @@
         
         // Download file
         function downloadFile(filename) {
-            window.open(`/api/download/${filename}`, "_blank");
+            const link = document.createElement('a');
+            link.href = `/api/download/${filename}`;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
         
         // File upload handling
