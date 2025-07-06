@@ -39,7 +39,8 @@
     "multer": "^2.0.1",
     "socket.io": "^4.7.5",
     "tsx": "^4.20.3",
-    "yahoo-finance2": "^2.13.3"
+    "yahoo-finance2": "^2.13.3",
+    "sanitize-filename": "^1.6.3"
   },
   "engines": {
     "node": ">=22.0.0"

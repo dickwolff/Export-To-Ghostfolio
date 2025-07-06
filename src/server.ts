@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import sanitizeFilename from "sanitize-filename";
 import dotenv from "dotenv";
 import multer from "multer";
 import express from "express";
@@ -386,7 +387,14 @@ server.listen(PORT, () => {
 function validateAndResolvePath(filename: string, baseDir: string): string | null {
     try {
         const resolvedBaseDir = path.resolve(baseDir);
-        const proposedPath = path.resolve(baseDir, filename);
+
+        // Sanitize the filename to remove potentially dangerous characters.
+        const sanitizedFilename = sanitizeFilename(filename);
+        if (!sanitizedFilename) {
+            return null;
+        }
+
+        const proposedPath = path.resolve(baseDir, sanitizedFilename);
 
         // Validate that the proposed path is within the base directory.
         if (!proposedPath.startsWith(resolvedBaseDir + path.sep) && proposedPath !== resolvedBaseDir) {
