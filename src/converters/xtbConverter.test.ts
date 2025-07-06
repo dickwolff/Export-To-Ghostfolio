@@ -71,12 +71,12 @@ describe("xtbConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toContain("An error ocurred while parsing");
+        expect(err.message).toContain("An error occurred while parsing");
 
         done();
       });
     });
-    
+
     it("the header and row column count doesn't match", (done) => {
 
       // Arrange
@@ -84,7 +84,7 @@ describe("xtbConverter", () => {
 
       let tempFileContent = "";
       tempFileContent += "ID;Type;Time;Symbol;Comment;Amount\n";
-      
+
       tempFileContent += `513492358;Stocks/ETF purchase;11.03.2024 10:05:05;SPYL.DE;OPEN BUY 8 @ 11.2835;-90.27;;`;
 
       // Act
@@ -92,7 +92,7 @@ describe("xtbConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 6, got 8 on line 2");
+        expect(err.message).toBe("An error occurred while parsing! Details: Invalid Record Length: columns length is 6, got 8 on line 2");
 
         done();
       });
@@ -144,5 +144,27 @@ describe("xtbConverter", () => {
 
       done();
     }, () => done.fail("Should not have an error!"));
+  });
+
+  it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
+
+    // Arrange
+    const tempFileContent = "ID;Type;Time;Symbol;Comment;Amount\n";
+    const sut = new XtbConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+    const consoleSpy = jest.spyOn(console, "log");
+
+    // Act
+    sut.processFileContents(tempFileContent, () => {
+      done.fail("Should not succeed!");
+    }, (err: Error) => {
+
+      // Assert
+      expect(consoleSpy).toHaveBeenCalledWith("[e] An error occurred while processing the file contents. Stack trace:");
+      expect(consoleSpy).toHaveBeenCalledWith(err.stack);
+      expect(err).toBeTruthy();
+
+      done();
+    });
   });
 });

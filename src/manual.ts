@@ -34,7 +34,7 @@ else {
         outputFolder,
         () => { process.exit(0); },
         (err) => {
-            console.log("[e] An error ocurred while processing.");
+            console.log("[e] An error occurred processing.");
             console.log(`[e] ${err}`);
             process.exit(99);
         }
