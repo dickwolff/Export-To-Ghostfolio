@@ -63,134 +63,143 @@ export class FreetradeConverter extends AbstractConverter {
             }
         }, async (err, records: FreetradeRecord[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error occurred while parsing!";
+
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
+                    }
+
+                    return errorCallback(new Error(errorMsg))
                 }
 
-                return errorCallback(new Error(errorMsg))
-            }
-
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
-
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
-
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
-
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
-                    bar1.increment();
-                    continue;
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
                 }
 
-                // Interest does not have a security, so add those immediately.
-                if (record.type.toLocaleLowerCase() === "interest") {
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
 
-                    // Add fees record to export.
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
+
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
+                        bar1.increment();
+                        continue;
+                    }
+
+                    // Interest does not have a security, so add those immediately.
+                    if (record.type.toLocaleLowerCase() === "interest") {
+
+                        // Add fees record to export.
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: record.title,
+                            fee: 0,
+                            quantity: 1,
+                            type: GhostfolioOrderType["interest"],
+                            unitPrice: record.totalAmount,
+                            currency: record.accountCurrency,
+                            dataSource: "MANUAL",
+                            date: dayjs(record.timestamp).format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: record.title
+                        });
+
+                        bar1.increment();
+                        continue;
+                    }
+
+                    let security: YahooFinanceRecord;
+                    try {
+                        security = await this.securityService.getSecurity(
+                            record.isin,
+                            record.ticker,
+                            null,
+                            record.instrumentCurrency,
+                            this.progress);
+                    }
+                    catch (err) {
+                        /* istanbul ignore next */
+                        this.logQueryError(record.ticker || record.isin, idx + 2);
+                        return errorCallback(err);
+                    }
+
+                    let action: string
+                    if (record.type.toLocaleLowerCase() === "order" || record.type.toLocaleLowerCase() === "freeshare_order") {
+                        action = record.buySell.toLocaleLowerCase();
+                    } else {
+                        action = record.type.toLocaleLowerCase();
+                    }
+
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i] No result found for ${action} action for ${record.isin || record.ticker} with currency ${record.instrumentCurrency}! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    // If action was dividend, add to export and continue.
+                    if (action === "dividend") {
+
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: record.title,
+                            fee: record.dividendWithheldTaxAmount,
+                            quantity: record.dividendEligibleQuantity,
+                            type: GhostfolioOrderType[action],
+                            unitPrice: record.dividendAmountPerShare,
+                            currency: security.currency,
+                            dataSource: "YAHOO",
+                            date: dayjs(record.dividendPayDate).format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: security.symbol
+                        });
+
+                        bar1.increment();
+                        continue;
+                    }
+
+                    // Add buy & sell records.
+                    let feeAmount = record.stampDuty + record.fXFeeAmount;
+                    let unitPrice = record.pricePerShare;
+                    if (security.currency == "GBp") {
+                        unitPrice = record.pricePerShare * 100;
+                    }
+
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                         comment: record.title,
-                        fee: 0,
-                        quantity: 1,
-                        type: GhostfolioOrderType["interest"],
-                        unitPrice: record.totalAmount,
-                        currency: record.accountCurrency,
-                        dataSource: "MANUAL",
-                        date: dayjs(record.timestamp).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: record.title
-                    });
-
-                    bar1.increment();
-                    continue;
-                }
-
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        record.isin,
-                        record.ticker,
-                        null,
-                        record.instrumentCurrency,
-                        this.progress);
-                }
-                catch (err) {
-                    /* istanbul ignore next */
-                    this.logQueryError(record.ticker || record.isin, idx + 2);
-                    return errorCallback(err);
-                }
-
-                let action: string
-                if (record.type.toLocaleLowerCase() === "order" || record.type.toLocaleLowerCase() === "freeshare_order") {
-                    action = record.buySell.toLocaleLowerCase();
-                } else {
-                    action = record.type.toLocaleLowerCase();
-                }
-
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${action} action for ${record.isin || record.ticker} with currency ${record.instrumentCurrency}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                // If action was dividend, add to export and continue.
-                if (action === "dividend") {
-
-                    result.activities.push({
-                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: record.title,
-                        fee: record.dividendWithheldTaxAmount,
-                        quantity: record.dividendEligibleQuantity,
+                        fee: feeAmount,
+                        quantity: record.quantity,
                         type: GhostfolioOrderType[action],
-                        unitPrice: record.dividendAmountPerShare,
+                        unitPrice: unitPrice,
                         currency: security.currency,
                         dataSource: "YAHOO",
-                        date: dayjs(record.dividendPayDate).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        date: dayjs(record.timestamp).format("YYYY-MM-DDTHH:mm:ssZ"),
                         symbol: security.symbol
                     });
 
                     bar1.increment();
-                    continue;
                 }
 
-                // Add buy & sell records.
-                let feeAmount = record.stampDuty + record.fXFeeAmount;
-                let unitPrice = record.pricePerShare;
-                if (security.currency == "GBp") {
-                    unitPrice = record.pricePerShare * 100;
-                }
+                this.progress.stop();
 
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: record.title,
-                    fee: feeAmount,
-                    quantity: record.quantity,
-                    type: GhostfolioOrderType[action],
-                    unitPrice: unitPrice,
-                    currency: security.currency,
-                    dataSource: "YAHOO",
-                    date: dayjs(record.timestamp).format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
-                });
-
-                bar1.increment();
+                successCallback(result);
             }
-
-            this.progress.stop();
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 

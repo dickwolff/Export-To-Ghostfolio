@@ -74,7 +74,7 @@ describe("abstractConverter", () => {
       sut.logQueryErrorTest("AAPL", 1);
 
       // Assert
-      expect(consoleSpy).toHaveBeenCalledWith("\n[e] An error ocurred while trying to retrieve symbol AAPL (line 3)!\n");
+      expect(consoleSpy).toHaveBeenCalledWith("\n[e] An error occurred trying to retrieve symbol AAPL (line 3)!\n");
     });
   });
 
@@ -87,6 +87,6 @@ describe("abstractConverter", () => {
     sut.logQueryErrorTest(undefined, 2);
 
     // Assert
-    expect(consoleSpy).toHaveBeenCalledWith("\n[e] An error ocurred while trying to retrieve an empty symbol (line 4)!\n");
+    expect(consoleSpy).toHaveBeenCalledWith("\n[e] An error occurred trying to retrieve an empty symbol (line 4)!\n");
   });
 });

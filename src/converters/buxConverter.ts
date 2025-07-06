@@ -66,113 +66,122 @@ export class BuxConverter extends AbstractConverter {
             }
         }, async (err, records: BuxRecord[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error occurred while parsing!";
+
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
+                    }
+
+                    return errorCallback(new Error(errorMsg))
                 }
 
-                return errorCallback(new Error(errorMsg))
-            }
-
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
-
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
-
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
-
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
-                    bar1.increment();
-                    continue;
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
                 }
 
-                // Interest and fees do not have a security, so add those immediately.
-                if (record.transactionType.toLocaleLowerCase() === "interest" ||
-                    record.transactionType.toLocaleLowerCase() === "fee") {
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
 
-                    const feeAmount = Math.abs(record.transactionAmount);
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
+
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
+                        bar1.increment();
+                        continue;
+                    }
+
+                    // Interest and fees do not have a security, so add those immediately.
+                    if (record.transactionType.toLocaleLowerCase() === "interest" ||
+                        record.transactionType.toLocaleLowerCase() === "fee") {
+
+                        const feeAmount = Math.abs(record.transactionAmount);
+
+                        // Add record to export.
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: `Bux ${record.transactionType.toLocaleLowerCase()}`,
+                            fee: feeAmount,
+                            quantity: 1,
+                            type: GhostfolioOrderType[record.transactionType],
+                            unitPrice: feeAmount,
+                            currency: record.transactionCurrency,
+                            dataSource: "MANUAL",
+                            date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: `Bux ${record.transactionType.toLocaleLowerCase()}`
+                        });
+
+                        bar1.increment();
+                        continue;
+                    }
+
+                    let security: YahooFinanceRecord;
+                    try {
+                        security = await this.securityService.getSecurity(
+                            record.assetId,
+                            null,
+                            record.assetName,
+                            record.assetCurrency,
+                            this.progress);
+                    }
+                    catch (err) {
+                        this.logQueryError(record.assetId || record.assetName, idx + 2);
+                        return errorCallback(err);
+                    }
+
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i] No result found for ${record.transactionType} action for ${record.assetId || record.assetName} with currency ${record.assetCurrency}! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    let quantity, unitPrice;
+
+                    if (record.transactionType === "dividend") {
+                        quantity = 1;
+                        unitPrice = Math.abs(record.transactionAmount);
+                    } else {
+                        quantity = record.tradeQuantity;
+                        unitPrice = record.tradePrice;
+                    }
 
                     // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: `Bux ${record.transactionType.toLocaleLowerCase()}`,
-                        fee: feeAmount,
-                        quantity: 1,
+                        comment: "",
+                        fee: 0,
+                        quantity: quantity,
                         type: GhostfolioOrderType[record.transactionType],
-                        unitPrice: feeAmount,
+                        unitPrice: unitPrice,
                         currency: record.transactionCurrency,
-                        dataSource: "MANUAL",
+                        dataSource: "YAHOO",
                         date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: `Bux ${record.transactionType.toLocaleLowerCase()}`
+                        symbol: security.symbol
                     });
 
                     bar1.increment();
-                    continue;
                 }
 
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        record.assetId,
-                        null,
-                        record.assetName,
-                        record.assetCurrency,
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.assetId || record.assetName, idx + 2);
-                    return errorCallback(err);
-                }
+                this.progress.stop();
 
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${record.transactionType} action for ${record.assetId || record.assetName} with currency ${record.assetCurrency}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                let quantity, unitPrice;
-
-                if (record.transactionType === "dividend") {
-                    quantity = 1;
-                    unitPrice = Math.abs(record.transactionAmount);
-                } else {
-                    quantity = record.tradeQuantity;
-                    unitPrice = record.tradePrice;
-                }
-
-                // Add record to export.
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: "",
-                    fee: 0,
-                    quantity: quantity,
-                    type: GhostfolioOrderType[record.transactionType],
-                    unitPrice: unitPrice,
-                    currency: record.transactionCurrency,
-                    dataSource: "YAHOO",
-                    date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
-                });
-
-                bar1.increment();
+                successCallback(result);
             }
-
-            this.progress.stop()
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 

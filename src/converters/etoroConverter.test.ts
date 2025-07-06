@@ -96,7 +96,7 @@ describe("etoroConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toContain("An error ocurred while parsing");
+        expect(err.message).toContain("An error occurred while parsing");
 
         done();
       });
@@ -116,7 +116,7 @@ describe("etoroConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 11, got 13 on line 2");
+        expect(err.message).toBe("An error occurred while parsing! Details: Invalid Record Length: columns length is 11, got 13 on line 2");
 
         done();
       });
@@ -168,5 +168,27 @@ describe("etoroConverter", () => {
 
       done();
     }, () => done.fail("Should not have an error!"));
+  });
+
+  it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
+  
+    // Arrange
+    const tempFileContent = "ID;Type;Time;Symbol;Comment;Amount\n";
+    const sut = new EtoroConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+    const consoleSpy = jest.spyOn(console, "log");
+
+    // Act
+    sut.processFileContents(tempFileContent, () => {
+      done.fail("Should not succeed!");
+    }, (err: Error) => {
+    
+      // Assert
+      expect(consoleSpy).toHaveBeenCalledWith("[e] An error occurred while processing the file contents. Stack trace:");
+      expect(consoleSpy).toHaveBeenCalledWith(err.stack);
+      expect(err).toBeTruthy();
+
+      done();
+    });
   });
 });
