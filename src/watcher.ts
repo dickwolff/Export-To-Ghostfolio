@@ -57,6 +57,7 @@ function processFile(filePath: string) {
             console.log("[e] Could not determine file type from header");
             const errorFilePath = path.join(outputFolder, path.basename(filePath));
             fs.copyFileSync(filePath, errorFilePath);
+            fs.rmSync(filePath);
             isProcessing = false;
             return;
         }
