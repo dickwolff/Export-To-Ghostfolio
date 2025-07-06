@@ -106,7 +106,7 @@ export abstract class AbstractConverter {
      */
     protected logQueryError(query: string | undefined, index: number) {
 
-        let message = `\n[e] An error ocurred while trying to retrieve {query} (line ${index + 2})!\n`;
+        let message = `\n[e] An error occurred trying to retrieve {query} (line ${index + 2})!\n`;
 
         if (query) {
             message = message.replace("{query}", `symbol ${query}`);

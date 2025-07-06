@@ -88,102 +88,111 @@ export class Trading212Converter extends AbstractConverter {
             }
         }, async (err, records: Trading212Record[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error occurred while parsing!";
+
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
+                    }
+
+                    return errorCallback(new Error(errorMsg))
                 }
 
-                return errorCallback(new Error(errorMsg))
-            }
-
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
-
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
-
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
-
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
-                    bar1.increment();
-                    continue;
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
                 }
 
-                // Interest does not have a security, so add those immediately.
-                if (record.action.toLocaleLowerCase() === "interest") {
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
 
-                    const feeAmount = Math.abs(record.total);
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
 
-                    // Add fees record to export.
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
+                        bar1.increment();
+                        continue;
+                    }
+
+                    // Interest does not have a security, so add those immediately.
+                    if (record.action.toLocaleLowerCase() === "interest") {
+
+                        const feeAmount = Math.abs(record.total);
+
+                        // Add fees record to export.
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: "",
+                            fee: feeAmount,
+                            quantity: 1,
+                            type: GhostfolioOrderType[record.action],
+                            unitPrice: feeAmount,
+                            currency: record.currencyTotal,
+                            dataSource: "MANUAL",
+                            date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: record.notes
+                        });
+
+                        bar1.increment();
+                        continue;
+                    }
+
+                    let security: YahooFinanceRecord;
+                    try {
+                        security = await this.securityService.getSecurity(
+                            record.isin,
+                            record.ticker,
+                            record.name,
+                            record.currencyPriceShare,
+                            this.progress);
+                    }
+                    catch (err) {
+                        this.logQueryError(record.isin || record.ticker || record.name, idx + 2);
+                        return errorCallback(err);
+                    }
+
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i] No result found for ${record.action} action for ${record.isin || record.ticker || record.name} with currency ${record.currencyPriceShare}! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                         comment: "",
-                        fee: feeAmount,
-                        quantity: 1,
+                        fee: 0,
+                        quantity: record.noOfShares,
                         type: GhostfolioOrderType[record.action],
-                        unitPrice: feeAmount,
-                        currency: record.currencyTotal,
-                        dataSource: "MANUAL",
+                        unitPrice: record.priceShare,
+                        currency: record.currencyPriceShare,
+                        dataSource: "YAHOO",
                         date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: record.notes
+                        symbol: security.symbol
                     });
 
                     bar1.increment();
-                    continue;
                 }
 
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        record.isin,
-                        record.ticker,
-                        record.name,
-                        record.currencyPriceShare,
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.isin || record.ticker || record.name, idx + 2);
-                    return errorCallback(err);
-                }
+                this.progress.stop();
 
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${record.action} action for ${record.isin || record.ticker || record.name} with currency ${record.currencyPriceShare}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                // Add record to export.
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: "",
-                    fee: 0,
-                    quantity: record.noOfShares,
-                    type: GhostfolioOrderType[record.action],
-                    unitPrice: record.priceShare,
-                    currency: record.currencyPriceShare,
-                    dataSource: "YAHOO",
-                    date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
-                });
-
-                bar1.increment();
+                successCallback(result);
             }
-
-            this.progress.stop()
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 

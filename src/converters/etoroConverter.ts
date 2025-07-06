@@ -69,121 +69,130 @@ export class EtoroConverter extends AbstractConverter {
             }
         }, async (err, records: EtoroRecord[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
-                }
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error occurred while parsing!";
 
-                return errorCallback(new Error(errorMsg))
-            }
-
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
-
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
-
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
-
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
-                    bar1.increment();
-                    continue;
-                }
-
-                const date = dayjs(`${record.date}`, "DD/MM/YYYY HH:mm:ss");
-
-                // Interest, fee and refund does not have a security, so add those immediately.
-                if (record.type.toLocaleLowerCase() === "interest" || record.type.toLocaleLowerCase() === "fee" || record.type.toLocaleLowerCase() === "refund") {
-
-                    const feeAmount = Math.abs(record.amount);
-                    let recordType = record.type
-                    let comment = '';
-
-                    if (record.type.toLocaleLowerCase() === "fee" || record.type.toLocaleLowerCase() === "refund") {
-                        comment += `${recordType.toLocaleUpperCase()} ${record.assetType} ${record.details}`;
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
                     }
 
-                    if (recordType.toLocaleLowerCase() === "refund") {
-                        recordType = "interest";
+                    return errorCallback(new Error(errorMsg))
+                }
+
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
+                }
+
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
+
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
+
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
+                        bar1.increment();
+                        continue;
                     }
 
-                    // Add fees record to export.
+                    const date = dayjs(`${record.date}`, "DD/MM/YYYY HH:mm:ss");
+
+                    // Interest, fee and refund does not have a security, so add those immediately.
+                    if (record.type.toLocaleLowerCase() === "interest" || record.type.toLocaleLowerCase() === "fee" || record.type.toLocaleLowerCase() === "refund") {
+
+                        const feeAmount = Math.abs(record.amount);
+                        let recordType = record.type
+                        let comment = '';
+
+                        if (record.type.toLocaleLowerCase() === "fee" || record.type.toLocaleLowerCase() === "refund") {
+                            comment += `${recordType.toLocaleUpperCase()} ${record.assetType} ${record.details}`;
+                        }
+
+                        if (recordType.toLocaleLowerCase() === "refund") {
+                            recordType = "interest";
+                        }
+
+                        // Add fees record to export.
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: comment,
+                            fee: feeAmount,
+                            quantity: 1,
+                            type: GhostfolioOrderType[recordType],
+                            unitPrice: feeAmount,
+                            currency: "USD",
+                            dataSource: "MANUAL",
+                            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: ""
+                        });
+
+                        bar1.increment();
+                        continue;
+                    }
+
+                    const detailsSplit = record.details.split("/");
+                    const symbol = detailsSplit[0];
+                    let currency = detailsSplit[1];
+                    currency = currency === "GBX" ? "GBp" : currency;
+
+                    let security: YahooFinanceRecord;
+                    try {
+                        security = await this.securityService.getSecurity(
+                            null,
+                            symbol,
+                            null,
+                            currency,
+                            this.progress);
+                    }
+                    catch (err) {
+                        this.logQueryError(record.details, idx + 2);
+                        return errorCallback(err);
+                    }
+
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i] No result found for ${record.type} action for ${record.details}! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    const unitPrice = parseFloat((record.amount / record.units).toFixed(6));
+
+                    // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: comment,
-                        fee: feeAmount,
-                        quantity: 1,
-                        type: GhostfolioOrderType[recordType],
-                        unitPrice: feeAmount,
-                        currency: "USD",
-                        dataSource: "MANUAL",
+                        comment: "",
+                        fee: 0,
+                        quantity: record.units,
+                        type: GhostfolioOrderType[record.type],
+                        unitPrice: unitPrice,
+                        currency: currency,
+                        dataSource: "YAHOO",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: ""
+                        symbol: security.symbol
                     });
 
                     bar1.increment();
-                    continue;
                 }
 
-                const detailsSplit = record.details.split("/");
-                const symbol = detailsSplit[0];
-                let currency = detailsSplit[1];
-                currency = currency === "GBX" ? "GBp" : currency;
+                this.progress.stop();
 
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        null,
-                        symbol,
-                        null,
-                        currency,
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.details, idx + 2);
-                    return errorCallback(err);
-                }
-
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${record.type} action for ${record.details}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                const unitPrice = parseFloat((record.amount / record.units).toFixed(6));
-
-                // Add record to export.
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: "",
-                    fee: 0,
-                    quantity: record.units,
-                    type: GhostfolioOrderType[record.type],
-                    unitPrice: unitPrice,
-                    currency: currency,
-                    dataSource: "YAHOO",
-                    date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
-                });
-
-                bar1.increment();
+                successCallback(result);
             }
-
-            this.progress.stop()
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 

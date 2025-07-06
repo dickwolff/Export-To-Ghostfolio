@@ -62,96 +62,105 @@ export class DeltaConverter extends AbstractConverter {
             }
         }, async (err, records: DeltaRecord[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error occurred while parsing!";
+
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
+                    }
+
+                    return errorCallback(new Error(errorMsg))
                 }
 
-                return errorCallback(new Error(errorMsg))
-            }
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
+                }
 
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
 
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
 
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
+                        bar1.increment();
+                        continue;
+                    }
 
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
+                    // Temporary skip crypto.
+                    if (record.baseType === "CRYPTO") {
+                        console.log(`[i] Unsupported base type ${record.baseType} for ${record.way} action for ${record.baseCurrencyName} with currency ${record.quoteCurrency}! Please add this manually..`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    let security: YahooFinanceRecord;
+                    try {
+                        security = await this.securityService.getSecurity(
+                            null,
+                            record.baseCurrencyName,
+                            null,
+                            record.quoteCurrency,
+                            this.progress);
+                    }
+                    catch (err) {
+                        this.logQueryError(record.baseCurrencyName, idx + 2);
+                        return errorCallback(err);
+                    }
+
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i] No result found for ${record.way} action for ${record.baseCurrencyName} with currency ${record.quoteCurrency}! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    let quantity, unitPrice;
+
+                    if (record.way === "dividend") {
+                        quantity = 1;
+                        unitPrice = Math.abs(record.quoteAmount);
+                    } else {
+                        quantity = record.baseAmount;
+                        unitPrice = parseFloat((record.quoteAmount / quantity).toFixed(2));
+                    }
+
+                    // Add record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: record.notes,
+                        fee: record.feeAmount,
+                        quantity: quantity,
+                        type: GhostfolioOrderType[record.way],
+                        unitPrice: unitPrice,
+                        currency: record.baseCurrencyName,
+                        dataSource: "YAHOO",
+                        date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: security.symbol
+                    });
+
                     bar1.increment();
-                    continue;
                 }
 
-                // Temporary skip crypto.
-                if (record.baseType === "CRYPTO") {
-                    console.log(`[i] Unsupported base type ${record.baseType} for ${record.way} action for ${record.baseCurrencyName} with currency ${record.quoteCurrency}! Please add this manually..`);
-                    bar1.increment();
-                    continue;
-                }
+                this.progress.stop();
 
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        null,
-                        record.baseCurrencyName,
-                        null,
-                        record.quoteCurrency,
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.baseCurrencyName, idx + 2);
-                    return errorCallback(err);
-                }
-
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${record.way} action for ${record.baseCurrencyName} with currency ${record.quoteCurrency}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                let quantity, unitPrice;
-
-                if (record.way === "dividend") {
-                    quantity = 1;
-                    unitPrice = Math.abs(record.quoteAmount);
-                } else {
-                    quantity = record.baseAmount;
-                    unitPrice = parseFloat((record.quoteAmount / quantity).toFixed(2));
-                }
-
-                // Add record to export.
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: record.notes,
-                    fee: record.feeAmount,
-                    quantity: quantity,
-                    type: GhostfolioOrderType[record.way],
-                    unitPrice: unitPrice,
-                    currency: record.baseCurrencyName,
-                    dataSource: "YAHOO",
-                    date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
-                });
-
-                bar1.increment();
+                successCallback(result);
             }
-
-            this.progress.stop()
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 

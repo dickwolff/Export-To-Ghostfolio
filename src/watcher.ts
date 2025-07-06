@@ -70,7 +70,7 @@ chokidar
 
             }, (err) => {
 
-                console.log("[e] An error ocurred while processing.");
+                console.log("[e] An error occurred processing.");
                 console.log(`[e] ${err}`);
 
                 // Move file with errors to output folder so it can be fixed manually.
