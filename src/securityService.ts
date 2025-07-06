@@ -278,7 +278,7 @@ export class SecurityService {
                 quoteSummaryResult = await this.yahooFinance.quoteSummary(quote.symbol, {}, { validateResult: false });
             }
             catch (err) {
-                this.logDebug(`getSymbolsByQuery(): An error ocurred while retrieving summary for ${quote.symbol}. ${err}. Skipping..`, progress, true);
+                this.logDebug(`getSymbolsByQuery(): An error occurred retrieving summary for ${quote.symbol}. ${err}. Skipping..`, progress, true);
                 continue;
             }
 

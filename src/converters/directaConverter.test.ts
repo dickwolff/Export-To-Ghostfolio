@@ -71,7 +71,7 @@ describe("directaConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toContain("An error ocurred while parsing");
+        expect(err.message).toContain("An error occurred while parsing");
 
         done();
       });
@@ -91,7 +91,7 @@ describe("directaConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toBe("An error ocurred while parsing!");
+        expect(err.message).toBe("An error occurred while parsing!");
 
         done();
       });

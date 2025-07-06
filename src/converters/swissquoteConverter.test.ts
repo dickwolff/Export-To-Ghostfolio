@@ -72,7 +72,7 @@ describe("swissquoteConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toContain("An error ocurred while parsing");
+        expect(err.message).toContain("An error occurred while parsing");
 
         done();
       });
@@ -93,7 +93,7 @@ describe("swissquoteConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toBe("An error ocurred while parsing! Details: Invalid Record Length: columns length is 13, got 15 on line 2");
+        expect(err.message).toBe("An error occurred while parsing! Details: Invalid Record Length: columns length is 13, got 15 on line 2");
 
         done();
       });
