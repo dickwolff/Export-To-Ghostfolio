@@ -181,8 +181,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
 
         this.progress.stop();
 
-        successCallback(result);
-        
+        successCallback(result);    
       }
       catch (error) {
         console.log("[e] An error occurred while processing the file contents. Stack trace:");
