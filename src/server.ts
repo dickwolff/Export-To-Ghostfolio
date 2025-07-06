@@ -328,7 +328,13 @@ app.get("/api/download/:filename", (req, res) => {
 app.delete("/api/delete/:filename", (req, res) => {
     try {
         const filename = req.params.filename;
-        const filePath = path.join(outputDir, filename);
+        let filePath = path.resolve(outputDir, filename);
+        filePath = fs.realpathSync(filePath);
+
+        if (!filePath.startsWith(outputDir)) {
+            res.status(403).json({ error: "Forbidden: Invalid file path" });
+            return;
+        }
 
         if (!fs.existsSync(filePath)) {
             res.status(404).json({ error: "File not found" });
