@@ -1,8 +1,8 @@
-/**
- * File type matcher service for detecting broker CSV formats
- * Based on CSV header patterns
- */
+
+import * as matcher from "closest-match";
+
 export class FileTypeMatcher {
+
     private static headers: Map<string, string> = new Map([
         [`Datum;Konto;Typ av transaktion;Värdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat`, "avanza"],
         [`Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,Received / Paid Currency,Received / Paid Amount,Fee currency,Fee amount,Status,Transaction ID,Address`, "bitvavo"],
@@ -37,17 +37,24 @@ export class FileTypeMatcher {
      * @returns The detected converter type or null if not detected
      */
     public static detectFileType(fileContent: string): string | null {
+
         const firstLine = fileContent.split('\n')[0].trim();
-        if (!firstLine) return null;
+        if (!firstLine) {
+            return null;
+        }
 
         // Use closest-match algorithm (simplified implementation)
-        const closestMatch = this.findClosestMatch(firstLine, Array.from(this.headers.keys()));
+        const closestMatch = matcher.closestMatch(firstLine, Array.from(this.headers.keys()));
 
         if (closestMatch) {
-            let converter = this.headers.get(closestMatch);
 
-            // Apply DEGIRO V3 logic if environment variable is set
+            const converterKey = closestMatch as string;
+            let converter = this.headers.get(converterKey);
+
+            // Temporary flag to force DEGIRO V3.
+            /* istanbul ignore if */
             if (converter === "degiro" && `${process.env.DEGIRO_FORCE_V3}` === "true") {
+                console.log("[i] Using DEGIRO V3 Beta converter because DEGIRO_FORCE_V3 was set to true..");
                 converter = "degiro-v3";
             }
 
@@ -55,93 +62,5 @@ export class FileTypeMatcher {
         }
 
         return null;
-    }
-
-    /**
-     * Get all header patterns
-     * @returns Map of header patterns to converter names
-     */
-    public static getHeaders(): Map<string, string> {
-        return new Map(this.headers);
-    }
-
-    /**
-     * Get list of all supported converters
-     * @returns Array of converter names
-     */
-    public static getSupportedConverters(): string[] {
-        return Array.from(new Set(this.headers.values()));
-    }
-
-    /**
-     * Find the closest matching header pattern
-     * @param target The target string to match
-     * @param candidates Array of candidate strings
-     * @returns The closest matching string or null
-     */
-    private static findClosestMatch(target: string, candidates: string[]): string | null {
-        let bestMatch: string | null = null;
-        let bestScore = 0;
-
-        for (const candidate of candidates) {
-            const similarity = this.calculateSimilarity(target, candidate);
-            if (similarity > bestScore) {
-                bestScore = similarity;
-                bestMatch = candidate;
-            }
-        }
-
-        // Only return a match if similarity is above a threshold
-        return bestScore > 0.7 ? bestMatch : null;
-    }
-
-    /**
-     * Calculate similarity between two strings
-     * @param str1 First string
-     * @param str2 Second string
-     * @returns Similarity score between 0 and 1
-     */
-    private static calculateSimilarity(str1: string, str2: string): number {
-        const shorter = str1.length < str2.length ? str1 : str2;
-        const longer = str1.length < str2.length ? str2 : str1;
-
-        if (longer.length === 0) return 1.0;
-
-        const editDistance = this.getEditDistance(shorter, longer);
-        return (longer.length - editDistance) / longer.length;
-    }
-
-    /**
-     * Calculate Levenshtein distance between two strings
-     * @param str1 First string
-     * @param str2 Second string
-     * @returns Edit distance
-     */
-    private static getEditDistance(str1: string, str2: string): number {
-        const matrix: number[][] = [];
-
-        for (let i = 0; i <= str2.length; i++) {
-            matrix[i] = [i];
-        }
-
-        for (let j = 0; j <= str1.length; j++) {
-            matrix[0][j] = j;
-        }
-
-        for (let i = 1; i <= str2.length; i++) {
-            for (let j = 1; j <= str1.length; j++) {
-                if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-                    matrix[i][j] = matrix[i - 1][j - 1];
-                } else {
-                    matrix[i][j] = Math.min(
-                        matrix[i - 1][j - 1] + 1, // substitution
-                        matrix[i][j - 1] + 1,     // insertion
-                        matrix[i - 1][j] + 1      // deletion
-                    );
-                }
-            }
-        }
-
-        return matrix[str2.length][str1.length];
     }
 }
