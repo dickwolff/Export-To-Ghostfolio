@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,36 +8,37 @@
     <link rel="stylesheet" href="styles.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
             <h1>Export to Ghostfolio</h1>
         </div>
-        
+
         <div class="main-content">
             <div class="upload-section">
                 <h2 class="section-title">Upload & Convert</h2>
-                
+
                 <form id="uploadForm" enctype="multipart/form-data">
                     <div class="upload-area" id="uploadArea">
                         <div class="upload-icon">📁</div>
                         <div class="upload-text">Drop your CSV file here, or click to browse</div>
                         <input type="file" id="fileInput" name="file" accept=".csv" style="display: none;">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="converterSelect">Select converter:</label>
                         <select id="converterSelect" name="converter" required>
                             <option value="">Choose...</option>
                         </select>
                     </div>
-                    
+
                     <button type="submit" class="btn-convert" id="convertBtn" disabled>
                         <span class="status-indicator" id="statusIndicator"></span>
                         <span id="convertText">Convert File</span>
                     </button>
                 </form>
-                
+
                 <div class="files-section">
                     <div class="files-header">
                         <h3 class="section-title">Recent Output Files</h3>
@@ -47,10 +49,10 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="output-section">
                 <h2 class="section-title">Conversion Output</h2>
-                
+
                 <div class="output-container">
                     <div class="output-header">
                         <span class="status-indicator" id="outputStatus"></span>
@@ -67,7 +69,13 @@
     <script>
         // Initialize Socket.io
         const socket = io();
-        
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Static list of converters with their display names
         const converters = [
             { value: "avanza", name: "Avanza" },
@@ -94,7 +102,7 @@
             { value: "trading212", name: "Trading 212" },
             { value: "xtb", name: "XTB" }
         ];
-        
+
         // DOM elements
         const uploadArea = document.getElementById("uploadArea");
         const fileInput = document.getElementById("fileInput");
@@ -106,9 +114,9 @@
         const outputContent = document.getElementById("outputContent");
         const outputStatus = document.getElementById("outputStatus");
         const fileList = document.getElementById("fileList");
-        
+
         let selectedFile = null;
-        
+
         // Load converters into dropdown
         function loadConverters() {
             converters.forEach(converter => {
@@ -118,28 +126,28 @@
                 converterSelect.appendChild(option);
             });
         }
-        
+
         // Auto-detect file type via API
         async function detectFileType(file) {
             try {
                 const formData = new FormData();
                 formData.append("file", file);
-                
+
                 const response = await fetch("/api/detect-file-type", {
                     method: "POST",
                     body: formData
                 });
-                
+
                 const result = await response.json();
                 console.log("Auto-detect result:", result);
                 if (result.detectedType) {
                     addLogLine(`Auto-detected: ${result.detectedType.toUpperCase()}`, "success");
-                    
+
                     // Apply DEGIRO V3 tip if needed
                     if (result.detectedType === "degiro") {
                         addLogLine("Tip: If you have issues with DEGIRO, try the DEGIRO V3 converter", "info");
                     }
-                    
+
                     return result.detectedType;
                 } else {
                     addLogLine("Could not auto-detect file type from header", "info");
@@ -151,18 +159,18 @@
                 return null;
             }
         }
-        
+
         // Load output files
         async function loadOutputFiles() {
             try {
                 const response = await fetch("/api/output-files?limit=3");
                 const files = await response.json();
-                
+
                 if (files.length === 0) {
                     fileList.innerHTML = `<p class="no-files-message">No files generated yet..</p>`;
                     return;
                 }
-                
+
                 fileList.innerHTML = files.map(file => `
                     <div class="file-item">
                         <div class="file-info">
@@ -172,20 +180,18 @@
                             </div>
                         </div>
                         <div class="file-actions">
-                            <button class="btn-download" onclick="downloadFile('${file.name}')">💾</button>
-                            <button class="btn-delete" onclick="deleteFile('${file.name}')">🗑️</button>
+                            <button class="btn-download" onclick="downloadFile('${escapeHtml(file.name)}')">💾</button>
+                            <button class="btn-delete" onclick="deleteFile('${escapeHtml(file.name)}')">🗑️</button>
                         </div>
                     </div>
                 `).join("");
             } catch (error) {
                 console.error("Failed to load output files:", error);
             }
-        }
-        
-        // Download file
+        }        // Download file
         function downloadFile(filename) {
             const link = document.createElement('a');
-            link.href = `/api/download/${filename}`;
+            link.href = `/api/download/${encodeURIComponent(filename)}`;
             link.download = filename;
             document.body.appendChild(link);
             link.click();
@@ -199,7 +205,7 @@
             }
             
             try {
-                const response = await fetch(`/api/delete/${filename}`, {
+                const response = await fetch(`/api/delete/${encodeURIComponent(filename)}`, {
                     method: 'DELETE'
                 });
                 
@@ -215,7 +221,7 @@
                 addLogLine(`Error deleting file: ${error.message}`, "error");
             }
         }
-        
+
         // File upload handling
         uploadArea.addEventListener("click", () => fileInput.click());
         uploadArea.addEventListener("dragover", (e) => {
@@ -233,21 +239,21 @@
                 handleFileSelect(files[0]);
             }
         });
-        
+
         fileInput.addEventListener("change", (e) => {
             if (e.target.files.length > 0) {
                 handleFileSelect(e.target.files[0]);
             }
         });
-        
+
         function handleFileSelect(file) {
             selectedFile = file;
-            document.querySelector(".upload-text").textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            document.querySelector(".upload-text").textContent = `${escapeHtml(file.name)} (${(file.size / 1024).toFixed(1)} KB)`;
             uploadArea.classList.add("active");
-            
+
             // Clear the console output when a new file is selected.
             outputContent.innerHTML = "";
-            
+
             // Auto-detect file type via API.
             detectFileType(file).then(detectedType => {
                 if (detectedType) {
@@ -259,51 +265,51 @@
                 updateConvertButton();
             });
         }
-        
+
         converterSelect.addEventListener("change", () => {
             converterSelect.classList.remove("auto-detected");
             updateConvertButton();
         });
-        
+
         function updateConvertButton() {
             const canConvert = selectedFile && converterSelect.value;
             convertBtn.disabled = !canConvert;
         }
-        
+
         // Form submission
         uploadForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-            
+
             if (!selectedFile || !converterSelect.value) {
                 return;
             }
-            
+
             const formData = new FormData();
             formData.append("file", selectedFile);
             formData.append("converter", converterSelect.value);
             formData.append("socketId", socket.id);
-            
+
             // Update UI for processing
             convertBtn.disabled = true;
             convertText.textContent = "Processing...";
             statusIndicator.classList.add("processing");
             outputStatus.classList.add("processing");
-            
+
             // Clear output
             outputContent.innerHTML = "";
-            
+
             try {
                 const response = await fetch("/api/upload", {
                     method: "POST",
                     body: formData
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (!result.success) {
                     throw new Error(result.error);
                 }
-                
+
             } catch (error) {
                 addLogLine(`Error: ${error.message}`, "error");
                 statusIndicator.classList.remove("processing");
@@ -312,18 +318,18 @@
                 outputStatus.classList.add("error");
             }
         });
-        
+
         // Socket.io event handlers
         socket.on("log", (message) => {
             addLogLine(message);
         });
-        
+
         socket.on("conversionComplete", (data) => {
             convertBtn.disabled = false;
             convertText.textContent = "Convert File";
             statusIndicator.classList.remove("processing");
             outputStatus.classList.remove("processing");
-            
+
             if (data.success) {
                 statusIndicator.classList.add("success");
                 outputStatus.classList.add("success");
@@ -335,7 +341,7 @@
                 addLogLine(`Conversion failed: ${data.error}`, "error");
             }
         });
-        
+
         function addLogLine(message, type = "info") {
             const logLine = document.createElement("div");
             logLine.className = `log-line ${type}`;
@@ -343,13 +349,14 @@
             outputContent.appendChild(logLine);
             outputContent.scrollTop = outputContent.scrollHeight;
         }
-        
+
         // Initialize
         loadConverters();
         loadOutputFiles();
-        
+
         // Refresh file list every 5 seconds
         setInterval(loadOutputFiles, 5000);
     </script>
 </body>
+
 </html>

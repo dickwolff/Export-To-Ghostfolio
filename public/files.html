@@ -1,25 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Export to Ghostfolio | All files</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body class="files-page">
     <div class="container">
         <div class="header">
             <h1>Export to Ghostfolio</h1>
         </div>
-        
+
         <div class="main-content">
             <div class="upload-section" style="height: 100%;">
                 <div style="margin-bottom: 1.5rem;">
                     <a href="/" class="view-all-link">← Back</a>
                 </div>
-            
+
                 <h2 class="section-title">All Output Files</h2>
-                
+
                 <div class="files-grid" id="filesGrid">
                     <div class="empty-state">
                         <div class="empty-state-icon">📁</div>
@@ -36,7 +38,7 @@
             try {
                 const response = await fetch("/api/output-files?limit=-1");
                 const files = await response.json();
-                
+
                 renderFiles(files);
             } catch (error) {
                 console.error("Failed to load files:", error);
@@ -48,7 +50,7 @@
                 `;
             }
         }
-        
+
         function formatFileSize(bytes) {
             if (bytes === 0) return "0 B";
             const k = 1024;
@@ -56,10 +58,16 @@
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
         }
-        
+
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function renderFiles(files) {
             const filesGrid = document.getElementById("filesGrid");
-            
+
             if (files.length === 0) {
                 filesGrid.innerHTML = `
                     <div class="empty-state">
@@ -68,50 +76,50 @@
                 `;
                 return;
             }
-            
+
             filesGrid.innerHTML = files.map(file => `
                 <div class="file-item-detailed">
                     <div class="file-info-detailed">
-                        <div class="file-name">${file.name}</div>
+                        <div class="file-name">${escapeHtml(file.name)}</div>
                         <div class="file-meta">
                             ${formatFileSize(file.size)} • Created: ${new Date(file.created).toLocaleString()}
                         </div>
                     </div>
                     <div class="file-actions">
-                        <button class="btn-download" onclick="downloadFile('${file.name}')" title="Download">
+                        <button class="btn-download" onclick="downloadFile('${escapeHtml(file.name)}')" title="Download">
                             💾
                         </button>
-                        <button class="btn-delete" onclick="deleteFile('${file.name}')" title="Delete">
+                        <button class="btn-delete" onclick="deleteFile('${escapeHtml(file.name)}')" title="Delete">
                             🗑️
                         </button>
                     </div>
                 </div>
             `).join("");
         }
-        
+
         // Download file
         function downloadFile(filename) {
             const link = document.createElement('a');
-            link.href = `/api/download/${filename}`;
+            link.href = `/api/download/${encodeURIComponent(filename)}`;
             link.download = filename;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
-        
+
         // Delete file
         async function deleteFile(filename) {
             if (!confirm(`Are you sure you want to delete "${filename}"?`)) {
                 return;
             }
-            
+
             try {
-                const response = await fetch(`/api/delete/${filename}`, {
+                const response = await fetch(`/api/delete/${encodeURIComponent(filename)}`, {
                     method: 'DELETE'
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     // Refresh file list
                     loadAllFiles();
@@ -122,12 +130,13 @@
                 alert(`Error deleting file: ${error.message}`);
             }
         }
-        
+
         // Initialize
         loadAllFiles();
-        
+
         // Refresh file list every 10 seconds
         setInterval(loadAllFiles, 10000);
     </script>
 </body>
+
 </html>
