@@ -65,7 +65,7 @@ export class IbkrConverter extends AbstractConverter {
             try {
                 // Check if parsing failed..
                 if (err || records === undefined || records.length === 0) {
-                    let errorMsg = "An error ocurred while parsing!";
+                    let errorMsg = "An error occurred while parsing!";
 
                     if (err) {
                         errorMsg += ` Details: ${err.message}`
