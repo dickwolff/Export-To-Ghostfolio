@@ -49,7 +49,7 @@ case $RUN_MODE in
         }
         
         # Trap signals
-        trap shutdown SIGTERM SIGINT
+        trap shutdown TERM INT
         
         # Wait for both processes
         wait $WEB_PID $WATCH_PID

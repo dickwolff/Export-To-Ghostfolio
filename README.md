@@ -206,6 +206,7 @@ The following parameters can be given to the Docker run command.
 | `--env GHOSTFOLIO_URL=http://xxxxxxx`         | Y        | The endpoint of your **local** Ghostfolio instance. E.g. `http://192.168.1.15:3333`. **Use ONLY with a local Ghostfolio instance!**                             |
 | `--env GHOSTFOLIO_SECRET=xxxxxxx`             | Y        | The credentials of your Ghostfolio user. Used to authenticate with the `import` API endpoint. **Use ONLY with a local Ghostfolio instance!**                    |
 | `--RUN_MODE=web/watcher/both`                 | N        | Specify it you want to run the tool with UI, headless or both                                                                                                   |
+
 [^1]: You can retrieve your Ghostfolio account ID by going to Accounts > Edit for your account and copying the Account ID field
 
 ![image](assets/account_settings.png)

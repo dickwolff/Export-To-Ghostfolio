@@ -7,6 +7,7 @@ import { Server } from "socket.io";
 import { createServer } from "http";
 import { FileTypeMatcher } from "./helpers/fileTypeMatcher";
 import { createAndRunConverter } from "./converter";
+import rateLimit from "express-rate-limit";
 
 dotenv.config();
 
@@ -67,6 +68,12 @@ const upload = multer({
         fileSize: 10 * 1024 * 1024 // 10MB limit
     }
 });
+
+// Set up rate limiting to prevent abuse.
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100
+}));
 
 // Serve static files.
 app.use(express.static("public"));

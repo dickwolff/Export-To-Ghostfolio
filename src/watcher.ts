@@ -21,7 +21,7 @@ if (Boolean(process.env.PURGE_CACHE)) {
 // Define input and output.
 const inputFolder = process.env.E2G_INPUT_FOLDER || "/var/tmp/e2g-input";
 const outputFolder = process.env.E2G_OUTPUT_FOLDER || "/var/tmp/e2g-output";
-const usePolling = Boolean(process.env.USE_POLLING) || true;
+const usePolling = Boolean(`${process.env.USE_POLLING}`) || false;
 
 // Ensure directories exist
 if (!fs.existsSync(inputFolder)) {
@@ -55,7 +55,8 @@ function processFile(filePath: string) {
 
         if (!converter) {
             console.log("[e] Could not determine file type from header");
-            fs.rmSync(filePath);
+            const errorFilePath = path.join(outputFolder, path.basename(filePath));
+            fs.copyFileSync(filePath, errorFilePath);
             isProcessing = false;
             return;
         }
