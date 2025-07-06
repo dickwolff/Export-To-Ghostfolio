@@ -50,74 +50,83 @@ export class InvestimentalConverter extends AbstractConverter {
             }
         }, async (err, records: InvestimentalRecord[]) => {
 
-            if (err) {
-                console.log(err);
-            }
+            try {
 
-            // If records is empty, parsing failed..
-            if (records === undefined || records.length === 0) {
-                return errorCallback(new Error("An error ocurred while parsing!"));
-            }
-
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
-
-            // Group records by orderID
-            const orderGroups = this.groupRecordsByorderID(records);
-
-            // Populate the progress bar.
-            const bar1 = this.progress.create(orderGroups.size, 0);
-
-            for (const [orderID, orderRecords] of orderGroups) {
-                const combinedRecord = this.combineRecords(orderRecords);
-
-                if (combinedRecord) {
-
-                    const currency = this.extractCurrency(combinedRecord.accountName);
-
-                    if (!currency) {
-                        this.progress.log(`[i] Could not determine currency for order ${orderID}. Skipping...\n`);
-                        bar1.increment();
-                        continue;
-                    }
-
-                    let security: YahooFinanceRecord;
-                    try {
-                        security = await this.securityService.getSecurity(
-                            null,
-                            combinedRecord.symbol,
-                            null,
-                            currency,
-                            this.progress);
-                    }
-                    catch (err) {
-                        return errorCallback(err);
-                    }
-
-                    if (!security) {
-                        this.progress.log(`[i] No result found for action ${combinedRecord.side}, symbol ${combinedRecord.symbol}, currency ${currency}! Please add this manually..\n`);
-                        bar1.increment();
-                        continue;
-                    }
-
-                    const activity = this.createActivity(combinedRecord, security);
-                    if (activity) {
-                        result.activities.push(activity);
-                    }
+                if (err) {
+                    console.log(err);
                 }
 
-                bar1.increment();
+                // If records is empty, parsing failed..
+                if (records === undefined || records.length === 0) {
+                    return errorCallback(new Error("An error ocurred while parsing!"));
+                }
+
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
+                }
+
+                // Group records by orderID
+                const orderGroups = this.groupRecordsByorderID(records);
+
+                // Populate the progress bar.
+                const bar1 = this.progress.create(orderGroups.size, 0);
+
+                for (const [orderID, orderRecords] of orderGroups) {
+                    const combinedRecord = this.combineRecords(orderRecords);
+
+                    if (combinedRecord) {
+
+                        const currency = this.extractCurrency(combinedRecord.accountName);
+
+                        if (!currency) {
+                            this.progress.log(`[i] Could not determine currency for order ${orderID}. Skipping...\n`);
+                            bar1.increment();
+                            continue;
+                        }
+
+                        let security: YahooFinanceRecord;
+                        try {
+                            security = await this.securityService.getSecurity(
+                                null,
+                                combinedRecord.symbol,
+                                null,
+                                currency,
+                                this.progress);
+                        }
+                        catch (err) {
+                            return errorCallback(err);
+                        }
+
+                        if (!security) {
+                            this.progress.log(`[i] No result found for action ${combinedRecord.side}, symbol ${combinedRecord.symbol}, currency ${currency}! Please add this manually..\n`);
+                            bar1.increment();
+                            continue;
+                        }
+
+                        const activity = this.createActivity(combinedRecord, security);
+                        if (activity) {
+                            result.activities.push(activity);
+                        }
+                    }
+
+                    bar1.increment();
+                }
+
+                this.progress.stop()
+
+                successCallback(result);
             }
-
-            this.progress.stop()
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 

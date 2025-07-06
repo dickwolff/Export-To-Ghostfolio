@@ -48,121 +48,130 @@ export class SaxoConverter extends AbstractConverter {
             }
         }, async (err, records: SaxoRecord[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error ocurred while parsing!";
+
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
+                    }
+
+                    return errorCallback(new Error(errorMsg))
                 }
 
-                return errorCallback(new Error(errorMsg))
-            }
-
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
-
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
-
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
-
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
-                    bar1.increment();
-                    continue;
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
                 }
 
-                // Fees do not have a security, so add those immediately.
-                if (record.event.toLocaleLowerCase().indexOf("fee") > -1) {
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
 
-                    const feeAmount = Math.abs(record.amount);
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
 
-                    // Add fees record to export.
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
+                        bar1.increment();
+                        continue;
+                    }
+
+                    // Fees do not have a security, so add those immediately.
+                    if (record.event.toLocaleLowerCase().indexOf("fee") > -1) {
+
+                        const feeAmount = Math.abs(record.amount);
+
+                        // Add fees record to export.
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: "",
+                            fee: feeAmount,
+                            quantity: 1,
+                            type: GhostfolioOrderType.fee,
+                            unitPrice: 0,
+                            currency: record.instrumentCurrency,
+                            dataSource: "MANUAL",
+                            date: dayjs(record.tradeDate).format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: record.event
+                        });
+
+                        bar1.increment();
+                        continue;
+                    }
+
+                    let security: YahooFinanceRecord;
+                    try {
+                        security = await this.securityService.getSecurity(
+                            record.instrumentIsin,
+                            record.instrumentSymbol.split(":")[0],
+                            record.instrument,
+                            record.instrumentCurrency,
+                            this.progress);
+                    }
+                    catch (err) {
+                        this.logQueryError(record.instrumentIsin || record.instrumentSymbol || record.instrument, idx + 2);
+                        return errorCallback(err);
+                    }
+
+                    // Detect action type.
+                    const action = record.type === "dividend" ? "dividend" : record.amount < 0 ? "buy" : "sell";
+
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i] No result found for ${action} action for ${record.instrumentIsin || record.instrumentSymbol.split(":")[0] || record.instrument} with currency ${record.instrumentCurrency}! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    let numberOfShares;
+                    let assetPrice;
+
+                    if (action === "dividend") {
+                        numberOfShares = 1;
+                        assetPrice = record.amount;
+                    }
+                    else {
+
+                        const actionDetails = record.event.match(/(\d+)\s+@\s+([\d.]+)/)
+
+                        // Make negative numbers (on sell records) absolute.
+                        numberOfShares = parseFloat(actionDetails[1]);
+                        assetPrice = parseFloat(actionDetails[2]);
+                    }
+
+                    // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                         comment: "",
-                        fee: feeAmount,
-                        quantity: 1,
-                        type: GhostfolioOrderType.fee,
-                        unitPrice: 0,
+                        fee: 0,
+                        quantity: numberOfShares,
+                        type: GhostfolioOrderType[action],
+                        unitPrice: assetPrice,
                         currency: record.instrumentCurrency,
-                        dataSource: "MANUAL",
+                        dataSource: "YAHOO",
                         date: dayjs(record.tradeDate).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: record.event
+                        symbol: security.symbol
                     });
 
                     bar1.increment();
-                    continue;
                 }
 
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        record.instrumentIsin,
-                        record.instrumentSymbol.split(":")[0],
-                        record.instrument,
-                        record.instrumentCurrency,
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.instrumentIsin || record.instrumentSymbol || record.instrument, idx + 2);
-                    return errorCallback(err);
-                }
+                this.progress.stop()
 
-                // Detect action type.
-                const action = record.type === "dividend" ? "dividend" : record.amount < 0 ? "buy" : "sell";
-
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${action} action for ${record.instrumentIsin || record.instrumentSymbol.split(":")[0] || record.instrument} with currency ${record.instrumentCurrency}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                let numberOfShares;
-                let assetPrice;
-
-                if (action === "dividend") {
-                    numberOfShares = 1;
-                    assetPrice = record.amount;
-                }
-                else {
-
-                    const actionDetails = record.event.match(/(\d+)\s+@\s+([\d.]+)/)
-
-                    // Make negative numbers (on sell records) absolute.
-                    numberOfShares = parseFloat(actionDetails[1]);
-                    assetPrice = parseFloat(actionDetails[2]);
-                }
-
-                // Add record to export.
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: "",
-                    fee: 0,
-                    quantity: numberOfShares,
-                    type: GhostfolioOrderType[action],
-                    unitPrice: assetPrice,
-                    currency: record.instrumentCurrency,
-                    dataSource: "YAHOO",
-                    date: dayjs(record.tradeDate).format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
-                });
-
-                bar1.increment();
+                successCallback(result);
             }
-
-            this.progress.stop()
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 
