@@ -68,7 +68,7 @@ export class BuxConverter extends AbstractConverter {
 
                 // Default exchange rate to 1 if not provided.
                 if (!record.exchangeRate) {
-                    record.exchangeRate = 1; 
+                    record.exchangeRate = 1;
                 }
 
                 return record;
@@ -154,15 +154,14 @@ export class BuxConverter extends AbstractConverter {
                         continue;
                     }
 
-                    const feeAmount = Math.abs(record.transactionAmount) / record.exchangeRate;
                     let quantity, unitPrice;
 
                     if (record.transactionType === "dividend") {
                         quantity = 1;
-                        unitPrice = Math.abs(record.transactionAmount);
+                        unitPrice = Math.abs(record.transactionAmount) / record.exchangeRate;
                     } else {
                         quantity = record.tradeQuantity;
-                        unitPrice = record.tradePrice;
+                        unitPrice = record.tradePrice / record.exchangeRate;
                     }
 
                     // Add record to export.
@@ -183,32 +182,6 @@ export class BuxConverter extends AbstractConverter {
                 }
 
                 this.progress.stop();
-
-                let quantity, unitPrice;
-
-                if (record.transactionType === "dividend") {
-                    quantity = 1;
-                    unitPrice = Math.abs(record.transactionAmount) / record.exchangeRate;
-                } else {
-                    quantity = record.tradeQuantity;
-                    unitPrice = record.tradePrice / record.exchangeRate;
-                }
-
-                // Add record to export.
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: "",
-                    fee: 0,
-                    quantity: quantity,
-                    type: GhostfolioOrderType[record.transactionType],
-                    unitPrice: unitPrice,
-                    currency: record.transactionCurrency,
-                    dataSource: "YAHOO",
-                    date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
-                });
-
-                bar1.increment();
                 successCallback(result);
             }
             catch (error) {
