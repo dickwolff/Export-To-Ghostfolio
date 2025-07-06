@@ -178,7 +178,13 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
 
         isProcessing = true;
 
-        const inputFile = req.file.path;
+        const UPLOADS_DIR = path.resolve(process.env.UPLOADS_DIR || "./uploads");
+        let inputFile = path.resolve(UPLOADS_DIR, sanitizeFilename(req.file.filename));
+        inputFile = fs.realpathSync(inputFile);
+        if (!inputFile.startsWith(UPLOADS_DIR)) {
+            res.status(400).json({ error: "Invalid file path" });
+            return;
+        }
         const socketId = req.body.socketId;
 
         // Send initial status
@@ -209,7 +215,11 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
 
                                 // Clean up uploaded file
                                 if (fs.existsSync(inputFile)) {
-                                    fs.unlinkSync(inputFile);
+                                    try {
+                                        fs.unlinkSync(inputFile);
+                                    } catch (error) {
+                                        console.error("Error deleting file:", error);
+                                    }
                                 }
 
                                 isProcessing = false;
