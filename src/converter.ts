@@ -1,5 +1,6 @@
 import path from "path";
 import * as fs from "fs";
+import sanitizeFilename from "sanitize-filename";
 import dayjs from "dayjs";
 import { SecurityService } from "./securityService";
 import GhostfolioService from "./ghostfolioService";
@@ -78,7 +79,11 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
                         : result.activities.slice(fix * 25, (fix + 1) * 25);
 
                     // Write result to file.
-                    const outputFileName = path.join(outputFilePath, `ghostfolio-${converter[0]}${filesToProduce === 1 ? "" : "-" + (fix + 1)}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
+                    const sanitizedConverterName = sanitizeFilename(converter[0]);
+                    const outputFileName = path.resolve(outputFilePath, `ghostfolio-${sanitizedConverterName}${filesToProduce === 1 ? "" : "-" + (fix + 1)}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
+                    if (!outputFileName.startsWith(outputFilePath)) {
+                        throw new Error(`Invalid file path: ${outputFileName}`);
+                    }
                     const fileContents = JSON.stringify(baseResult, null, spaces);
                     fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
 
