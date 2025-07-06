@@ -6,6 +6,7 @@ import express from "express";
 import { Server } from "socket.io";
 import { createServer } from "http";
 import rateLimit from "express-rate-limit";
+import * as cliProgress from "cli-progress";
 import { FileTypeMatcher } from "./helpers/fileTypeMatcher";
 import { createAndRunConverter } from "./converter";
 
@@ -81,7 +82,7 @@ app.use(rateLimit({
 // Serve static files.
 app.use(express.static("public"));
 
-// Override console.log to send logs to connected clients
+// Override console.log to send logs to connected clients.
 const originalConsoleLog = console.log;
 console.log = function (...args) {
     try {
@@ -91,9 +92,29 @@ console.log = function (...args) {
     }
     catch (loggingError) {
 
-        // If there's an error in logging, just use original console.log
+        // If there's an error in logging, just use original console.log.
         originalConsoleLog.apply(console, args);
         originalConsoleLog("[e] Error in log forwarding:", loggingError.message);
+    }
+};
+
+// Override cli-progress MultiBar.prototype.log to also emit via socket.
+const originalMultiBarLog = cliProgress.MultiBar.prototype.log;
+cliProgress.MultiBar.prototype.log = function (message, ...args) {
+    try {
+        // Call the original log method
+        const result = originalMultiBarLog.call(this, message, ...args);
+        
+        // Also emit the message via socket
+        io.emit("log", message);
+        
+        return result;
+    }
+    catch (loggingError) {
+
+        // If there's an error, just use original log.
+        originalConsoleLog("[e] Error in progress log forwarding:", loggingError.message);
+        return originalMultiBarLog.call(this, message, ...args);
     }
 };
 
@@ -172,7 +193,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                         () => {
                             // Success callback
                             try {
-                                
+
                                 if (socketId) {
                                     io.to(socketId).emit("log", "[i] Conversion completed successfully!");
                                     io.to(socketId).emit("conversionComplete", { success: true });
