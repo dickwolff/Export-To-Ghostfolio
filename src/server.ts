@@ -5,21 +5,21 @@ import multer from "multer";
 import express from "express";
 import { Server } from "socket.io";
 import { createServer } from "http";
+import rateLimit from "express-rate-limit";
 import { FileTypeMatcher } from "./helpers/fileTypeMatcher";
 import { createAndRunConverter } from "./converter";
-import rateLimit from "express-rate-limit";
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
-// Add global error handlers to prevent process exit
+// Add global error handlers to prevent process exit.
 process.on('uncaughtException', (error) => {
     console.error('[e] Uncaught Exception:', error);
-    // Don't exit the process, just log the error
+    // Don't exit the process, just log the error.
 });
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('[e] Unhandled Rejection at:', promise, 'reason:', reason);
-    // Don't exit the process, just log the error
+    // Don't exit the process, just log the error.
 });
 
 const app = express();
@@ -81,15 +81,6 @@ app.use(rateLimit({
 // Serve static files.
 app.use(express.static("public"));
 
-// Socket.io connection handling.
-io.on("connection", (socket) => {
-    console.log("Client connected:", socket.id);
-
-    socket.on("disconnect", () => {
-        console.log("Client disconnected:", socket.id);
-    });
-});
-
 // Override console.log to send logs to connected clients
 const originalConsoleLog = console.log;
 console.log = function (...args) {
@@ -131,7 +122,7 @@ app.post("/api/detect-file-type", upload.single("file"), (req, res) => {
             detectedType,
             filename: req.file.originalname
         });
-    } 
+    }
     catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -181,6 +172,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                         () => {
                             // Success callback
                             try {
+                                
                                 if (socketId) {
                                     io.to(socketId).emit("log", "[i] Conversion completed successfully!");
                                     io.to(socketId).emit("conversionComplete", { success: true });
@@ -193,8 +185,9 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
 
                                 isProcessing = false;
                                 resolve();
-                            } 
+                            }
                             catch (cleanupError) {
+
                                 console.error("Error in success callback:", cleanupError);
                                 if (socketId) {
                                     io.to(socketId).emit("log", `[e] Post-processing error: ${cleanupError.message}`);
@@ -205,6 +198,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                             }
                         },
                         (error) => {
+
                             // Error callback
                             try {
                                 const errorMessage = `[e] Conversion failed: ${error.message}`;
@@ -224,6 +218,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                                 reject(error);
                             }
                             catch (cleanupError) {
+
                                 console.error("Error in error callback:", cleanupError);
                                 if (socketId) {
                                     io.to(socketId).emit("log", `[e] Critical error during cleanup: ${cleanupError.message}`);
@@ -236,6 +231,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                     );
                 }
                 catch (syncError) {
+
                     // Catch any synchronous errors from createAndRunConverter
                     console.error("Synchronous error starting converter:", syncError);
                     isProcessing = false;
@@ -302,7 +298,7 @@ app.get("/api/output-files", (req, res) => {
         }
 
         res.json(files);
-    } 
+    }
     catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -319,7 +315,7 @@ app.get("/api/download/:filename", (req, res) => {
         }
 
         res.download(filePath);
-    } 
+    }
     catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -343,13 +339,13 @@ app.delete("/api/delete/:filename", (req, res) => {
 
         fs.unlinkSync(filePath);
         res.json({ success: true, message: `File ${filename} deleted successfully` });
-    } 
+    }
     catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
 server.listen(PORT, () => {
-    console.log(`[i] Export-To-Ghostfolio Web UI running on http://localhost:${PORT}`);
+    console.log(`[i] Export to Ghostfolio Web UI running on http://localhost:${PORT}`);
     console.log(`[i] Make sure to set your environment variables (GHOSTFOLIO_ACCOUNT_ID, etc.)`);
 });
