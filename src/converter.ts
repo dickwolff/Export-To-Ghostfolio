@@ -46,13 +46,13 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
         // If DEBUG_LOGGING is enabled, set spaces to 2 else null for easier to read JSON output.
         const spaces = `${process.env.DEBUG_LOGGING}`.toLocaleLowerCase() === "true" ? 2 : null;
 
-        const converterTypeLc = converterType.toLocaleLowerCase();
+        const converterTypeLc = sanitizeFilename(converterType.toLocaleLowerCase());
 
         // Determine convertor type.
         const converter = await createConverter(converterTypeLc, securityService);
 
         // Map the file to a Ghostfolio import.
-        converter[1].readAndProcessFile(inputFilePath, async (result: GhostfolioExport) => {
+        converter.readAndProcessFile(inputFilePath, async (result: GhostfolioExport) => {
 
             try {
                 // Set cash balance update setting according to settings.
@@ -79,8 +79,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
                         : result.activities.slice(fix * 25, (fix + 1) * 25);
 
                     // Write result to file.
-                    const sanitizedConverterName = sanitizeFilename(converter[0]);
-                    const outputFileName = path.resolve(outputFilePath, `ghostfolio-${sanitizedConverterName}${filesToProduce === 1 ? "" : "-" + (fix + 1)}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
+                    const outputFileName = path.resolve(outputFilePath, `ghostfolio-${converterTypeLc}${filesToProduce === 1 ? "" : "-" + (fix + 1)}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
                     if (!outputFileName.startsWith(outputFilePath)) {
                         throw new Error(`Invalid file path: ${outputFileName}`);
                     }
@@ -110,7 +109,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
     }
 }
 
-async function createConverter(converterType: string, securityService?: SecurityService): Promise<[string, AbstractConverter]> {
+async function createConverter(converterType: string, securityService?: SecurityService): Promise<AbstractConverter> {
 
     try {
         // If no security service is provided, create a new one.
@@ -239,7 +238,7 @@ async function createConverter(converterType: string, securityService?: Security
                 throw new Error(`Unknown converter '${converterType}' provided`);
         }
 
-        return [converterType, converter];
+        return converter;
     } catch (error) {
         console.error(`[e] Error creating converter '%s':`, converterType, error);
         throw error;
