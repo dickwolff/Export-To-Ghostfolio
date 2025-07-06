@@ -39,167 +39,176 @@ export class DeGiroConverterV3 extends AbstractConverter {
       }
     }, async (err, records: DeGiroRecord[]) => {
 
-      // Check if parsing failed..
-      if (err || records === undefined || records.length === 0) {
-        let errorMsg = "An error ocurred while parsing!";
+      try {
 
-        if (err) {
-          errorMsg += ` Details: ${err.message}`
+        // Check if parsing failed..
+        if (err || records === undefined || records.length === 0) {
+          let errorMsg = "An error ocurred while parsing!";
 
-          // Temporary error check for Transactions.csv
-          if (err.message.indexOf("length is 12, got 19")) {
-            console.warn("[i] Detecting wrong input format. Have you exported the correct CSV file?");
-            console.warn("[i] Export to Ghostfolio only supports Account.csv, not Transactions.csv!");
-            console.warn("[i] See the export instructions in the README at https://git.new/JjA86vv");
+          if (err) {
+            errorMsg += ` Details: ${err.message}`
+
+            // Temporary error check for Transactions.csv
+            if (err.message.indexOf("length is 12, got 19")) {
+              console.warn("[i] Detecting wrong input format. Have you exported the correct CSV file?");
+              console.warn("[i] Export to Ghostfolio only supports Account.csv, not Transactions.csv!");
+              console.warn("[i] See the export instructions in the README at https://git.new/JjA86vv");
+            }
           }
+
+          return errorCallback(new Error(errorMsg))
         }
 
-        return errorCallback(new Error(errorMsg))
-      }
+        console.log("[i] Read CSV file. Start processing..");
+        const result: GhostfolioExport = {
+          meta: {
+            date: new Date(),
+            version: "v0"
+          },
+          activities: []
+        };
 
-      console.log("[i] Read CSV file. Start processing..");
-      const result: GhostfolioExport = {
-        meta: {
-          date: new Date(),
-          version: "v0"
-        },
-        activities: []
-      };
+        // Populate the progress bar.
+        const bar1 = this.progress.create(records.length, 0);
 
-      // Populate the progress bar.
-      const bar1 = this.progress.create(records.length, 0);
+        for (let idx = 0; idx < records.length; idx++) {
+          const record = records[idx];
 
-      for (let idx = 0; idx < records.length; idx++) {
-        const record = records[idx];
+          // Check if the record should be ignored. 
+          if (this.isIgnoredRecord(record)) {
+            bar1.increment();
+            continue;
+          }
 
-        // Check if the record should be ignored. 
-        if (this.isIgnoredRecord(record)) {
-          bar1.increment();
-          continue;
-        }
+          // Look if the current record was already processed previously by checking the orderId.
+          // Not all exports provide an order ID, so check for a buy/sell marking in those cases.
+          // Dividend records never have an order ID, so check for a marking there.
+          // If a match was found, skip the record and move next.
+          if (result.activities.findIndex(a =>
+            a.comment !== "" &&
+            a.comment === record.orderId ||
+            a.comment.startsWith(`Buy ${record.isin} @ ${record.date}T`) ||
+            a.comment.startsWith(`Sell ${record.isin} @ ${record.date}T`) ||
+            a.comment.startsWith(`Dividend ${record.isin} @ ${record.date}T`)) > -1) {
 
-        // Look if the current record was already processed previously by checking the orderId.
-        // Not all exports provide an order ID, so check for a buy/sell marking in those cases.
-        // Dividend records never have an order ID, so check for a marking there.
-        // If a match was found, skip the record and move next.
-        if (result.activities.findIndex(a =>
-          a.comment !== "" &&
-          a.comment === record.orderId ||
-          a.comment.startsWith(`Buy ${record.isin} @ ${record.date}T`) ||
-          a.comment.startsWith(`Sell ${record.isin} @ ${record.date}T`) ||
-          a.comment.startsWith(`Dividend ${record.isin} @ ${record.date}T`)) > -1) {
+            bar1.increment();
+            continue;
+          }
 
-          bar1.increment();
-          continue;
-        }
+          // TODO: Is is possible to add currency? So VWRL.AS is retrieved for IE00B3RBWM25 instead of VWRL.L.
+          // Maybe add yahoo-finance2 library that Ghostfolio uses, so I dont need to call Ghostfolio for this.
 
-        // TODO: Is is possible to add currency? So VWRL.AS is retrieved for IE00B3RBWM25 instead of VWRL.L.
-        // Maybe add yahoo-finance2 library that Ghostfolio uses, so I dont need to call Ghostfolio for this.
+          // Platform fees do not have a security, add those immediately.
+          if (this.isPlatformFees(record)) {
 
-        // Platform fees do not have a security, add those immediately.
-        if (this.isPlatformFees(record)) {
+            const feeAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
+            const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
 
-          const feeAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
-          const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
+            result.activities.push({
+              accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+              comment: "",
+              fee: feeAmount,
+              quantity: 1,
+              type: GhostfolioOrderType.fee,
+              unitPrice: 0,
+              currency: record.currency,
+              dataSource: "MANUAL",
+              date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+              symbol: record.description
+            });
 
-          result.activities.push({
-            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-            comment: "",
-            fee: feeAmount,
-            quantity: 1,
-            type: GhostfolioOrderType.fee,
-            unitPrice: 0,
-            currency: record.currency,
-            dataSource: "MANUAL",
-            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-            symbol: record.description
-          });
+            bar1.increment(1);
+            continue;
+          }
 
-          bar1.increment(1);
-          continue;
-        }
+          // Interest does not have a security, add it immediately.
+          if (this.isInterest(record)) {
 
-        // Interest does not have a security, add it immediately.
-        if (this.isInterest(record)) {
+            const interestAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
+            const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
 
-          const interestAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
-          const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
+            result.activities.push({
+              accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+              comment: "",
+              fee: 0,
+              quantity: 1,
+              type: GhostfolioOrderType.interest,
+              unitPrice: interestAmount,
+              currency: record.currency,
+              dataSource: "MANUAL",
+              date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+              symbol: record.description
+            });
 
-          result.activities.push({
-            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-            comment: "",
-            fee: 0,
-            quantity: 1,
-            type: GhostfolioOrderType.interest,
-            unitPrice: interestAmount,
-            currency: record.currency,
-            dataSource: "MANUAL",
-            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-            symbol: record.description
-          });
+            bar1.increment(1);
+            continue;
+          }
 
-          bar1.increment(1);
-          continue;
-        }
+          // Look for the security for the current record.
+          let security: YahooFinanceRecord;
+          try {
+            security = await this.securityService.getSecurity(
+              record.isin,
+              null,
+              record.product,
+              record.currency,
+              this.progress);
+          }
+          catch (err) {
+            this.logQueryError(record.isin || record.product, idx);
+            return errorCallback(err);
+          }
 
-        // Look for the security for the current record.
-        let security: YahooFinanceRecord;
-        try {
-          security = await this.securityService.getSecurity(
-            record.isin,
-            null,
-            record.product,
-            record.currency,
-            this.progress);
-        }
-        catch (err) {
-          this.logQueryError(record.isin || record.product, idx);
-          return errorCallback(err);
-        }
+          // Log whenever there was no match found.
+          if (!security) {
+            this.progress.log(`[i] No result found for ${record.isin || record.product} with currency ${record.currency}! Please add this manually..\n`);
+            bar1.increment();
+            continue;
+          }
 
-        // Log whenever there was no match found.
-        if (!security) {
-          this.progress.log(`[i] No result found for ${record.isin || record.product} with currency ${record.currency}! Please add this manually..\n`);
-          bar1.increment();
-          continue;
-        }
+          // Look ahead in the remaining records if there is one with the samen orderId.
+          let matchingRecord = this.findMatchByOrderId(record, records.slice(idx + 1));
 
-        // Look ahead in the remaining records if there is one with the samen orderId.
-        let matchingRecord = this.findMatchByOrderId(record, records.slice(idx + 1));
+          // If there was no match by orderId, and there was no orderId present on the current record, look ahead in the remaining records to find a match by ISIN + Product.
+          if (!matchingRecord && !record.orderId) {
+            matchingRecord = this.findMatchByIsin(record, records.slice(idx + 1));
+          }
 
-        // If there was no match by orderId, and there was no orderId present on the current record, look ahead in the remaining records to find a match by ISIN + Product.
-        if (!matchingRecord && !record.orderId) {
-          matchingRecord = this.findMatchByIsin(record, records.slice(idx + 1));
-        }
+          // If it's a standalone record, add it immediately.
+          if (!matchingRecord) {
 
-        // If it's a standalone record, add it immediately.
-        if (!matchingRecord) {
-
-          if (this.isBuyOrSellRecord(record)) {
-            result.activities.push(this.mapRecordToActivity(record, security));
+            if (this.isBuyOrSellRecord(record)) {
+              result.activities.push(this.mapRecordToActivity(record, security));
+            }
+            else {
+              result.activities.push(this.mapDividendRecord(record, null, security));
+            }
           }
           else {
-            result.activities.push(this.mapDividendRecord(record, null, security));
+
+            // This is a pair of records. Check which type of record it is and then combine the records into a Ghostfolio activity.
+
+            // Check wether it is a buy/sell record set.
+            if (this.isBuyOrSellRecordSet(record, matchingRecord)) {
+              result.activities.push(this.combineRecords(record, matchingRecord, security));
+            } else {
+              result.activities.push(this.mapDividendRecord(record, matchingRecord, security));
+            }
           }
-        }
-        else {
 
-          // This is a pair of records. Check which type of record it is and then combine the records into a Ghostfolio activity.
-
-          // Check wether it is a buy/sell record set.
-          if (this.isBuyOrSellRecordSet(record, matchingRecord)) {
-            result.activities.push(this.combineRecords(record, matchingRecord, security));
-          } else {
-            result.activities.push(this.mapDividendRecord(record, matchingRecord, security));
-          }
+          bar1.increment();
         }
 
-        bar1.increment();
+        this.progress.stop();
+
+        successCallback(result);
       }
-
-      this.progress.stop();
-
-      successCallback(result);
+      catch (error) {
+        console.log("[e] An error occurred while processing the file contents. Stack trace:");
+        console.log(error.stack);
+        this.progress.stop();
+        errorCallback(error);
+      }
     });
   }
 

@@ -63,88 +63,97 @@ export class DirectaConverter extends AbstractConverter {
             }
         }, async (err, records: DirectaRecord[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error ocurred while parsing!";
+
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
+                    }
+
+                    return errorCallback(new Error(errorMsg))
                 }
 
-                return errorCallback(new Error(errorMsg))
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
+                }
+
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
+
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
+
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
+                        bar1.increment();
+                        continue;
+                    }
+
+                    if (!record.dataValuta) {
+                        this.progress.log(`[i] No date found for record ${idx + 2}! Skipping..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    if (!record.tipoOperazione || !GhostfolioOrderType[record.tipoOperazione]) {
+                        this.progress.log(`[i] No operation type found for record ${idx + 2}! Skipping..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    if (!record.isin && !record.ticker) {
+                        this.progress.log(`[i] No ISIN or ticker found for record ${idx + 2}! Skipping..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    let security;
+                    try {
+                        security = await this.securityService.getSecurity(
+                            record.isin,
+                            record.ticker,
+                            record.descrizione,
+                            record.divisa,
+                            this.progress);
+                    }
+                    catch (err) {
+                        this.logQueryError(record.isin || record.ticker, idx + 2);
+                        return errorCallback(err);
+                    }
+
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i] No result found for ${record.tipoOperazione} action for ${record.isin || record.ticker} with currency ${record.divisa}! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    const activity = this.createActivity(record, security);
+                    if (activity) {
+                        result.activities.push(activity);
+                    }
+
+                    bar1.increment();
+                }
+
+                this.progress.stop()
+
+                successCallback(result);
             }
-
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
             }
-
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
-
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
-
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
-                    bar1.increment();
-                    continue;
-                }
-
-                if (!record.dataValuta) {
-                    this.progress.log(`[i] No date found for record ${idx + 2}! Skipping..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                if (!record.tipoOperazione || !GhostfolioOrderType[record.tipoOperazione]) {
-                    this.progress.log(`[i] No operation type found for record ${idx + 2}! Skipping..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                if (!record.isin && !record.ticker) {
-                    this.progress.log(`[i] No ISIN or ticker found for record ${idx + 2}! Skipping..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                let security;
-                try {
-                    security = await this.securityService.getSecurity(
-                        record.isin,
-                        record.ticker,
-                        record.descrizione,
-                        record.divisa,
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.isin || record.ticker, idx + 2);
-                    return errorCallback(err);
-                }
-
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${record.tipoOperazione} action for ${record.isin || record.ticker} with currency ${record.divisa}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                const activity = this.createActivity(record, security);
-                if (activity) {
-                    result.activities.push(activity);
-                }
-
-                bar1.increment();
-            }
-
-            this.progress.stop()
-
-            successCallback(result);
         });
     }
 

@@ -60,65 +60,74 @@ export class CoinbaseConverter extends AbstractConverter {
             }
         }, async (err, records: CoinbaseRecord[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error ocurred while parsing!";
+
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
+                    }
+
+                    return errorCallback(new Error(errorMsg))
                 }
 
-                return errorCallback(new Error(errorMsg))
-            }
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
+                }
 
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
 
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
 
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
 
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
+                        bar1.increment();
+                        continue;
+                    }
+
+                    // There is no need to query Yahoo Finance for Coinbase exports as the information can be extracted wholly from the export.
+
+                    let symbol = `${record.asset}-${record.priceCurrency}`
+
+                    const date = dayjs(record.timestamp, "YYYY-MM-DD HH:mm:ss");
+
+                    // Add record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: "",
+                        fee: record.fees,
+                        quantity: record.quantity,
+                        type: GhostfolioOrderType[record.type],
+                        unitPrice: record.price,
+                        currency: "EUR",
+                        dataSource: "YAHOO",
+                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: symbol
+                    });
 
                     bar1.increment();
-                    continue;
                 }
 
-                // There is no need to query Yahoo Finance for Coinbase exports as the information can be extracted wholly from the export.
+                this.progress.stop()
 
-                let symbol = `${record.asset}-${record.priceCurrency}`
-
-                const date = dayjs(record.timestamp, "YYYY-MM-DD HH:mm:ss");
-
-                // Add record to export.
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: "",
-                    fee: record.fees,
-                    quantity: record.quantity,
-                    type: GhostfolioOrderType[record.type],
-                    unitPrice: record.price,
-                    currency: "EUR",
-                    dataSource: "YAHOO",
-                    date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: symbol
-                });
-
-                bar1.increment();
+                successCallback(result);
             }
-
-            this.progress.stop()
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 
