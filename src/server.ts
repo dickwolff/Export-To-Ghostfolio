@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import sanitizeFilename from "sanitize-filename";
 import dotenv from "dotenv";
 import multer from "multer";
 import express from "express";
@@ -8,6 +7,7 @@ import { Server } from "socket.io";
 import { createServer } from "http";
 import rateLimit from "express-rate-limit";
 import * as cliProgress from "cli-progress";
+import sanitizeFilename from "sanitize-filename";
 import { FileTypeMatcher } from "./helpers/fileTypeMatcher";
 import { createAndRunConverter } from "./converter";
 
