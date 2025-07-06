@@ -104,10 +104,10 @@ cliProgress.MultiBar.prototype.log = function (message, ...args) {
     try {
         // Call the original log method
         const result = originalMultiBarLog.call(this, message, ...args);
-        
+
         // Also emit the message via socket
         io.emit("log", message);
-        
+
         return result;
     }
     catch (loggingError) {
@@ -133,11 +133,18 @@ app.post("/api/detect-file-type", upload.single("file"), (req, res) => {
             return;
         }
 
-        const fileContent = fs.readFileSync(req.file.path, "utf-8");
+        // Validate the uploaded file path
+        const safePath = validateAndResolvePath(path.basename(req.file.path), uploadDir);
+        if (!safePath) {
+            res.status(403).json({ error: "Invalid file path" });
+            return;
+        }
+
+        const fileContent = fs.readFileSync(safePath, "utf-8");
         const detectedType = FileTypeMatcher.detectFileType(fileContent);
 
         // Clean up uploaded file
-        fs.unlinkSync(req.file.path);
+        fs.unlinkSync(safePath);
 
         res.json({
             detectedType,
@@ -328,14 +335,19 @@ app.get("/api/output-files", (req, res) => {
 app.get("/api/download/:filename", (req, res) => {
     try {
         const filename = req.params.filename;
-        const filePath = path.join(outputDir, filename);
+        const safeFilePath = validateAndResolvePath(filename, outputDir);
 
-        if (!fs.existsSync(filePath)) {
+        if (!safeFilePath) {
+            res.status(403).json({ error: "Forbidden: Invalid file path" });
+            return;
+        }
+
+        if (!fs.existsSync(safeFilePath)) {
             res.status(404).json({ error: "File not found" });
             return;
         }
 
-        res.download(filePath);
+        res.download(safeFilePath);
     }
     catch (error) {
         res.status(500).json({ error: error.message });
@@ -345,20 +357,19 @@ app.get("/api/download/:filename", (req, res) => {
 app.delete("/api/delete/:filename", (req, res) => {
     try {
         const filename = req.params.filename;
-        let filePath = path.resolve(outputDir, filename);
-        filePath = fs.realpathSync(filePath);
+        const safeFilePath = validateAndResolvePath(filename, outputDir);
 
-        if (!filePath.startsWith(outputDir)) {
+        if (!safeFilePath) {
             res.status(403).json({ error: "Forbidden: Invalid file path" });
             return;
         }
 
-        if (!fs.existsSync(filePath)) {
+        if (!fs.existsSync(safeFilePath)) {
             res.status(404).json({ error: "File not found" });
             return;
         }
 
-        fs.unlinkSync(filePath);
+        fs.unlinkSync(safeFilePath);
         res.json({ success: true, message: `File ${filename} deleted successfully` });
     }
     catch (error) {
@@ -370,3 +381,31 @@ server.listen(PORT, () => {
     console.log(`[i] Export to Ghostfolio Web UI running on http://localhost:${PORT}`);
     console.log(`[i] Make sure to set your environment variables (GHOSTFOLIO_ACCOUNT_ID, etc.)`);
 });
+
+
+function validateAndResolvePath(filename: string, baseDir: string): string | null {
+    try {
+
+        const resolvedBaseDir = path.resolve(baseDir);
+        const proposedPath = path.resolve(baseDir, filename);
+
+        // Check if the proposed path is within the base directory.
+        if (!proposedPath.startsWith(resolvedBaseDir + path.sep) && proposedPath !== resolvedBaseDir) {
+            return null;
+        }
+
+        // If the file exists, get the real path to resolve any symlinks.
+        if (fs.existsSync(proposedPath)) {
+            const realPath = fs.realpathSync(proposedPath);
+            if (!realPath.startsWith(resolvedBaseDir + path.sep) && realPath !== resolvedBaseDir) {
+                return null;
+            }
+            return realPath;
+        }
+
+        return proposedPath;
+    }
+    catch (error) {
+        return null;
+    }
+}
