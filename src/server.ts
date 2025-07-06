@@ -32,9 +32,6 @@ const PORT = process.env.PORT || 3334;
 const uploadDir = "uploads";
 const outputDir = process.env.E2G_OUTPUT_FOLDER || "e2g-output";
 
-// Simple flag to ensure only one file is processed at a time
-let isProcessing = false;
-
 // Ensure directories exist.
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -65,7 +62,7 @@ const upload = multer({
         // Only accept CSV files.
         if (file.mimetype === "text/csv" || file.originalname.endsWith(".csv")) {
             cb(null, true);
-        } 
+        }
         else {
             cb(new Error("Only CSV files are allowed"));
         }
@@ -165,19 +162,11 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
             return;
         }
 
-        // Check if already processing a file.
-        if (isProcessing) {
-            res.status(429).json({ error: "Another file is currently being processed. Please wait and try again." });
-            return;
-        }
-
         const { converter } = req.body;
         if (!converter) {
             res.status(400).json({ error: "Converter type not specified" });
             return;
         }
-
-        isProcessing = true;
 
         const UPLOADS_DIR = path.resolve(process.env.UPLOADS_DIR || "./uploads");
         let inputFile = path.resolve(UPLOADS_DIR, sanitizeFilename(req.file.filename));
@@ -193,9 +182,6 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
             io.to(socketId).emit("log", `[i] Starting conversion with ${converter} converter...`);
             io.to(socketId).emit("log", `[i] Processing file: ${req.file.originalname}`);
         }
-
-        // Set the INPUT_FILE environment variable for the converter
-        process.env.INPUT_FILE = inputFile;
 
         // Run the converter
         try {
@@ -223,7 +209,6 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                                     }
                                 }
 
-                                isProcessing = false;
                                 resolve();
                             }
                             catch (cleanupError) {
@@ -233,7 +218,6 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                                     io.to(socketId).emit("log", `[e] Post-processing error: ${cleanupError.message}`);
                                     io.to(socketId).emit("conversionComplete", { success: false, error: cleanupError.message });
                                 }
-                                isProcessing = false;
                                 reject(cleanupError);
                             }
                         },
@@ -254,7 +238,6 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                                     fs.unlinkSync(inputFile);
                                 }
 
-                                isProcessing = false;
                                 reject(error);
                             }
                             catch (cleanupError) {
@@ -264,7 +247,6 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                                     io.to(socketId).emit("log", `[e] Critical error during cleanup: ${cleanupError.message}`);
                                     io.to(socketId).emit("conversionComplete", { success: false, error: "Critical error occurred" });
                                 }
-                                isProcessing = false;
                                 reject(cleanupError);
                             }
                         }
@@ -274,7 +256,6 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
 
                     // Catch any synchronous errors from createAndRunConverter
                     console.error("Synchronous error starting converter:", syncError);
-                    isProcessing = false;
                     reject(syncError);
                 }
             });
@@ -301,8 +282,6 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                 fs.unlinkSync(inputFile);
             }
 
-            isProcessing = false;
-
             res.status(500).json({
                 success: false,
                 error: converterError.message
@@ -311,7 +290,6 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
 
     } catch (error) {
         console.error("Upload error:", error);
-        isProcessing = false;
         res.status(500).json({ error: error.message });
     }
 });

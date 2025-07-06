@@ -16,6 +16,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@types/cacache": "^19.0.0",
+    "@types/cli-progress": "^3.11.6",
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/multer": "^2.0.0",
@@ -26,7 +27,6 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@types/cli-progress": "^3.11.6",
     "cacache": "^19.0.1",
     "chokidar": "^4.0.3",
     "cli-progress": "^3.12.0",

@@ -321,7 +321,7 @@ There is an experimental feature (since 0.12.0) with which you can automatically
 
 ## Web UI (experimental)
 
-There is an experimental feature (since 0.30.0) with which you can upload files via an UI. You can reach this UI via http://localhost:3334. Enable it by setting `--RUN_MODE=web` or `--RUN_MODE=both`.
+There is an experimental feature (since 0.30.0) with which you can upload files via a UI. You can reach this UI via http://localhost:3334. Enable it by setting `--RUN_MODE=web` or `--RUN_MODE=both`.
 
 With the UI you can upload files to convert, view previous converted files and manage those files (download/delete).
 
