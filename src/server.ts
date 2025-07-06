@@ -30,6 +30,9 @@ const PORT = process.env.PORT || 3334;
 const uploadDir = "uploads";
 const outputDir = process.env.E2G_OUTPUT_FOLDER || "e2g-output";
 
+// Simple flag to ensure only one file is processed at a time
+let isProcessing = false;
+
 // Ensure directories exist.
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -44,7 +47,7 @@ const storage = multer.diskStorage({
         cb(null, uploadDir);
     },
     filename: function (_, file, cb) {
-        
+
         // Keep original filename but add timestamp to avoid conflicts.
         const timestamp = Date.now();
         const ext = path.extname(file.originalname);
@@ -53,11 +56,11 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ 
+const upload = multer({
     storage: storage,
     fileFilter: (_, file, cb) => {
-        
-        // Only accept CSV files
+
+        // Only accept CSV files.
         if (file.mimetype === "text/csv" || file.originalname.endsWith(".csv")) {
             cb(null, true);
         } else {
@@ -65,14 +68,14 @@ const upload = multer({
         }
     },
     limits: {
-        fileSize: 10 * 1024 * 1024 // 10MB limit
+        fileSize: 10 * 1024 * 1024 // 10MB limit.
     }
 });
 
 // Set up rate limiting to prevent abuse.
 app.use(rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100
+    windowMs: 15 * 60 * 1000,
+    max: 100
 }));
 
 // Serve static files.
@@ -81,7 +84,7 @@ app.use(express.static("public"));
 // Socket.io connection handling.
 io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
-    
+
     socket.on("disconnect", () => {
         console.log("Client disconnected:", socket.id);
     });
@@ -89,12 +92,12 @@ io.on("connection", (socket) => {
 
 // Override console.log to send logs to connected clients
 const originalConsoleLog = console.log;
-console.log = function(...args) {
+console.log = function (...args) {
     try {
         const message = args.join(" ");
         originalConsoleLog.apply(console, args);
         io.emit("log", message);
-    } 
+    }
     catch (loggingError) {
 
         // If there's an error in logging, just use original console.log
@@ -103,11 +106,11 @@ console.log = function(...args) {
     }
 };
 
-app.get("/", (req, res) => {
+app.get("/", (_, res) => {
     res.sendFile(path.join(process.cwd(), "public", "index.html"));
 });
 
-app.get("/files.html", (req, res) => {
+app.get("/files.html", (_, res) => {
     res.sendFile(path.join(process.cwd(), "public", "files.html"));
 });
 
@@ -120,15 +123,16 @@ app.post("/api/detect-file-type", upload.single("file"), (req, res) => {
 
         const fileContent = fs.readFileSync(req.file.path, "utf-8");
         const detectedType = FileTypeMatcher.detectFileType(fileContent);
-        
+
         // Clean up uploaded file
         fs.unlinkSync(req.file.path);
-        
-        res.json({ 
+
+        res.json({
             detectedType,
-            filename: req.file.originalname 
+            filename: req.file.originalname
         });
-    } catch (error) {
+    } 
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
@@ -140,11 +144,19 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
             return;
         }
 
+        // Check if already processing a file.
+        if (isProcessing) {
+            res.status(429).json({ error: "Another file is currently being processed. Please wait and try again." });
+            return;
+        }
+
         const { converter } = req.body;
         if (!converter) {
             res.status(400).json({ error: "Converter type not specified" });
             return;
         }
+
+        isProcessing = true;
 
         const inputFile = req.file.path;
         const socketId = req.body.socketId;
@@ -173,19 +185,22 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                                     io.to(socketId).emit("log", "[i] Conversion completed successfully!");
                                     io.to(socketId).emit("conversionComplete", { success: true });
                                 }
-                                
+
                                 // Clean up uploaded file
                                 if (fs.existsSync(inputFile)) {
                                     fs.unlinkSync(inputFile);
                                 }
-                                
+
+                                isProcessing = false;
                                 resolve();
-                            } catch (cleanupError) {
+                            } 
+                            catch (cleanupError) {
                                 console.error("Error in success callback:", cleanupError);
                                 if (socketId) {
                                     io.to(socketId).emit("log", `[e] Post-processing error: ${cleanupError.message}`);
                                     io.to(socketId).emit("conversionComplete", { success: false, error: cleanupError.message });
                                 }
+                                isProcessing = false;
                                 reject(cleanupError);
                             }
                         },
@@ -194,65 +209,73 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
                             try {
                                 const errorMessage = `[e] Conversion failed: ${error.message}`;
                                 console.error("Conversion error:", error);
-                                
+
                                 if (socketId) {
                                     io.to(socketId).emit("log", errorMessage);
                                     io.to(socketId).emit("conversionComplete", { success: false, error: error.message });
                                 }
-                                
+
                                 // Clean up uploaded file
                                 if (fs.existsSync(inputFile)) {
                                     fs.unlinkSync(inputFile);
                                 }
-                                
+
+                                isProcessing = false;
                                 reject(error);
-                            } catch (cleanupError) {
+                            }
+                            catch (cleanupError) {
                                 console.error("Error in error callback:", cleanupError);
                                 if (socketId) {
                                     io.to(socketId).emit("log", `[e] Critical error during cleanup: ${cleanupError.message}`);
                                     io.to(socketId).emit("conversionComplete", { success: false, error: "Critical error occurred" });
                                 }
+                                isProcessing = false;
                                 reject(cleanupError);
                             }
                         }
                     );
-                } 
+                }
                 catch (syncError) {
                     // Catch any synchronous errors from createAndRunConverter
                     console.error("Synchronous error starting converter:", syncError);
+                    isProcessing = false;
                     reject(syncError);
                 }
             });
 
             // If we get here, the conversion was successful
-            res.json({ 
-                success: true, 
+            res.json({
+                success: true,
                 message: "File processed successfully",
                 outputDir: outputDir
             });
 
-        } catch (converterError) {
+        }
+        catch (converterError) {
             console.error("Error during conversion process:", converterError);
             const errorMessage = `Failed during conversion: ${converterError.message}`;
-            
+
             if (socketId) {
                 io.to(socketId).emit("log", `[e] ${errorMessage}`);
                 io.to(socketId).emit("conversionComplete", { success: false, error: converterError.message });
             }
-            
-            // Clean up uploaded file
+
+            // Clean up uploaded file.
             if (fs.existsSync(inputFile)) {
                 fs.unlinkSync(inputFile);
             }
-            
-            res.status(500).json({ 
-                success: false, 
-                error: converterError.message 
+
+            isProcessing = false;
+
+            res.status(500).json({
+                success: false,
+                error: converterError.message
             });
         }
 
     } catch (error) {
         console.error("Upload error:", error);
+        isProcessing = false;
         res.status(500).json({ error: error.message });
     }
 });
@@ -279,7 +302,8 @@ app.get("/api/output-files", (req, res) => {
         }
 
         res.json(files);
-    } catch (error) {
+    } 
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
@@ -288,14 +312,15 @@ app.get("/api/download/:filename", (req, res) => {
     try {
         const filename = req.params.filename;
         const filePath = path.join(outputDir, filename);
-        
+
         if (!fs.existsSync(filePath)) {
             res.status(404).json({ error: "File not found" });
             return;
         }
-        
+
         res.download(filePath);
-    } catch (error) {
+    } 
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
@@ -304,15 +329,16 @@ app.delete("/api/delete/:filename", (req, res) => {
     try {
         const filename = req.params.filename;
         const filePath = path.join(outputDir, filename);
-        
+
         if (!fs.existsSync(filePath)) {
             res.status(404).json({ error: "File not found" });
             return;
         }
-        
+
         fs.unlinkSync(filePath);
         res.json({ success: true, message: `File ${filename} deleted successfully` });
-    } catch (error) {
+    } 
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
