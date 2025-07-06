@@ -385,25 +385,21 @@ server.listen(PORT, () => {
 
 function validateAndResolvePath(filename: string, baseDir: string): string | null {
     try {
-
         const resolvedBaseDir = path.resolve(baseDir);
         const proposedPath = path.resolve(baseDir, filename);
 
-        // Check if the proposed path is within the base directory.
+        // Validate that the proposed path is within the base directory.
         if (!proposedPath.startsWith(resolvedBaseDir + path.sep) && proposedPath !== resolvedBaseDir) {
             return null;
         }
 
-        // If the file exists, get the real path to resolve any symlinks.
-        if (fs.existsSync(proposedPath)) {
-            const realPath = fs.realpathSync(proposedPath);
-            if (!realPath.startsWith(resolvedBaseDir + path.sep) && realPath !== resolvedBaseDir) {
-                return null;
-            }
-            return realPath;
+        // If the file exists, validate its real path to resolve any symlinks.
+        const realPath = fs.existsSync(proposedPath) ? fs.realpathSync(proposedPath) : proposedPath;
+        if (!realPath.startsWith(resolvedBaseDir + path.sep) && realPath !== resolvedBaseDir) {
+            return null;
         }
 
-        return proposedPath;
+        return realPath;
     }
     catch (error) {
         return null;
