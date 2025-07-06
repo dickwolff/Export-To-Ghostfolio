@@ -117,7 +117,7 @@ export class InvestimentalConverter extends AbstractConverter {
                     bar1.increment();
                 }
 
-                this.progress.stop()
+                this.progress.stop();
 
                 successCallback(result);
             }
