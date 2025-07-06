@@ -51,7 +51,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
         const converter = await createConverter(converterTypeLc, securityService);
 
         // Map the file to a Ghostfolio import.
-        converter.readAndProcessFile(inputFilePath, async (result: GhostfolioExport) => {
+        converter[1].readAndProcessFile(inputFilePath, async (result: GhostfolioExport) => {
 
             try {
                 // Set cash balance update setting according to settings.
@@ -78,14 +78,14 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
                         : result.activities.slice(fix * 25, (fix + 1) * 25);
 
                     // Write result to file.
-                    const outputFileName = path.join(outputFilePath, `ghostfolio-${converterTypeLc}${filesToProduce === 1 ? "" : "-" + (fix + 1)}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
+                    const outputFileName = path.join(outputFilePath, `ghostfolio-${converter[0]}${filesToProduce === 1 ? "" : "-" + (fix + 1)}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
                     const fileContents = JSON.stringify(baseResult, null, spaces);
                     fs.writeFileSync(outputFileName, fileContents, { encoding: "utf-8" });
 
                     console.log(`[i] Wrote data to '${outputFileName}'${filesToProduce === 1 ? "" : " (" + (fix + 1) + " of " + filesToProduce + ")"}`);
 
                     await tryAutomaticValidationAndImport(outputFileName).catch(error => {
-                        console.error(`[e] Error during automatic validation/import for ${outputFileName}:`, error);
+                        console.error("[e] Error during automatic validation/import for %s:", outputFileName, error);
                         // Don't fail the entire process for validation/import errors
                     });
                 }
@@ -105,7 +105,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
     }
 }
 
-async function createConverter(converterType: string, securityService?: SecurityService): Promise<AbstractConverter> {
+async function createConverter(converterType: string, securityService?: SecurityService): Promise<[string, AbstractConverter]> {
 
     try {
         // If no security service is provided, create a new one.
@@ -234,9 +234,9 @@ async function createConverter(converterType: string, securityService?: Security
                 throw new Error(`Unknown converter '${converterType}' provided`);
         }
 
-        return converter;
+        return [converterType, converter];
     } catch (error) {
-        console.error(`[e] Error creating converter '${converterType}':`, error);
+        console.error(`[e] Error creating converter '%s':`, converterType, error);
         throw error;
     }
 }
