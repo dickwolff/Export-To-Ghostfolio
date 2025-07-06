@@ -113,7 +113,7 @@ export class BuxConverter extends AbstractConverter {
                     if (record.transactionType.toLocaleLowerCase() === "interest" ||
                         record.transactionType.toLocaleLowerCase() === "fee") {
 
-                        const feeAmount = Math.abs(record.transactionAmount);
+                        const feeAmount = Math.abs(record.transactionAmount) / record.exchangeRate;
 
                         // Add record to export.
                         result.activities.push({
