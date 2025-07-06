@@ -67,82 +67,91 @@ export class TradeRepublicConverter extends AbstractConverter {
             }
         }, async (err, records: TradeRepublicRecord[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error ocurred while parsing!";
+
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
+                    }
+
+                    return errorCallback(new Error(errorMsg))
                 }
 
-                return errorCallback(new Error(errorMsg))
-            }
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
+                }
 
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
 
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
 
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
+                        bar1.increment();
+                        continue;
+                    }
 
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
+                    let security: YahooFinanceRecord;
+                    try {
+                        security = await this.securityService.getSecurity(
+                            record.isin,
+                            null,
+                            record.note,
+                            "EUR",
+                            this.progress);
+                    }
+                    catch (err) {
+                        this.logQueryError(record.note, idx + 2);
+                        return errorCallback(err);
+                    }
+
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i] No result found for ${record.transactionType} action for ${record.isin}! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    const date = dayjs(`${record.date}`, "YYYY-MM-DD");
+                    const unitPrice = Math.abs(parseFloat((record.value / record.amount).toFixed(2)));
+
+                    // Add record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: "",
+                        fee: Math.abs(record.costs),
+                        quantity: record.transactionType === "dividend" ? 1 : Math.abs(record.amount),
+                        type: GhostfolioOrderType[record.transactionType],
+                        unitPrice: record.transactionType === "dividend" ? record.value : unitPrice,
+                        currency: "EUR",
+                        dataSource: "YAHOO",
+                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: security.symbol
+                    });
+
                     bar1.increment();
-                    continue;
                 }
 
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        record.isin,
-                        null,
-                        record.note,
-                        "EUR",
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.note, idx + 2);
-                    return errorCallback(err);
-                }
+                this.progress.stop()
 
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${record.transactionType} action for ${record.isin}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                const date = dayjs(`${record.date}`, "YYYY-MM-DD");
-                const unitPrice = Math.abs(parseFloat((record.value / record.amount).toFixed(2)));
-
-                // Add record to export.
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: "",
-                    fee: Math.abs(record.costs),
-                    quantity: record.transactionType === "dividend" ? 1 : Math.abs(record.amount),
-                    type: GhostfolioOrderType[record.transactionType],
-                    unitPrice: record.transactionType === "dividend" ? record.value : unitPrice,
-                    currency: "EUR",
-                    dataSource: "YAHOO",
-                    date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
-                });
-
-                bar1.increment();
+                successCallback(result);
             }
-
-            this.progress.stop()
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 
