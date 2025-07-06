@@ -279,7 +279,7 @@ export class IbkrConverter extends AbstractConverter {
                     }
                 }
 
-                this.progress.stop()
+                this.progress.stop();
 
                 successCallback(result);
             }
