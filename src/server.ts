@@ -65,7 +65,8 @@ const upload = multer({
         // Only accept CSV files.
         if (file.mimetype === "text/csv" || file.originalname.endsWith(".csv")) {
             cb(null, true);
-        } else {
+        } 
+        else {
             cb(new Error("Only CSV files are allowed"));
         }
     },
@@ -392,7 +393,6 @@ server.listen(PORT, () => {
     console.log(`[i] Export to Ghostfolio Web UI running on http://localhost:${PORT}`);
     console.log(`[i] Make sure to set your environment variables (GHOSTFOLIO_ACCOUNT_ID, etc.)`);
 });
-
 
 function validateAndResolvePath(filename: string, baseDir: string): string | null {
     try {

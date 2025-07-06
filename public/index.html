@@ -149,7 +149,8 @@
                     }
 
                     return result.detectedType;
-                } else {
+                } 
+                else {
                     addLogLine("Could not auto-detect file type from header", "info");
                     addLogLine("Please manually select the correct converter", "info");
                     return null;
@@ -214,7 +215,8 @@
                 if (result.success) {
                     addLogLine(`Deleted file: ${filename}`, "info");
                     loadOutputFiles();
-                } else {
+                } 
+                else {
                     addLogLine(`Failed to delete file: ${result.error}`, "error");
                 }
             } catch (error) {
@@ -259,7 +261,8 @@
                 if (detectedType) {
                     converterSelect.value = detectedType;
                     converterSelect.classList.add("auto-detected");
-                } else {
+                } 
+                else {
                     converterSelect.classList.remove("auto-detected");
                 }
                 updateConvertButton();
@@ -335,7 +338,8 @@
                 outputStatus.classList.add("success");
                 addLogLine("Conversion completed successfully!", "success");
                 loadOutputFiles(); // Refresh file list
-            } else {
+            } 
+            else {
                 statusIndicator.classList.add("error");
                 outputStatus.classList.add("error");
                 addLogLine(`Conversion failed: ${data.error}`, "error");
