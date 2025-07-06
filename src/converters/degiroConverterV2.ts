@@ -35,151 +35,161 @@ export class DeGiroConverterV2 extends AbstractConverter {
       }
     }, async (err, records: DeGiroRecord[]) => {
 
-      // Check if parsing failed..
-      if (err || records === undefined || records.length === 0) {
-        let errorMsg = "An error ocurred while parsing!";
+      try {
 
-        if (err) {
-          errorMsg += ` Details: ${err.message}`
+        // Check if parsing failed..
+        if (err || records === undefined || records.length === 0) {
+          let errorMsg = "An error ocurred while parsing!";
 
-          // Temporary error check for Transactions.csv
-          if (err.message.indexOf("length is 12, got 19")) {
-            console.warn("[i] Detecting wrong input format. Have you exported the correct CSV file?");
-            console.warn("[i] Export to Ghostfolio only supports Account.csv, not Transactions.csv!");
-            console.warn("[i] See the export instructions in the README at https://git.new/JjA86vv");
-          }
-        }
+          if (err) {
+            errorMsg += ` Details: ${err.message}`
 
-        return errorCallback(new Error(errorMsg))
-      }
-
-      console.log("[i] Read CSV file. Start processing..");
-      const result: GhostfolioExport = {
-        meta: {
-          date: new Date(),
-          version: "v0"
-        },
-        activities: []
-      };
-
-      // Populate the progress bar.
-      const bar1 = this.progress.create(records.length, 0);
-
-      for (let idx = 0; idx < records.length; idx++) {
-        const record = records[idx];
-
-        // Check if the record should be ignored. 
-        if (this.isIgnoredRecord(record)) {
-          bar1.increment();
-          continue;
-        }
-
-        // TODO: Is is possible to add currency? So VWRL.AS is retrieved for IE00B3RBWM25 instead of VWRL.L.
-        // Maybe add yahoo-finance2 library that Ghostfolio uses, so I dont need to call Ghostfolio for this.
-
-        // Platform fees do not have a security, add those immediately.
-        if (this.isPlatformFees(record)) {
-
-          const feeAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
-          const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
-
-          result.activities.push({
-            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-            comment: "",
-            fee: feeAmount,
-            quantity: 1,
-            type: GhostfolioOrderType.fee,
-            unitPrice: 0,
-            currency: record.currency,
-            dataSource: "MANUAL",
-            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-            symbol: record.description
-          });
-
-          bar1.increment(1);
-          continue;
-        }
-
-        // Interest does not have a security, add it immediately.
-        if (this.isInterest(record)) {
-
-          const interestAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
-          const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
-
-          result.activities.push({
-            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-            comment: "",
-            fee: 0,
-            quantity: 1,
-            type: GhostfolioOrderType.interest,
-            unitPrice: interestAmount,
-            currency: record.currency,
-            dataSource: "MANUAL",
-            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-            symbol: record.description
-          });
-
-          bar1.increment(1);
-          continue;
-        }
-
-        // Look for the security for the current record.
-        let security: YahooFinanceRecord;
-        try {
-          security = await this.securityService.getSecurity(
-            record.isin,
-            null,
-            record.product,
-            record.currency,
-            this.progress);
-        }
-        catch (err) {
-          this.logQueryError(record.isin || record.product, idx);
-          return errorCallback(err);
-        }
-
-        // Log whenever there was no match found.
-        if (!security) {
-          this.progress.log(`[i] No result found for ${record.isin || record.product} with currency ${record.currency}! Please add this manually..\n`);
-          bar1.increment();
-          continue;
-        }
-
-        // Look ahead to the next record if it's about the same symbol as the current record.
-        // If it's not, check wether the current record is a buy/sell/dividend record (without TxFees).
-        if (this.lookaheadIsSameProduct(records, record, idx) || this.isBuyOrSellRecord(record) || this.isDividendRecord(record)) {
-          const combinedRecord = this.combineRecords(record, records[idx + 1], security);
-
-          // If the records were succesfully processed, add it to result.
-          if (combinedRecord) {
-
-            // Add the combined record to the final result.
-            result.activities.push(combinedRecord[0]);
-
-            bar1.increment(combinedRecord[1]);
-
-            // If more then 1 record needs to be skipped, do so.
-            if (combinedRecord[1] > 1) {
-              idx++;
+            // Temporary error check for Transactions.csv
+            if (err.message.indexOf("length is 12, got 19")) {
+              console.warn("[i] Detecting wrong input format. Have you exported the correct CSV file?");
+              console.warn("[i] Export to Ghostfolio only supports Account.csv, not Transactions.csv!");
+              console.warn("[i] See the export instructions in the README at https://git.new/JjA86vv");
             }
+          }
 
+          return errorCallback(new Error(errorMsg))
+        }
+
+        console.log("[i] Read CSV file. Start processing..");
+        const result: GhostfolioExport = {
+          meta: {
+            date: new Date(),
+            version: "v0"
+          },
+          activities: []
+        };
+
+        // Populate the progress bar.
+        const bar1 = this.progress.create(records.length, 0);
+
+        for (let idx = 0; idx < records.length; idx++) {
+          const record = records[idx];
+
+          // Check if the record should be ignored. 
+          if (this.isIgnoredRecord(record)) {
+            bar1.increment();
             continue;
           }
-        }
-        else if (this.isTransactionFeeRecord(record, false)) {
 
-          // If it was a transaction record without any other transaction connected, skip it.
+          // TODO: Is is possible to add currency? So VWRL.AS is retrieved for IE00B3RBWM25 instead of VWRL.L.
+          // Maybe add yahoo-finance2 library that Ghostfolio uses, so I dont need to call Ghostfolio for this.
+
+          // Platform fees do not have a security, add those immediately.
+          if (this.isPlatformFees(record)) {
+
+            const feeAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
+            const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
+
+            result.activities.push({
+              accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+              comment: "",
+              fee: feeAmount,
+              quantity: 1,
+              type: GhostfolioOrderType.fee,
+              unitPrice: 0,
+              currency: record.currency,
+              dataSource: "MANUAL",
+              date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+              symbol: record.description
+            });
+
+            bar1.increment(1);
+            continue;
+          }
+
+          // Interest does not have a security, add it immediately.
+          if (this.isInterest(record)) {
+
+            const interestAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
+            const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
+
+            result.activities.push({
+              accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+              comment: "",
+              fee: 0,
+              quantity: 1,
+              type: GhostfolioOrderType.interest,
+              unitPrice: interestAmount,
+              currency: record.currency,
+              dataSource: "MANUAL",
+              date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+              symbol: record.description
+            });
+
+            bar1.increment(1);
+            continue;
+          }
+
+          // Look for the security for the current record.
+          let security: YahooFinanceRecord;
+          try {
+            security = await this.securityService.getSecurity(
+              record.isin,
+              null,
+              record.product,
+              record.currency,
+              this.progress);
+          }
+          catch (err) {
+            this.logQueryError(record.isin || record.product, idx);
+            return errorCallback(err);
+          }
+
+          // Log whenever there was no match found.
+          if (!security) {
+            this.progress.log(`[i] No result found for ${record.isin || record.product} with currency ${record.currency}! Please add this manually..\n`);
+            bar1.increment();
+            continue;
+          }
+
+          // Look ahead to the next record if it's about the same symbol as the current record.
+          // If it's not, check wether the current record is a buy/sell/dividend record (without TxFees).
+          if (this.lookaheadIsSameProduct(records, record, idx) || this.isBuyOrSellRecord(record) || this.isDividendRecord(record)) {
+            const combinedRecord = this.combineRecords(record, records[idx + 1], security);
+
+            // If the records were succesfully processed, add it to result.
+            if (combinedRecord) {
+
+              // Add the combined record to the final result.
+              result.activities.push(combinedRecord[0]);
+
+              bar1.increment(combinedRecord[1]);
+
+              // If more then 1 record needs to be skipped, do so.
+              if (combinedRecord[1] > 1) {
+                idx++;
+              }
+
+              continue;
+            }
+          }
+          else if (this.isTransactionFeeRecord(record, false)) {
+
+            // If it was a transaction record without any other transaction connected, skip it.
+            bar1.increment();
+            continue;
+          }
+
           bar1.increment();
-          continue;
+          this.progress.log(`[i] Record ${record.isin || record.product} with currency ${record.currency} was skipped because it could not be matches to a valid transaction! Please add this manually..\n`);
         }
 
-        bar1.increment();
-        this.progress.log(`[i] Record ${record.isin || record.product} with currency ${record.currency} was skipped because it could not be matches to a valid transaction! Please add this manually..\n`);
+        this.progress.stop();
+
+        successCallback(result);
+        
       }
-
-      this.progress.stop();
-
-      successCallback(result);
+      catch (error) {
+        console.log("[e] An error occurred while processing the file contents. Stack trace:");
+        console.log(error.stack);
+        this.progress.stop();
+        errorCallback(error);
+      }
     });
   }
 

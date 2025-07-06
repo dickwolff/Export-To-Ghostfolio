@@ -99,127 +99,136 @@ export class SchwabConverter extends AbstractConverter {
             }
         }, async (err, records: SchwabRecord[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error ocurred while parsing!";
+
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
+                    }
+
+                    return errorCallback(new Error(errorMsg))
                 }
 
-                return errorCallback(new Error(errorMsg))
-            }
-
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
-
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length - 1, 0);
-
-            // Skip last line of export (stats).
-            for (let idx = 0; idx < records.length - 1; idx++) {
-                const record = records[idx];
-
-                // Skip administrative deposit/withdraw transactions.
-                if (this.isIgnoredRecord(record)) {
-                    bar1.increment();
-                    continue;
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
                 }
 
-                // Custody fees, cash or interest do not have a security, so add those immediately.
-                if (record.action.toLocaleLowerCase() === "fee" ||
-                    record.action.toLocaleLowerCase() === "cash" ||
-                    record.action.toLocaleLowerCase() === "interest") {
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length - 1, 0);
 
-                    const feeAmount = Math.abs(record.amount);
+                // Skip last line of export (stats).
+                for (let idx = 0; idx < records.length - 1; idx++) {
+                    const record = records[idx];
+
+                    // Skip administrative deposit/withdraw transactions.
+                    if (this.isIgnoredRecord(record)) {
+                        bar1.increment();
+                        continue;
+                    }
+
+                    // Custody fees, cash or interest do not have a security, so add those immediately.
+                    if (record.action.toLocaleLowerCase() === "fee" ||
+                        record.action.toLocaleLowerCase() === "cash" ||
+                        record.action.toLocaleLowerCase() === "interest") {
+
+                        const feeAmount = Math.abs(record.amount);
+                        const date = dayjs(`${record.date}`, "MM/DD/YYYY");
+
+                        // Add fees record to export.
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: "",
+                            fee: feeAmount,
+                            quantity: 1,
+                            type: GhostfolioOrderType[record.action],
+                            unitPrice: feeAmount,
+                            currency: "USD",
+                            dataSource: "MANUAL",
+                            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: record.description
+                        });
+
+                        bar1.increment();
+                        continue;
+                    }
+
+                    // Check if the record has a CUSIP, try to get it by name instead.
+                    if (record.symbol.match(/^[A-Z0-9]{8}[A-Z0-9*@#]$/)) {
+                        const name = record.description.split(/XXX|0\%/)[0].trim();
+                        this.progress.log(`[i] CUSIP "${record.symbol}" detected, trying by name "${name}"\n`);
+                        record.symbol = "";
+                        record.description = name;
+                    }
+
+                    let security: YahooFinanceRecord;
+                    try {
+                        security = await this.securityService.getSecurity(
+                            null,
+                            record.symbol,
+                            record.description,
+                            "USD",
+                            this.progress);
+                    }
+                    catch (err) {
+                        this.logQueryError(record.symbol || record.description, idx + 2);
+                        return errorCallback(err);
+                    }
+
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i] No result found for ${record.action} action for ${record.symbol || record.description} with currency USD! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    // Make negative numbers (on sell records) absolute.
+                    let numberOfShares = Math.abs(record.quantity);
+                    let priceShare = Math.abs(record.price);
+                    let feesCommissions = Math.abs(record.feesComm);
+
+                    // Dividend records have a share count of 1.
+                    if (record.action === "dividend") {
+                        numberOfShares = 1;
+                        priceShare = Math.abs(record.amount);
+                    }
+
                     const date = dayjs(`${record.date}`, "MM/DD/YYYY");
 
-                    // Add fees record to export.
+                    // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                         comment: "",
-                        fee: feeAmount,
-                        quantity: 1,
+                        fee: feesCommissions,
+                        quantity: numberOfShares,
                         type: GhostfolioOrderType[record.action],
-                        unitPrice: feeAmount,
+                        unitPrice: priceShare,
                         currency: "USD",
-                        dataSource: "MANUAL",
+                        dataSource: "YAHOO",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: record.description
+                        symbol: security.symbol
                     });
 
                     bar1.increment();
-                    continue;
                 }
 
-                // Check if the record has a CUSIP, try to get it by name instead.
-                if (record.symbol.match(/^[A-Z0-9]{8}[A-Z0-9*@#]$/)) {
-                    const name = record.description.split(/XXX|0\%/)[0].trim();
-                    this.progress.log(`[i] CUSIP "${record.symbol}" detected, trying by name "${name}"\n`);
-                    record.symbol = "";
-                    record.description = name;
-                }
+                this.progress.stop()
 
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        null,
-                        record.symbol,
-                        record.description,
-                        "USD",
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.symbol || record.description, idx + 2);
-                    return errorCallback(err);
-                }
-
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${record.action} action for ${record.symbol || record.description} with currency USD! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                // Make negative numbers (on sell records) absolute.
-                let numberOfShares = Math.abs(record.quantity);
-                let priceShare = Math.abs(record.price);
-                let feesCommissions = Math.abs(record.feesComm);
-
-                // Dividend records have a share count of 1.
-                if (record.action === "dividend") {
-                    numberOfShares = 1;
-                    priceShare = Math.abs(record.amount);
-                }
-
-                const date = dayjs(`${record.date}`, "MM/DD/YYYY");
-
-                // Add record to export.
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: "",
-                    fee: feesCommissions,
-                    quantity: numberOfShares,
-                    type: GhostfolioOrderType[record.action],
-                    unitPrice: priceShare,
-                    currency: "USD",
-                    dataSource: "YAHOO",
-                    date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
-                });
-
-                bar1.increment();
+                successCallback(result);
             }
-
-            this.progress.stop()
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 

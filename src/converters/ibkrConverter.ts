@@ -62,150 +62,233 @@ export class IbkrConverter extends AbstractConverter {
             }
         }, async (err, records: IbkrRecord[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error ocurred while parsing!";
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
+                    }
+
+                    return errorCallback(new Error(errorMsg))
                 }
 
-                return errorCallback(new Error(errorMsg))
-            }
-
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
-
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
-
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
-
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
-
-                    bar1.increment();
-                    continue;
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
                 }
 
-                let currency = "";
-                if ((record as IbkrDividendRecord).currency) {
-                    currency = (record as IbkrDividendRecord).currency;
-                } else {
-                    currency = (record as IbkrTradeRecord).tradeCurrency;
-                }
-                currency === "GBX" ? currency = "GBp" : currency;
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
 
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        record.isin,
-                        null,
-                        null,
-                        currency,
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.isin, idx + 2);
-                    return errorCallback(err);
-                }
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
 
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${record.type} action for ${record.isin}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
 
-                const date = dayjs(`${record.date}`, "YYYYMMDD");
+                        bar1.increment();
+                        continue;
+                    }
 
-                let fees = 0, quantity = 0, price = 0;
-                let type = GhostfolioOrderType.buy;
-                let comment = "";
+                    let currency = "";
+                    if ((record as IbkrDividendRecord).currency) {
+                        currency = (record as IbkrDividendRecord).currency;
+                    } else {
+                        currency = (record as IbkrTradeRecord).tradeCurrency;
+                    }
+                    currency === "GBX" ? currency = "GBp" : currency;
 
-                if ((record as IbkrDividendRecord).currency) {
-                    const dividendRecord = record as IbkrDividendRecord;
+                    let security: YahooFinanceRecord;
+                    try {
+                        security = await this.securityService.getSecurity(
+                            record.isin,
+                            null,
+                            null,
+                            currency,
+                            this.progress);
+                    }
+                    catch (err) {
+                        this.logQueryError(record.isin, idx + 2);
+                        return errorCallback(err);
+                    }
 
-                    // Check for PIL (cash credit or debit made to an account in recognition of a cash dividend paid to stockholders of the issuer).
-                    if (dividendRecord.description.toLocaleLowerCase().indexOf("in lieu of") > -1) {
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i] No result found for ${record.type} action for ${record.isin}! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
 
-                        quantity = dividendRecord.amount;
-                        comment = dividendRecord.description;
-                        type = GhostfolioOrderType.dividend;
+                    const date = dayjs(`${record.date}`, "YYYYMMDD");
+
+                    let fees = 0, quantity = 0, price = 0;
+                    let type = GhostfolioOrderType.buy;
+                    let comment = "";
+
+                    if ((record as IbkrDividendRecord).currency) {
+                        const dividendRecord = record as IbkrDividendRecord;
+
+                        // Check for PIL (cash credit or debit made to an account in recognition of a cash dividend paid to stockholders of the issuer).
+                        if (dividendRecord.description.toLocaleLowerCase().indexOf("in lieu of") > -1) {
+
+                            quantity = dividendRecord.amount;
+                            comment = dividendRecord.description;
+                            type = GhostfolioOrderType.dividend;
+                        }
+                        else {
+
+                            // For regular dividends, parse the amount and price.
+                            price = parseFloat(dividendRecord.description.match(/(\d+(\.\d+)?)(?= PER SHARE)/)[0]);;
+
+                            if (dividendRecord.type === "dividendTax") {
+                                fees = Math.abs(dividendRecord.amount);
+                            } else {
+                                quantity = parseFloat((dividendRecord.amount / price).toFixed(3));
+                            }
+
+                            comment = dividendRecord.description;
+                            type = GhostfolioOrderType.dividend;
+
+                            let existingDividendRecord = this.findExactDividendMatch(dividendRecord, security.symbol, result.activities);
+
+                            // When a match was found, that data entry should be completed.
+                            if (existingDividendRecord) {
+
+                                // Existing record is tax record. Should be overwritten.
+                                if (existingDividendRecord.comment.indexOf("TAX") > -1) {
+                                    existingDividendRecord.comment = comment;
+                                    existingDividendRecord.unitPrice = price;
+                                    existingDividendRecord.quantity = quantity;
+
+                                }
+                                else {
+
+                                    // Existing record is dividend record. Add tax info.
+                                    existingDividendRecord.fee = fees;
+                                }
+
+                                // Mark completed and move to next entry.
+                                bar1.increment();
+                                continue;
+                            }
+                        }
                     }
                     else {
+                        const tradeRecord = record as IbkrTradeRecord;
 
-                        // For regular dividends, parse the amount and price.
-                        price = parseFloat(dividendRecord.description.match(/(\d+(\.\d+)?)(?= PER SHARE)/)[0]);;
-
-                        if (dividendRecord.type === "dividendTax") {
-                            fees = Math.abs(dividendRecord.amount);
+                        let currency = "";
+                        if ((record as IbkrDividendRecord).currency) {
+                            currency = (record as IbkrDividendRecord).currency;
                         } else {
-                            quantity = parseFloat((dividendRecord.amount / price).toFixed(3));
+                            currency = (record as IbkrTradeRecord).tradeCurrency;
+                        }
+                        currency === "GBX" ? currency = "GBp" : currency;
+
+                        let security: YahooFinanceRecord;
+                        try {
+                            security = await this.securityService.getSecurity(
+                                record.isin,
+                                null,
+                                null,
+                                currency,
+                                this.progress);
+                        }
+                        catch (err) {
+                            this.logQueryError(record.isin, idx + 2);
+                            return errorCallback(err);
                         }
 
-                        comment = dividendRecord.description;
-                        type = GhostfolioOrderType.dividend;
-
-                        let existingDividendRecord = this.findExactDividendMatch(dividendRecord, security.symbol, result.activities);
-
-                        // When a match was found, that data entry should be completed.
-                        if (existingDividendRecord) {
-
-                            // Existing record is tax record. Should be overwritten.
-                            if (existingDividendRecord.comment.indexOf("TAX") > -1) {
-                                existingDividendRecord.comment = comment;
-                                existingDividendRecord.unitPrice = price;
-                                existingDividendRecord.quantity = quantity;
-
-                            }
-                            else {
-
-                                // Existing record is dividend record. Add tax info.
-                                existingDividendRecord.fee = fees;
-                            }
-
-                            // Mark completed and move to next entry.
+                        // Log whenever there was no match found.
+                        if (!security) {
+                            this.progress.log(`[i] No result found for ${record.type} action for ${record.isin}! Please add this manually..\n`);
                             bar1.increment();
                             continue;
                         }
+
+                        const date = dayjs(`${record.date}`, "YYYYMMDD");
+
+                        let fees = 0, quantity = 0, price = 0;
+                        let type = GhostfolioOrderType.buy;
+                        let comment = "";
+
+                        if ((record as IbkrDividendRecord).currency) {
+                            const dividendRecord = record as IbkrDividendRecord;
+
+                            price = parseFloat(dividendRecord.description.match(/(\d+(\.\d+)?)(?= PER SHARE)/)[0]);;
+
+                            if (dividendRecord.type === "dividendTax") {
+                                fees = Math.abs(dividendRecord.amount);
+                            } else {
+                                quantity = parseFloat((dividendRecord.amount / price).toFixed(3));
+                            }
+
+                            comment = dividendRecord.description;
+                            type = GhostfolioOrderType.dividend;
+
+                            let existingDividendRecord = this.findExactDividendMatch(dividendRecord, security.symbol, result.activities);
+
+                            // When a match was found, that data entry should be completed.
+                            if (existingDividendRecord) {
+
+                                // Existing record is tax record. Should be overwritten.
+                                if (existingDividendRecord.comment.indexOf("TAX") > -1) {
+                                    existingDividendRecord.comment = comment;
+                                    existingDividendRecord.unitPrice = price;
+                                    existingDividendRecord.quantity = quantity;
+
+                                }
+                                else {
+
+                                    // Existing record is dividend record. Add tax info.
+                                    existingDividendRecord.fee = fees;
+                                }
+
+                                // Mark completed and move to next entry.
+                                bar1.increment();
+                                continue;
+                            }
+                        } else {
+                            const tradeRecord = record as IbkrTradeRecord;
+
+                            fees = tradeRecord.commission;
+                            quantity = tradeRecord.quantity;
+                            price = tradeRecord.price;
+                            type = GhostfolioOrderType[tradeRecord.type]
+                        }
+
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: comment,
+                            fee: fees,
+                            quantity: quantity,
+                            type: type,
+                            unitPrice: price,
+                            currency: currency,
+                            dataSource: "YAHOO",
+                            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: security.symbol
+                        });
+
+                        bar1.increment();
                     }
                 }
-                else {
-                    const tradeRecord = record as IbkrTradeRecord;
 
-                    fees = tradeRecord.commission;
-                    quantity = tradeRecord.quantity;
-                    price = tradeRecord.price;
-                    type = GhostfolioOrderType[tradeRecord.type]
-                }
+                this.progress.stop()
 
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: comment,
-                    fee: fees,
-                    quantity: quantity,
-                    type: type,
-                    unitPrice: price,
-                    currency: currency,
-                    dataSource: "YAHOO",
-                    date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
-                });
-
-                bar1.increment();
+                successCallback(result);
             }
-
-            this.progress.stop()
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 
