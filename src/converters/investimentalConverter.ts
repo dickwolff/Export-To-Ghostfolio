@@ -58,7 +58,7 @@ export class InvestimentalConverter extends AbstractConverter {
 
                 // If records is empty, parsing failed..
                 if (records === undefined || records.length === 0) {
-                    return errorCallback(new Error("An error ocurred while parsing!"));
+                    return errorCallback(new Error("An error occurred while parsing!"));
                 }
 
                 console.log("[i] Read CSV file. Start processing..");

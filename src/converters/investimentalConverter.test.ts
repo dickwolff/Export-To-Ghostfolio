@@ -71,7 +71,7 @@ describe("investimentalConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toContain("An error ocurred while parsing");
+        expect(err.message).toContain("An error occurred while parsing");
 
         done();
       });
