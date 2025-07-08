@@ -63,6 +63,15 @@ export class BuxConverter extends AbstractConverter {
                 }
 
                 return columnValue;
+            },
+            on_record: (record: BuxRecord) => {
+
+                // Default exchange rate to 1 if not provided.
+                if (!record.exchangeRate) {
+                    record.exchangeRate = 1;
+                }
+
+                return record;
             }
         }, async (err, records: BuxRecord[]) => {
 
@@ -104,7 +113,7 @@ export class BuxConverter extends AbstractConverter {
                     if (record.transactionType.toLocaleLowerCase() === "interest" ||
                         record.transactionType.toLocaleLowerCase() === "fee") {
 
-                        const feeAmount = Math.abs(record.transactionAmount);
+                        const feeAmount = Math.abs(record.transactionAmount) / record.exchangeRate;
 
                         // Add record to export.
                         result.activities.push({
@@ -149,10 +158,10 @@ export class BuxConverter extends AbstractConverter {
 
                     if (record.transactionType === "dividend") {
                         quantity = 1;
-                        unitPrice = Math.abs(record.transactionAmount);
+                        unitPrice = Math.abs(record.transactionAmount) / record.exchangeRate;
                     } else {
                         quantity = record.tradeQuantity;
-                        unitPrice = record.tradePrice;
+                        unitPrice = record.tradePrice / record.exchangeRate;
                     }
 
                     // Add record to export.
@@ -173,7 +182,6 @@ export class BuxConverter extends AbstractConverter {
                 }
 
                 this.progress.stop();
-
                 successCallback(result);
             }
             catch (error) {
