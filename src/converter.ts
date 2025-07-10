@@ -80,7 +80,8 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
 
                     // Write result to file.
                     const outputFileName = path.resolve(outputFilePath, `ghostfolio-${converterTypeLc}${filesToProduce === 1 ? "" : "-" + (fix + 1)}-${dayjs().format("YYYYMMDDHHmmss")}.json`);
-                    if (!outputFileName.startsWith(outputFilePath)) {
+                    const resolvedOutputPath = path.resolve(outputFilePath);
+                    if (!outputFileName.startsWith(resolvedOutputPath)) {
                         throw new Error(`Invalid file path: ${outputFileName}`);
                     }
                     const fileContents = JSON.stringify(baseResult, null, spaces);

@@ -175,6 +175,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
             res.status(400).json({ error: "Invalid file path" });
             return;
         }
+
         const socketId = req.body.socketId;
 
         // Send initial status
