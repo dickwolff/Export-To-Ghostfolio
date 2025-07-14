@@ -61,7 +61,7 @@ export class Trading212Converter extends AbstractConverter {
 
                 return columnValue;
             },
-            on_record: (record) => {
+            on_record: (record: Trading212Record) => {
 
                 const action = record.action.toLocaleLowerCase();
 
@@ -71,7 +71,7 @@ export class Trading212Converter extends AbstractConverter {
                     record.action = "buy";
                     record.noOfShares = parseFloat(record.currencyPriceShare);
                     record.priceShare = 0;
-                    record.currencyPriceShare = record.result;
+                    record.currencyPriceShare = `${record.result}`;
                 }
 
                 // On stock splits, some fields need rearranging.
@@ -80,8 +80,8 @@ export class Trading212Converter extends AbstractConverter {
 
                     record.action = action.indexOf("open") > -1 ? "buy" : "sell";
                     record.noOfShares = parseFloat(record.currencyPriceShare);
-                    record.priceShare = parseFloat(record.exchangeRate)
-                    record.currencyPriceShare = record.result;
+                    record.priceShare = parseFloat(`${record.exchangeRate}`);
+                    record.currencyPriceShare = `${record.result}`;
                 }
 
                 return record;

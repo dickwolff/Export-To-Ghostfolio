@@ -88,7 +88,7 @@ export class SchwabConverter extends AbstractConverter {
 
                 return columnValue;
             },
-            on_record: (record, _) => {
+            on_record: (record: SchwabRecord) => {
 
                 // For sell records with a negative quantity, set the action to buy.
                 if (record.action === "sell" && record.quantity < 0) {
