@@ -89,20 +89,20 @@ export class RevolutConverter extends AbstractConverter {
             delimiter: ",",
             fromLine: 2,
             columns: this.processHeaders(input),
-            on_record: (record) => {
+            on_record: (record: RevolutRecord) => {
 
                 // Custom mapping below.
 
                 const recordType = record.type.toLocaleLowerCase();
                 record.type = recordType === "buy" ? "buy" : recordType === "sell" ? "sell" : "dividend";
 
-                record.currency = this.detectCurrency(record.price);
+                record.currency = this.detectCurrency(`${record.price}`);
 
-                record.price = this.parseNumericValue(record.price);
-                record.value = this.parseNumericValue(record.value);
-                record.fees = this.parseNumericValue(record.fees);
+                record.price = this.parseNumericValue(`${record.price}`);
+                record.value = this.parseNumericValue(`${record.value}`);
+                record.fees = this.parseNumericValue(`${record.fees}`);
 
-                record.quantity = parseFloat(record.quantity);
+                record.quantity = parseFloat(`${record.quantity}`);
 
                 return record;
             }
