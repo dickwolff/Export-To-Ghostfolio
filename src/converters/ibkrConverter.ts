@@ -63,6 +63,7 @@ export class IbkrConverter extends AbstractConverter {
         }, async (err, records: IbkrRecord[]) => {
 
             try {
+
                 // Check if parsing failed..
                 if (err || records === undefined || records.length === 0) {
                     let errorMsg = "An error occurred while parsing!";
@@ -134,40 +135,52 @@ export class IbkrConverter extends AbstractConverter {
                     if ((record as IbkrDividendRecord).currency) {
                         const dividendRecord = record as IbkrDividendRecord;
 
-                        price = parseFloat(dividendRecord.description.match(/(\d+(\.\d+)?)(?= PER SHARE)/)[0]);;
+                        // Check for PIL (cash credit or debit made to an account in recognition of a cash dividend paid to stockholders of the issuer).
+                        if (dividendRecord.description.toLocaleLowerCase().indexOf("in lieu of") > -1) {
 
-                        if (dividendRecord.type === "dividendTax") {
-                            fees = Math.abs(dividendRecord.amount);
-                        } else {
-                            quantity = parseFloat((dividendRecord.amount / price).toFixed(3));
+                            quantity = dividendRecord.amount;
+                            comment = dividendRecord.description;
+                            type = GhostfolioOrderType.dividend;
                         }
+                        else {
 
-                        comment = dividendRecord.description;
-                        type = GhostfolioOrderType.dividend;
+                            // For regular dividends, parse the amount and price.
+                            price = parseFloat(dividendRecord.description.match(/(\d+(\.\d+)?)(?= PER SHARE)/)[0]);;
 
-                        let existingDividendRecord = this.findExactDividendMatch(dividendRecord, security.symbol, result.activities);
-
-                        // When a match was found, that data entry should be completed.
-                        if (existingDividendRecord) {
-
-                            // Existing record is tax record. Should be overwritten.
-                            if (existingDividendRecord.comment.indexOf("TAX") > -1) {
-                                existingDividendRecord.comment = comment;
-                                existingDividendRecord.unitPrice = price;
-                                existingDividendRecord.quantity = quantity;
-
-                            }
-                            else {
-
-                                // Existing record is dividend record. Add tax info.
-                                existingDividendRecord.fee = fees;
+                            if (dividendRecord.type === "dividendTax") {
+                                fees = Math.abs(dividendRecord.amount);
+                            } else {
+                                quantity = parseFloat((dividendRecord.amount / price).toFixed(3));
                             }
 
-                            // Mark completed and move to next entry.
-                            bar1.increment();
-                            continue;
+                            comment = dividendRecord.description;
+                            type = GhostfolioOrderType.dividend;
+
+                            let existingDividendRecord = this.findExactDividendMatch(dividendRecord, security.symbol, result.activities);
+
+                            // When a match was found, that data entry should be completed.
+                            if (existingDividendRecord) {
+
+                                // Existing record is tax record. Should be overwritten.
+                                if (existingDividendRecord.comment.indexOf("TAX") > -1) {
+                                    existingDividendRecord.comment = comment;
+                                    existingDividendRecord.unitPrice = price;
+                                    existingDividendRecord.quantity = quantity;
+
+                                }
+                                else {
+
+                                    // Existing record is dividend record. Add tax info.
+                                    existingDividendRecord.fee = fees;
+                                }
+
+                                // Mark completed and move to next entry.
+                                bar1.increment();
+                                continue;
+                            }
                         }
-                    } else {
+                    }
+                    else {
                         const tradeRecord = record as IbkrTradeRecord;
 
                         fees = tradeRecord.commission;
@@ -193,7 +206,6 @@ export class IbkrConverter extends AbstractConverter {
                 }
 
                 this.progress.stop();
-
                 successCallback(result);
             }
             catch (error) {
