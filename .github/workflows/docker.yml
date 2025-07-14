@@ -64,7 +64,7 @@ jobs:
           # Check if GitVersion.yml was already updated in the diff with the target branch.
           ALREADY_UPDATED=$(git diff ${{ github.event.pull_request.base.ref }} GitVersion.yml | grep "+next-version: ${{ env.GitVersion_MajorMinorPatch }}" || true);
           echo "ALREADY_UPDATED: $ALREADY_UPDATED";
-          if [ -z "$ALREADY_UPDATED" ]
+          if [ -n "$ALREADY_UPDATED" ]
           then
             LOCAL_BRANCH="${{ github.event.pull_request.head.ref }}"; # Use the direct head.ref
             git checkout $LOCAL_BRANCH;
