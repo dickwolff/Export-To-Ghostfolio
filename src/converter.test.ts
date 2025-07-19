@@ -107,4 +107,49 @@ describe("converter", () => {
             },
             securityService);
     });
+
+    describe("ghostfolio normalization", () => {
+        it("force comment field to null, if absent, for proper ghostfolio deduplication", (done) => {
+            // Arrange: create a minimal input for the revolut converter, matching RevolutRecord fields
+            const header = "Type,Ticker,Date,Quantity,Price per share,Total amount,Currency,FX Rate,Symbol,Price,Value,Fees";
+            const inputRows = [
+                // Buy record
+                "BUY,TSLA,2023-05-08,2,700,1400,USD,1,TSLA,700,1400,0",
+                // Dividend record
+                "DIVIDEND,TSLA,2023-05-09,0,0,2.5,USD,1,TSLA,0,2.5,0"
+            ];
+            const testInput = [header, ...inputRows].join("\n");
+
+            mkdirSync("/var/tmp/converter-test/in", { recursive: true });
+            writeFileSync("/var/tmp/converter-test/in/comment-test.csv", testInput);
+            mkdirSync("/var/tmp/converter-test/out/comment", { recursive: true });
+
+            const securityService = new SecurityService(new YahooFinanceServiceMock());
+
+            createAndRunConverter(
+                "revolut",
+                "/var/tmp/converter-test/in/comment-test.csv",
+                "/var/tmp/converter-test/out/comment",
+                () => {
+                    const files = readdirSync("/var/tmp/converter-test/out/comment");
+                    expect(files.length).toBe(1);
+
+                    const file = files[0];
+                    const content = readFileSync(`/var/tmp/converter-test/out/comment/${file}`, "utf8");
+                    const result = JSON.parse(content);
+                    expect(result).toBeTruthy();
+                    expect(result.activities.length).toBe(2);
+                    // Both activities should have comment: null
+                    expect(result.activities[0].comment).toBeNull();
+                    expect(result.activities[1].comment).toBeNull();
+
+                    done();
+                },
+                (e) => {
+                    done(`ERROR: ${e}`);
+                },
+                securityService
+            );
+        });
+    });
 });

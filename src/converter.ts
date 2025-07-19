@@ -31,6 +31,7 @@ import { Trading212Converter } from "./converters/trading212Converter";
 import { XtbConverter } from "./converters/xtbConverter";
 
 import packageInfo from "../package.json";
+import { GhostfolioActivity } from "./models/ghostfolioActivity";
 
 async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction, securityService?: SecurityService) {
 
@@ -54,6 +55,8 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
 
         // Set cash balance update setting according to settings.
         result.updateCashBalance = `${process.env.GHOSTFOLIO_UPDATE_CASH}`.toLocaleLowerCase() === "true"
+
+        result.activities = result.activities.map(normalizeActivity);
 
         // Check if the output needs to be split into chunks. If so, calculate how many files need to be produced.
         const splitOutput = `${process.env.GHOSTFOLIO_SPLIT_OUTPUT}`.toLocaleLowerCase() === "true";
@@ -89,6 +92,28 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
 
     }, (error) => errorCallback(error));
 }
+
+
+/**
+ * Normalize a Ghostfolio activity. This ensures the payload is ready for processing by Ghostfolio.
+ * 
+ * @param activity The activity to normalize.
+ * @returns The normalized activity ready to be processed by Ghostfolio.
+ */
+export function normalizeActivity(activity: GhostfolioActivity): GhostfolioActivity {
+    return {
+        ...activity,
+        // Ghostfolio expects the comment field to be null if it is not set. The converters reading a csv file
+        // will read the comments as empty strings.
+        // See for example https://github.com/ghostfolio/ghostfolio/blob/main/test/import/ok/sample.json
+        // generated from https://github.com/ghostfolio/ghostfolio/blob/main/test/import/ok/sample.csv
+        //
+        // This can be removed once https://github.com/ghostfolio/ghostfolio/issues/5204 is resolved.
+        comment: (activity.comment === undefined || activity.comment === "") ? null : activity.comment
+    };
+}
+
+/* istanbul ignore next */
 
 async function createConverter(converterType: string, securityService?: SecurityService): Promise<AbstractConverter> {
 
@@ -221,6 +246,7 @@ async function createConverter(converterType: string, securityService?: Security
     return converter;
 }
 
+/* istanbul ignore next */
 async function tryAutomaticValidationAndImport(outputFileName: string) {
 
     try {
