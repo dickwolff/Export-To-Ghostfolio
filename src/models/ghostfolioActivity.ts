@@ -2,7 +2,7 @@ import { GhostfolioOrderType } from "./ghostfolioOrderType";
 
 export class GhostfolioActivity {
     accountId: string;
-    comment: string;
+    comment?: string | null;
     fee: number;
     quantity: number;
     type: GhostfolioOrderType;
