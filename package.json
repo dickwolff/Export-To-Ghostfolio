@@ -35,12 +35,12 @@
     "dayjs": "^1.11.13",
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
-    "express-rate-limit": "^7.5.1",
+    "express-rate-limit": "^8.0.1",
     "multer": "^2.0.1",
+    "sanitize-filename": "^1.6.3",
     "socket.io": "^4.7.5",
     "tsx": "^4.20.3",
-    "yahoo-finance2": "^2.13.3",
-    "sanitize-filename": "^1.6.3"
+    "yahoo-finance2": "^2.13.3"
   },
   "engines": {
     "node": ">=22.0.0"
