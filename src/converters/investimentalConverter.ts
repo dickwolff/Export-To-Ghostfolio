@@ -173,7 +173,10 @@ export class InvestimentalConverter extends AbstractConverter {
                 totalValue += newlyExecutedVolume * (record.price || lastPrice);
             }
 
-            lastFee = record.fee || lastFee;
+            // Only update fee from New or Chg orders, not from Fil orders
+            if (record.updateType === "New" || record.updateType === "Chg") {
+                lastFee = record.fee || lastFee;
+            }
             lastPrice = record.price || lastPrice;
             remainingVolume = record.volume;
         }

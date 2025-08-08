@@ -627,6 +627,39 @@ describe("investimentalConverter", () => {
           exchange: "BVB",
           symbol: "TVBETETF",
           market: "REGS",
+          price: 24.745,
+          volume: 20,
+          disclosed: 0,
+          value: 494.9,
+          fee: 3.28,
+          term: "Day",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 0,
+          lastTradeTicket: 0,
+          status: "Active",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "Chg",
+          updateTime: "2024-03-05 11:32:23", // Middle time
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        },
+        {
+          orderID: "6750",
+          orderNumber: "58525243",
+          side: "Buy",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
           price: 24.655,
           volume: 20,
           disclosed: 0,
@@ -662,7 +695,7 @@ describe("investimentalConverter", () => {
       expect(result).toBeTruthy();
       expect(result!.volume).toBe(20);
       expect(result!.price).toBe(24.745);
-      expect(result!.fee).toBe(3.28);
+      expect(result!.fee).toBe(3.28); // Should use fee from last Chg order
       expect(result!.updateTime).toBe("2024-03-05 12:06:20"); // Should use last record's time
     });
   });
