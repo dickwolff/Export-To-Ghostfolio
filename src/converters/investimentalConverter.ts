@@ -154,7 +154,7 @@ export class InvestimentalConverter extends AbstractConverter {
         return orderGroups;
     }
 
-    private combineRecords(orderRecords: InvestimentalRecord[]): InvestimentalRecord | null {
+    public combineRecords(orderRecords: InvestimentalRecord[]): InvestimentalRecord | null {
         orderRecords.sort((a, b) => new Date(a.updateTime).getTime() - new Date(b.updateTime).getTime());
 
         let remainingVolume = 0;
@@ -173,7 +173,9 @@ export class InvestimentalConverter extends AbstractConverter {
                 totalValue += newlyExecutedVolume * (record.price || lastPrice);
             }
 
-            lastFee = record.fee || lastFee;
+            if (record.updateType === "New" || record.updateType === "Chg") {
+                lastFee = record.fee || lastFee;
+            }
             lastPrice = record.price || lastPrice;
             remainingVolume = record.volume;
         }
@@ -187,7 +189,6 @@ export class InvestimentalConverter extends AbstractConverter {
                 volume: executedVolume,
                 price: averagePrice,
                 fee: lastFee,
-
             };
         }
 
