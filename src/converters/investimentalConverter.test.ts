@@ -365,7 +365,7 @@ describe("investimentalConverter", () => {
           exchange: "BVB",
           symbol: "TVBETETF",
           market: "REGS",
-          price: 27.19,
+          price: 27.185,
           volume: 145,
           disclosed: 0,
           value: 3942.55,
@@ -498,7 +498,7 @@ describe("investimentalConverter", () => {
       // Assert
       expect(result).toBeTruthy();
       expect(result!.volume).toBe(210); // 10 + 55 + 8 + 73 + 64 = 210 executed
-      expect(result!.price).toBe(27.1898); // Calculated average price rounded to 4 decimal places
+      expect(result!.price).toBe(27.1885); // Calculated average price rounded to 4 decimal places
       expect(result!.fee).toBe(0);
       expect(result!.status).toBe("Inactive");
     });
