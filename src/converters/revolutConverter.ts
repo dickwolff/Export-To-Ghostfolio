@@ -9,6 +9,8 @@ import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 
 export class RevolutConverter extends AbstractConverter {
 
+    private isCrypto = false;
+
     constructor(securityService: SecurityService) {
         super(securityService);
     }
@@ -19,6 +21,7 @@ export class RevolutConverter extends AbstractConverter {
     public processFileContents(input: string, successCallback: any, errorCallback: any): void {
 
         if (input.split("\n")[0].split(",").length === 7) {
+            this.isCrypto = true;
             return this.processCryptoFileContents(input, successCallback, errorCallback);
         }
 
@@ -71,11 +74,7 @@ export class RevolutConverter extends AbstractConverter {
                 if (context.column === "quantity" ||
                     context.column === "pricePerShare" ||
                     context.column === "totalAmount") {
-                    if (columnValue === "") {
-                        return 0;
-                    }
-
-                    return parseFloat(columnValue.replace(/[$]/g, '').trim());
+                    return this.parseNumericValue(columnValue);
                 }
 
                 return columnValue;
@@ -90,25 +89,20 @@ export class RevolutConverter extends AbstractConverter {
             delimiter: ",",
             fromLine: 2,
             columns: this.processHeaders(input),
-            on_record: (record) => {
+            on_record: (record: RevolutRecord) => {
 
                 // Custom mapping below.
 
                 const recordType = record.type.toLocaleLowerCase();
                 record.type = recordType === "buy" ? "buy" : recordType === "sell" ? "sell" : "dividend";
 
-                record.currency = this.detectCurrency(record.price);
+                record.currency = this.detectCurrency(`${record.price}`);
 
-                const priceAmount = record.price.match(/([\d.,]+)/g) ?? ["0"];
-                record.price = record.price !== "" ? parseFloat(priceAmount[0].replace(",", "")) : 0;
+                record.price = this.parseNumericValue(`${record.price}`);
+                record.value = this.parseNumericValue(`${record.value}`);
+                record.fees = this.parseNumericValue(`${record.fees}`);
 
-                const valueAmount = record.value.match(/([\d.,]+)/g);
-                record.value = record.value !== "" ? parseFloat(valueAmount[0].replace(",", "")) : 0;
-
-                const feesAmount = record.fees.match(/([\d.,]+)/g);
-                record.fees = record.fees !== "" ? parseFloat(feesAmount[0].replace(",", "")) : 0;
-
-                record.quantity = parseFloat(record.quantity);
+                record.quantity = parseFloat(`${record.quantity}`);
 
                 return record;
             }
@@ -117,112 +111,126 @@ export class RevolutConverter extends AbstractConverter {
 
     private async processRevolutFile(err, records: RevolutRecord[], successCallback: any, errorCallback: any) {
 
-        // Check if parsing failed..
-        if (err || records === undefined || records.length === 0) {
-            let errorMsg = "An error ocurred while parsing!";
+        try {
 
-            if (err) {
-                errorMsg += ` Details: ${err.message}`
+            // Check if parsing failed..
+            if (err || records === undefined || records.length === 0) {
+                let errorMsg = "An error occurred while parsing!";
+
+                if (err) {
+                    errorMsg += ` Details: ${err.message}`
+                }
+
+                return errorCallback(new Error(errorMsg))
             }
 
-            return errorCallback(new Error(errorMsg))
-        }
-
-        console.log("[i] Read CSV file. Start processing..");
-        const result: GhostfolioExport = {
-            meta: {
-                date: new Date(),
-                version: "v0"
-            },
-            activities: []
-        }
-
-        // Populate the progress bar.
-        const bar1 = this.progress.create(records.length, 0);
-
-        for (let idx = 0; idx < records.length; idx++) {
-            const record = records[idx];
-
-            // Check if the record should be ignored.
-            if (this.isIgnoredRecord(record)) {
-                bar1.increment();
-                continue;
+            console.log("[i] Read CSV file. Start processing..");
+            const result: GhostfolioExport = {
+                meta: {
+                    date: new Date(),
+                    version: "v0"
+                },
+                activities: []
             }
 
-            // Fees do not have a security, so add those immediately.
-            if (record.type.toLocaleLowerCase() === "fee") {
+            // Populate the progress bar.
+            const bar1 = this.progress.create(records.length, 0);
 
-                const feeAmount = Math.abs(record.totalAmount);
+            for (let idx = 0; idx < records.length; idx++) {
+                const record = records[idx];
+
+                // Check if the record should be ignored.
+                if (this.isIgnoredRecord(record)) {
+                    bar1.increment();
+                    continue;
+                }
+
+                // Fees do not have a security, so add those immediately.
+                if (record.type.toLocaleLowerCase() === "fee") {
+
+                    const feeAmount = Math.abs(record.totalAmount);
+
+                    // Add record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: `Revolut ${record.type.toLocaleLowerCase()}`,
+                        fee: feeAmount,
+                        quantity: 1,
+                        type: GhostfolioOrderType[record.type],
+                        unitPrice: 0,
+                        currency: record.currency,
+                        dataSource: "MANUAL",
+                        date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: `Revolut ${record.type.toLocaleLowerCase()}`
+                    });
+
+                    bar1.increment();
+                    continue;
+                }
+
+                let security: YahooFinanceRecord;
+                try {
+                    security = await this.securityService.getSecurity(
+                        null,
+                        record.ticker ?? `${record.symbol}-${record.currency}`,
+                        null,
+                        record.currency,
+                        this.progress);
+                }
+                catch (err) {
+                    this.logQueryError(record.ticker, idx + 2);
+                    return errorCallback(err);
+                }
+
+                // Log whenever there was no match found.
+                if (!security) {
+                    this.progress.log(`[i] No result found for ${record.type} action for ${record.ticker ?? record.symbol} with currency ${record.currency}! Please add this manually..\n`);
+                    bar1.increment();
+                    continue;
+                }
+
+                let quantity, unitPrice;
+
+                if (record.type === "dividend") {
+                    quantity = record.quantity ?? 1;
+                    unitPrice = Math.abs(record.totalAmount ?? 1);
+                } else {
+                    quantity = record.quantity;
+                    unitPrice = record.pricePerShare ?? record.price;
+                }
+
+                // For USD crypto securities, remove the dash (as Ghostfolio otherwise won't accept it).
+                if (this.isCrypto && record.currency.toLocaleUpperCase() === "USD") {
+                    security.symbol = security.symbol.replace(/-/, "");
+                }
 
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: `Revolut ${record.type.toLocaleLowerCase()}`,
-                    fee: feeAmount,
-                    quantity: 1,
+                    comment: "",
+                    fee: 0,
+                    quantity: quantity,
                     type: GhostfolioOrderType[record.type],
-                    unitPrice: 0,
+                    unitPrice: unitPrice,
                     currency: record.currency,
-                    dataSource: "MANUAL",
+                    dataSource: "YAHOO",
                     date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: `Revolut ${record.type.toLocaleLowerCase()}`
+                    symbol: security.symbol
                 });
 
                 bar1.increment();
-                continue;
             }
 
-            let security: YahooFinanceRecord;
-            try {
-                security = await this.securityService.getSecurity(
-                    null,
-                    record.ticker ?? `${record.symbol}-${record.currency}`,
-                    null,
-                    record.currency,
-                    this.progress);
-            }
-            catch (err) {
-                this.logQueryError(record.ticker, idx + 2);
-                return errorCallback(err);
-            }
+            this.progress.stop();
 
-            // Log whenever there was no match found.
-            if (!security) {
-                this.progress.log(`[i] No result found for ${record.type} action for ${record.ticker ?? record.symbol} with currency ${record.currency}! Please add this manually..\n`);
-                bar1.increment();
-                continue;
-            }
-
-            let quantity, unitPrice;
-
-            if (record.type === "dividend") {
-                quantity = record.quantity ?? 1;
-                unitPrice = Math.abs(record.totalAmount ?? 1);
-            } else {
-                quantity = record.quantity;
-                unitPrice = record.pricePerShare ?? record.price;
-            }
-
-            // Add record to export.
-            result.activities.push({
-                accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                comment: "",
-                fee: 0,
-                quantity: quantity,
-                type: GhostfolioOrderType[record.type],
-                unitPrice: unitPrice,
-                currency: record.currency,
-                dataSource: "YAHOO",
-                date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                symbol: security.symbol
-            });
-
-            bar1.increment();
+            successCallback(result);
         }
-
-        this.progress.stop()
-
-        successCallback(result);
+        catch (error) {
+            console.log("[e] An error occurred while processing the file contents. Stack trace:");
+            console.log(error.stack);
+            this.progress.stop();
+            errorCallback(error);
+        }
     }
 
     private detectCurrency(value: string) {
@@ -242,5 +250,21 @@ export class RevolutConverter extends AbstractConverter {
             default:
                 return "EUR";
         }
+    }
+
+    private parseNumericValue(value: string): number {
+        if (value === "") {
+            return 0;
+        }
+
+        const amount = value.match(/([\d.,]+)/g);
+        if (amount) {
+            const result = parseFloat(amount[0].replace(/,/g, ""));
+            if (!Number.isNaN(result)) {
+                return result;
+            }
+        }
+
+        throw Error(`${value} is not a currency value`);
     }
 }

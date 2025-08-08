@@ -10,7 +10,7 @@
 
 - [ ] Added relevant changes to README (if applicable)
 - [ ] Added relevant test(s)
-- [ ] Updated GitVersion file and corresponding version in `package.json`
+- [ ] Updated the GitVersion file (if not done automatically)
 
 ## Related issue (if applicable)
 

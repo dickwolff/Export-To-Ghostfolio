@@ -5,7 +5,7 @@
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/dickwolff/export-to-ghostfolio?style=for-the-badge)](https://hub.docker.com/r/dickwolff/export-to-ghostfolio) &nbsp; ![Code Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/dickwolff/dd5dc24ffa62de59b3d836f856f48a10/raw/cov.json) &nbsp; ![Stars](https://img.shields.io/github/stars/dickwolff/export-to-ghostfolio?style=for-the-badge)
 
-This tool allows you to convert CSV transaction exports to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for 21 brokers:
+This tool allows you to convert CSV transaction exports to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for 22 brokers:
 
 - [Avanza](https://avanza.se)
 - [Bitvavo](https://bitvavo.com)
@@ -26,6 +26,7 @@ This tool allows you to convert CSV transaction exports to an import file that c
 - [Saxo](https://www.home.saxo)
 - [Schwab](https://www.schwab.com)
 - [Swissquote](https://en.swissquote.com/)
+- [TradeRepublic](https://traderepublic.com)
 - [Trading 212](https://trading212.com)
 - [XTB](https://www.xtb.com/int)
 
@@ -75,9 +76,11 @@ Open the Delta app. Open the menu, then click "Settings". Go to "Devices & Data"
 ### Directa
 
 Open Directa App, select "Libera" mode and go on Transactions ("Movimenti").
+
 ![Export instructions for Directa, Transactions](./assets/directa-transactions.png)
 
 Choose date range on the right and click on "Excel" icon, in the modal select "File separato da virgole (csv)" and "Estrai"
+
 ![Export instructions for Directa, Export](./assets/directa-export.png)
 
 ### eToro
@@ -144,6 +147,12 @@ Login to your Swissquote account. From the bar menu click on "Transactions". Sel
 
 **NOTE:** For Swissquote it's important you have set your display language as English. You can do this by logging into your Swissquote account and then select "My Account" (Mein Konto). Click the "Settings"-button (Einstellungen), then change your display language (displaysprache) to English. After this change, your Swissquote export will be in English.
 
+### TradeRepublic (experimental)
+
+> **As TradeRepublic itself does not offer CSV exports, this can be achieved using a community tool called [`pytr`](https://github.com/pytr-org/pytr/). The instructions below are based on that tool!**
+
+Download [`pytr`](https://github.com/pytr-org/pytr/) on your local machine. After installing, run `uvx pytr dl_docs ./docs`. This will download all of your transaction files and prepare the files needed to create a CSV. You might need to provide your TradeRepublic credentials to be able to download the documents. After downloading the documents, then convert those to a CSV file like `uvx pytr export_transactions C:\users\you\desktop\docs\all_events.json C:\users\you\desktop\docs\traderepublic.csv`.
+
 ### Trading 212
 
 Login to your Trading 212 account and create an export file (via History > Download icon). Choose the period from which you wish to export your history and click download.
@@ -184,7 +193,7 @@ The following parameters can be given to the Docker run command.
 | Command                                           | Optional | Description                                                                                                                                                     |
 | ------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `-v {local_in-folder}:/var/tmp/e2g-input`         | N        | The input folder where you put the files to be processed                                                                                                        |
-| `-v {local_out_folder}:/var/tmp/e2g-output`       | N        | The output folder where the Ghostfolio import JSON will be placed. Also the input file will be moved here when an error ocurred while processing the file.      |
+| `-v {local_out_folder}:/var/tmp/e2g-output`       | N        | The output folder where the Ghostfolio import JSON will be placed. Also, the input file will be moved here when an error occurred while processing the file.     |
 | `-v {local_cache_folder}:/var/tmp/e2g-cache`      | Y        | The folder where Yahoo Finance symbols will be cached                                                                                                           |
 | `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx`             | N        | Your Ghostolio account ID [^1]                                                                                                                                  |
 | `--env ISIN_OVERRIDE_FILE=isin-overrides.txt` | Y        | Specify a key-value pair file with ISIN overrides                                                                                                               |
@@ -247,29 +256,30 @@ The repository contains a sample configuration file. Rename this from `.env.samp
 
 You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the symbols that are supported with YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN).
 
-| Exporter      | Run command                        |
-| ------------- | ---------------------------------- |
-| Avanza        | `run start avanza`                 |
-| Bitvavo       | `run start bitvavo` (or `bv`)      |
-| BUX           | `run start bux`                    |
-| Coinbase      | `run start coinbase` (or `cb`)     |
-| CoinTracking  | `run start cointracking` (or `ct`) |
-| DEGIRO        | `run start degiro`                 |
-| Delta         | `run start delta`                  |
-| Directa       | `run start directa`                |
-| eToro         | `run start etoro`                  |
-| Finpension    | `run start finpension` (or `fp`)   |
-| Freetrade     | `run start freetrade`  (or `ft`)   |
-| IBKR          | `run start ibkr`                   |
-| Investimental | `run start investimental`          |
-| Parqet        | `run start parqet`                 |
-| Rabobank      | `run start rabobank`               |
-| Revolut       | `run start revolut`                |
-| Saxo          | `run start saxo`                   |
-| Schwab        | `run start schwab`                 |
-| Swissquote    | `run start swissquote` (or `sq`)   |
-| Trading 212   | `run start trading212` (or `t212`) |
-| XTB           | `run start xtb`                    |
+| Exporter      | Run command                         |
+| ------------- | ----------------------------------- |
+| Avanza        | `run start avanza`                  |
+| Bitvavo       | `run start bitvavo` (or `bv`)       |
+| BUX           | `run start bux`                     |
+| Coinbase      | `run start coinbase` (or `cb`)      |
+| CoinTracking  | `run start cointracking` (or `ct`)  |
+| DEGIRO        | `run start degiro`                  |
+| Delta         | `run start delta`                   |
+| Directa       | `run start directa`                 |
+| eToro         | `run start etoro`                   |
+| Finpension    | `run start finpension` (or `fp`)    |
+| Freetrade     | `run start freetrade`  (or `ft`)    |
+| IBKR          | `run start ibkr`                    |
+| Investimental | `run start investimental`           |
+| Parqet        | `run start parqet`                  |
+| Rabobank      | `run start rabobank`                |
+| Revolut       | `run start revolut`                 |
+| Saxo          | `run start saxo`                    |
+| Schwab        | `run start schwab`                  |
+| Swissquote    | `run start swissquote` (or `sq`)    |
+| TradeRepublic | `run start traderepublic` (or `tr`) |
+| Trading 212   | `run start trading212` (or `t212`)  |
+| XTB           | `run start xtb`                     |
 
 ### Caching
 

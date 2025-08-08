@@ -94,152 +94,161 @@ export class XtbConverter extends AbstractConverter {
             }
         }, async (err, records: XtbRecord[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
-                }
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error occurred while parsing!";
 
-                return errorCallback(new Error(errorMsg))
-            }
-
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
-
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
-
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
-
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
-                    bar1.increment();
-                    continue;
-                }
-
-                const date = dayjs(`${record.time}`, "DD.MM.YYYY HH:mm:ss");
-
-                // Interest does not have a security, so add those immediately.
-                if (record.type.toLocaleLowerCase() === "interest") {
-
-                    // Add interest record to export.
-                    result.activities.push({
-                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: `XTB ${record.id} - ${record.comment}`,
-                        fee: 0,
-                        quantity: 1,
-                        type: GhostfolioOrderType[record.type],
-                        unitPrice: Math.abs(record.amount),
-                        currency: process.env.XTB_ACCOUNT_CURRENCY || "EUR",
-                        dataSource: "MANUAL",
-                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: record.comment,
-                    });
-
-                    bar1.increment();
-                    continue;
-                }
-
-                if (record.type.toLocaleLowerCase() === "fee") {
-
-                    // Add interest record to export.
-                    result.activities.push({
-                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: `XTB ${record.id} - ${record.comment}`,
-                        fee: Math.abs(record.amount),
-                        quantity: 1,
-                        type: GhostfolioOrderType[record.type],
-                        unitPrice: 0,
-                        currency: process.env.XTB_ACCOUNT_CURRENCY || "EUR",
-                        dataSource: "MANUAL",
-                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: record.comment,
-                    });
-
-                    bar1.increment();
-                    continue;
-                }
-
-                const match = record.comment.match(/(?:OPEN|CLOSE) BUY ([0-9]+(?:\.[0-9]+)?(?:\/[0-9]+(?:\.[0-9]+)?)?) @ ([0-9]+(?:\.[0-9]+)?)|(?:[A-Z\. ]+) ([0-9]+(?:\.[0-9]+)?)/)
-
-                let quantity = parseFloat(match[1]?.split("/")[0]);
-                let unitPrice = parseFloat(match[2]);
-                const dividendPerShare = parseFloat(match[3]);
-
-                // By default, there is no expected currency.
-                let expectedCurrency = null;
-
-                // For dividends and spin-offs, the currency is in the comment.
-                if (record.type.toLocaleLowerCase() === "dividend") {
-                    expectedCurrency = record.comment.split(" ")[1];
-                }
-
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        null,
-                        record.symbol,
-                        null,
-                        expectedCurrency,
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.comment, idx + 2);
-                    return errorCallback(err);
-                }
-
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for action ${record.type}, symbol ${record.symbol} and comment ${record.comment}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                let feeAmount = 0;
-
-                // Dividend usually goes with a dividend tax record, so look it up.
-                if (record.type.toLocaleLowerCase() === "dividend") {
-
-                    unitPrice = dividendPerShare;
-                    quantity = parseFloat((record.amount / dividendPerShare).toFixed(2));
-
-                    const taxRecord = this.lookupDividendTaxRecord(record.id, records, idx);
-
-                    // If there was a dividend tax record found, check if it matches the dividend record.
-                    if (taxRecord && taxRecord.symbol === record.symbol && taxRecord.time === record.time) {
-                        feeAmount = Math.abs(taxRecord.amount);
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
                     }
+
+                    return errorCallback(new Error(errorMsg))
                 }
 
-                // Add record to export.
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: `XTB ${record.id} - ${record.comment}`,
-                    fee: feeAmount,
-                    quantity: quantity,
-                    type: GhostfolioOrderType[record.type],
-                    unitPrice: unitPrice,
-                    currency: security.currency,
-                    dataSource: "YAHOO",
-                    date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol,
-                });
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
+                }
 
-                bar1.increment();
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
+
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
+
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
+                        bar1.increment();
+                        continue;
+                    }
+
+                    const date = dayjs(`${record.time}`, "DD.MM.YYYY HH:mm:ss");
+
+                    // Interest does not have a security, so add those immediately.
+                    if (record.type.toLocaleLowerCase() === "interest") {
+
+                        // Add interest record to export.
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: `XTB ${record.id} - ${record.comment}`,
+                            fee: 0,
+                            quantity: 1,
+                            type: GhostfolioOrderType[record.type],
+                            unitPrice: Math.abs(record.amount),
+                            currency: process.env.XTB_ACCOUNT_CURRENCY || "EUR",
+                            dataSource: "MANUAL",
+                            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: record.comment,
+                        });
+
+                        bar1.increment();
+                        continue;
+                    }
+
+                    if (record.type.toLocaleLowerCase() === "fee") {
+
+                        // Add interest record to export.
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: `XTB ${record.id} - ${record.comment}`,
+                            fee: Math.abs(record.amount),
+                            quantity: 1,
+                            type: GhostfolioOrderType[record.type],
+                            unitPrice: 0,
+                            currency: process.env.XTB_ACCOUNT_CURRENCY || "EUR",
+                            dataSource: "MANUAL",
+                            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: record.comment,
+                        });
+
+                        bar1.increment();
+                        continue;
+                    }
+
+                    const match = record.comment.match(/(?:OPEN|CLOSE) BUY ([0-9]+(?:\.[0-9]+)?(?:\/[0-9]+(?:\.[0-9]+)?)?) @ ([0-9]+(?:\.[0-9]+)?)|(?:[A-Z\. ]+) ([0-9]+(?:\.[0-9]+)?)/)
+
+                    let quantity = parseFloat(match[1]?.split("/")[0]);
+                    let unitPrice = parseFloat(match[2]);
+                    const dividendPerShare = parseFloat(match[3]);
+
+                    // By default, there is no expected currency.
+                    let expectedCurrency = null;
+
+                    // For dividends and spin-offs, the currency is in the comment.
+                    if (record.type.toLocaleLowerCase() === "dividend") {
+                        expectedCurrency = record.comment.split(" ")[1];
+                    }
+
+                    let security: YahooFinanceRecord;
+                    try {
+                        security = await this.securityService.getSecurity(
+                            null,
+                            record.symbol,
+                            null,
+                            expectedCurrency,
+                            this.progress);
+                    }
+                    catch (err) {
+                        this.logQueryError(record.comment, idx + 2);
+                        return errorCallback(err);
+                    }
+
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i] No result found for action ${record.type}, symbol ${record.symbol} and comment ${record.comment}! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    let feeAmount = 0;
+
+                    // Dividend usually goes with a dividend tax record, so look it up.
+                    if (record.type.toLocaleLowerCase() === "dividend") {
+
+                        unitPrice = dividendPerShare;
+                        quantity = parseFloat((record.amount / dividendPerShare).toFixed(2));
+
+                        const taxRecord = this.lookupDividendTaxRecord(record.id, records, idx);
+
+                        // If there was a dividend tax record found, check if it matches the dividend record.
+                        if (taxRecord && taxRecord.symbol === record.symbol && taxRecord.time === record.time) {
+                            feeAmount = Math.abs(taxRecord.amount);
+                        }
+                    }
+
+                    // Add record to export.
+                    result.activities.push({
+                        accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                        comment: `XTB ${record.id} - ${record.comment}`,
+                        fee: feeAmount,
+                        quantity: quantity,
+                        type: GhostfolioOrderType[record.type],
+                        unitPrice: unitPrice,
+                        currency: security.currency,
+                        dataSource: "YAHOO",
+                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                        symbol: security.symbol,
+                    });
+
+                    bar1.increment();
+                }
+
+                this.progress.stop();
+
+                successCallback(result);
             }
-
-            this.progress.stop()
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 

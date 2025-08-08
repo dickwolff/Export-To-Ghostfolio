@@ -26,6 +26,7 @@ import { RevolutConverter } from "./converters/revolutConverter";
 import { SaxoConverter } from "./converters/saxoConverter";
 import { SchwabConverter } from "./converters/schwabConverter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
+import { TradeRepublicConverter } from "./converters/tradeRepublicConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
 import { XtbConverter } from "./converters/xtbConverter";
 
@@ -56,7 +57,7 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
 
         // Check if the output needs to be split into chunks. If so, calculate how many files need to be produced.
         const splitOutput = `${process.env.GHOSTFOLIO_SPLIT_OUTPUT}`.toLocaleLowerCase() === "true";
-        const filesToProduce = !splitOutput ? 1 : Math.round(result.activities.length / 25);
+        const filesToProduce = !splitOutput ? 1 : Math.ceil(result.activities.length / 25);
 
         console.log(`[i] Processing complete, writing to ${filesToProduce === 1 ? "file" : filesToProduce + " files"}..`);
 
@@ -147,6 +148,10 @@ async function createConverter(converterType: string, securityService?: Security
             console.log("[i] Processing file using Delta converter");
             converter = new DeltaConverter(securityService);
             break;
+        case "directa":
+            console.log("[i] Processing file using Directa converter, this is an experimental converter!");
+            converter = new DirectaConverter(securityService);
+            break;
         case "etoro":
             console.log("[i] Processing file using Etoro converter");
             converter = new EtoroConverter(securityService);
@@ -194,6 +199,12 @@ async function createConverter(converterType: string, securityService?: Security
             console.log("[i] Processing file using Swissquote converter");
             converter = new SwissquoteConverter(securityService);
             break;
+        case "tr":
+        case "traderepublic":
+            console.log("[i] Processing file using TradeRepublic converter");
+            console.log("[i] NOTE: This converted is currently experimental");
+            converter = new TradeRepublicConverter(securityService);
+            break;
         case "t212":
         case "trading212":
             console.log("[i] Processing file using Trading212 converter");
@@ -202,10 +213,6 @@ async function createConverter(converterType: string, securityService?: Security
         case "xtb":
             console.log("[i] Processing file using XTB converter");
             converter = new XtbConverter(securityService);
-            break;
-        case "directa":
-            console.log("[i] Processing file using Directa converter, this is an experimental converter!");
-            converter = new DirectaConverter(securityService);
             break;
         default:
             throw new Error(`Unknown converter '${converterType}' provided`);

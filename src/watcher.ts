@@ -70,7 +70,7 @@ chokidar
 
             }, (err) => {
 
-                console.log("[e] An error ocurred while processing.");
+                console.log("[e] An error occurred processing.");
                 console.log(`[e] ${err}`);
 
                 // Move file with errors to output folder so it can be fixed manually.
@@ -98,7 +98,7 @@ chokidar
         }, 5000);
     });
 
-// Prep header set.
+// Prep header sets.
 const headers: Map<string, string> = new Map<string, string>();
 headers.set(`Datum;Konto;Typ av transaktion;Värdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat`, "avanza");
 headers.set(`Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,Received / Paid Currency,Received / Paid Amount,Fee currency,Fee amount,Status,Transaction ID,Address`, "bitvavo");
@@ -121,5 +121,7 @@ headers.set(`Date,Ticker,Type,Quantity,Price per share,Total Amount,Currency,FX 
 headers.set(`Client ID,Trade Date,Value Date,Type,Instrument,Instrument ISIN,Instrument currency,Exchange Description,Instrument Symbol,Event,Amount,Order ID,Conversion Rate`, "saxo");
 headers.set(`Date,Action,Symbol,Description,Quantity,Price,Fees & Comm,Amount`, "schwab");
 headers.set(`Date;Order #;Transaction;Symbol;Name;ISIN;Quantity;Unit price;Costs;Accrued Interest;Net Amount;Balance;Currency`, "swissquote");
+headers.set(`Datum;Transactietype;Waarde (netto);Opmerking;ISIN;Aantal;Kosten;Belasting`, "tradeRepublic");
+headers.set(`Date;Type;Value;Note;ISIN;Shares;Fees;Taxes`, "tradeRepublic");
 headers.set(`Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee`, "trading212");
 headers.set(`ID;Type;Time;Symbol;Comment;Amount`, "xtb");

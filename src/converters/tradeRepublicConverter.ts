@@ -4,13 +4,16 @@ import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import { TradeRepublicRecord } from "../models/tradeRepublicRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
-import { CointrackingRecord } from "../models/cointrackingRecord";
 
-export class CointrackingConverter extends AbstractConverter {
+export class TradeRepublicConverter extends AbstractConverter {
 
     constructor(securityService: SecurityService) {
         super(securityService);
+
+        dayjs.extend(customParseFormat);
     }
 
     /**
@@ -20,27 +23,49 @@ export class CointrackingConverter extends AbstractConverter {
 
         // Parse the CSV and convert to Ghostfolio import format.
         parse(input, {
-            delimiter: ",",
+            delimiter: ";",
             fromLine: 2,
             columns: this.processHeaders(input),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
 
+                // Convert actions to Ghostfolio type.
+                if (context.column === "transactionType") {
+                    const action = columnValue.toLocaleLowerCase();
+
+                    if (action.indexOf("dividend") > -1) {
+                        return "dividend";
+                    }
+                }
+
                 // Parse numbers to floats (from string).
-                if (context.column === "buy" ||
-                    context.column === "sell" ||
-                    context.column === "fee") {
+                if (context.column === "value" ||
+                    context.column === "amount" ||
+                    context.column === "costs" ||
+                    context.column === "tax") {
+
                     if (columnValue === "") {
                         return 0;
                     }
 
-                    return parseFloat(columnValue);
+                    return parseFloat(columnValue.replace(",", "."));
                 }
 
                 return columnValue;
+            },
+            on_record: (record: TradeRepublicRecord) => {
+
+                if (["verkoop", "sell"].some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)) {
+                    record.transactionType = "sell";
+                }
+                if (["aankoop", "buy"].some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)) {
+                    record.transactionType = "buy";
+                }
+
+                return record;
             }
-        }, async (err, records: CointrackingRecord[]) => {
+        }, async (err, records: TradeRepublicRecord[]) => {
 
             try {
 
@@ -76,72 +101,41 @@ export class CointrackingConverter extends AbstractConverter {
                         continue;
                     }
 
-                    let action = record.type.toLocaleLowerCase() === "staking" ? "dividend" : "buy";
-                    let quantity = record.buy;
-                    let price = record.sell;
-                    let fee = record.fee;
-
                     let security: YahooFinanceRecord;
-
-                    // Find the security for the trade. First look for the BUY-SELL pair.
                     try {
                         security = await this.securityService.getSecurity(
+                            record.isin,
                             null,
-                            `${record.currencyBuy}-${action === "dividend" ? record.currencyFee : record.currencySell}`,
-                            null,
-                            null,
+                            record.note,
+                            "EUR",
                             this.progress);
                     }
                     catch (err) {
-                        this.logQueryError(`${record.currencyBuy}-${action === "dividend" ? record.currencyFee : record.currencySell}`, idx + 2);
+                        this.logQueryError(record.note, idx + 2);
                         return errorCallback(err);
-                    }
-
-                    // Check if there was no match found. If so, try the reverse pair.
-                    if (!security) {
-
-                        // If the currency pair is reverse, it's a sell action. 
-                        action = "sell";
-                        quantity = record.sell;
-                        price = record.buy;
-
-                        this.progress.log(`[i] No result found trade with currency ${record.currencyBuy}-${record.currencySell}! Looking for reverse..\n`);
-                        try {
-                            security = await this.securityService.getSecurity(
-                                null,
-                                `${action === "dividend" ? record.currencyFee : record.currencySell}-${record.currencyBuy}`,
-                                null,
-                                null,
-                                this.progress);
-                        }
-                        catch (err) {
-                            this.logQueryError(`${action === "dividend" ? record.currencyFee : record.currencySell}-${record.currencyBuy}`, idx + 2);
-                            return errorCallback(err);
-                        }
                     }
 
                     // Log whenever there was no match found.
                     if (!security) {
-                        this.progress.log(`[i] No result found trade with currency ${record.currencyBuy}-${action === "dividend" ? record.currencyFee : record.currencySell}! Please add this manually..\n`);
+                        this.progress.log(`[i] No result found for ${record.transactionType} action for ${record.isin}! Please add this manually..\n`);
                         bar1.increment();
                         continue;
                     }
 
-                    const unitPrice = price / quantity;
-
-                    // Overide action for staking records.
+                    const date = dayjs(`${record.date}`, "YYYY-MM-DD");
+                    const unitPrice = Math.abs(parseFloat((record.value / record.amount).toFixed(2)));
 
                     // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                         comment: "",
-                        fee: fee,
-                        quantity: quantity,
-                        type: GhostfolioOrderType[action],
-                        unitPrice: action === "dividend" ? 1 : unitPrice,
-                        currency: security.currency,
+                        fee: Math.abs(record.costs),
+                        quantity: record.transactionType === "dividend" ? 1 : Math.abs(record.amount),
+                        type: GhostfolioOrderType[record.transactionType],
+                        unitPrice: record.transactionType === "dividend" ? record.value : unitPrice,
+                        currency: "EUR",
                         dataSource: "YAHOO",
-                        date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                         symbol: security.symbol
                     });
 
@@ -162,24 +156,20 @@ export class CointrackingConverter extends AbstractConverter {
     }
 
     /**
-      * @inheritdoc
-      */
+     * @inheritdoc
+     */
     protected processHeaders(_: string): string[] {
 
-        // Generic header mapping from the CoinTracking CSV export.
+        // Generic header mapping from the TradeRepublic CSV export.
         const csvHeaders = [
-            "type",
-            "buy",
-            "currencyBuy",
-            "sell",
-            "currencySell",
-            "fee",
-            "currencyFee",
-            "exchange",
-            "group",
-            "comment",
             "date",
-            "txId"];
+            "transactionType",
+            "value",
+            "note",
+            "isin",
+            "amount",
+            "costs",
+            "tax"]
 
         return csvHeaders;
     }
@@ -187,9 +177,9 @@ export class CointrackingConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    public isIgnoredRecord(record: CointrackingRecord): boolean {
-        let ignoredRecordTypes = ["deposit", "withdrawal"];
+    public isIgnoredRecord(record: TradeRepublicRecord): boolean {
+        const ignoredRecordTypes = ["onttrekking", "storting", "interest", "removal", "deposit"];
 
-        return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
+        return ignoredRecordTypes.some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)
     }
 }

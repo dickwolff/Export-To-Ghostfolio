@@ -84,106 +84,114 @@ export class AvanzaConverter extends AbstractConverter {
             }
         }, async (err, records: AvanzaRecord[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error occurred while parsing!";
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
+                    }
+
+                    return errorCallback(new Error(errorMsg))
                 }
 
-                return errorCallback(new Error(errorMsg))
-            }
-
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
-
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
-
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
-
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
-                    bar1.increment();
-                    continue;
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
                 }
 
-                const isFee = record.type.toLocaleLowerCase() === "fee";
-                const isInterest = record.type.toLocaleLowerCase() === "interest";
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
 
-                // Interest and fees do not have a security, so add those immediately.
-                if (isFee || isInterest) {
-                    
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
+
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
+                        bar1.increment();
+                        continue;
+                    }
+
+                    const isFee = record.type.toLocaleLowerCase() === "fee";
+                    const isInterest = record.type.toLocaleLowerCase() === "interest";
+
+                    // Interest and fees do not have a security, so add those immediately.
+                    if (isFee || isInterest) {
+
+                        // Add record to export.
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: record.description,
+                            fee: isFee ? Math.abs(record.amount) : 0,
+                            quantity: 1,
+                            type: GhostfolioOrderType[record.type],
+                            unitPrice: isInterest ? Math.abs(record.amount) : 0,
+                            currency: record.currency,
+                            dataSource: "MANUAL",
+                            date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: record.description
+                        });
+
+                        bar1.increment();
+                        continue;
+                    }
+
+                    let security: YahooFinanceRecord;
+                    try {
+                        security = await this.securityService.getSecurity(
+                            record.isin,
+                            null,
+                            record.description,
+                            record.instrumentCurrency,
+                            this.progress);
+                    }
+                    catch (err) {
+                        this.logQueryError(record.isin, idx + 2);
+                        return errorCallback(err);
+                    }
+
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i] No result found for ${record.type} action for ${record.isin} with currency ${record.instrumentCurrency}! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    const quantity = Math.abs(record.quantity);
+                    const unitPrice = Math.abs(record.price);
+
                     // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: record.description,
-                        fee: isFee ? Math.abs(record.amount) : 0,
-                        quantity: 1,
+                        comment: "",
+                        fee: record.fee,
+                        quantity: quantity,
                         type: GhostfolioOrderType[record.type],
-                        unitPrice: isInterest ? Math.abs(record.amount) : 0,
-                        currency: record.currency,
-                        dataSource: "MANUAL",
+                        unitPrice: unitPrice,
+                        currency: record.instrumentCurrency,
+                        dataSource: "YAHOO",
                         date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: record.description
+                        symbol: security.symbol
                     });
 
                     bar1.increment();
-                    continue;
                 }
 
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        record.isin,
-                        null,
-                        record.description,
-                        record.instrumentCurrency,
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.isin, idx + 2);
-                    return errorCallback(err);
-                }
+                this.progress.stop();
 
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${record.type} action for ${record.isin} with currency ${record.instrumentCurrency}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                const quantity = Math.abs(record.quantity);
-                const unitPrice = Math.abs(record.price);
-
-                // Add record to export.
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: "",
-                    fee: record.fee,
-                    quantity: quantity,
-                    type: GhostfolioOrderType[record.type],
-                    unitPrice: unitPrice,
-                    currency: record.instrumentCurrency,
-                    dataSource: "YAHOO",
-                    date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
-                });
-
-                bar1.increment();
+                successCallback(result);
             }
-
-            this.progress.stop()
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 

@@ -65,126 +65,135 @@ export class RabobankConverter extends AbstractConverter {
             }
         }, async (err, records: RabobankRecord[]) => {
 
-            // Check if parsing failed..
-            if (err || records === undefined || records.length === 0) {
-                let errorMsg = "An error ocurred while parsing!";
+            try {
 
-                if (err) {
-                    errorMsg += ` Details: ${err.message}`
-                }
+                // Check if parsing failed..
+                if (err || records === undefined || records.length === 0) {
+                    let errorMsg = "An error occurred while parsing!";
 
-                return errorCallback(new Error(errorMsg))
-            }
-
-            console.log("[i] Read CSV file. Start processing..");
-            const result: GhostfolioExport = {
-                meta: {
-                    date: new Date(),
-                    version: "v0"
-                },
-                activities: []
-            }
-
-            // Populate the progress bar.
-            const bar1 = this.progress.create(records.length, 0);
-
-            for (let idx = 0; idx < records.length; idx++) {
-                const record = records[idx];
-
-                // Check if the record should be ignored.
-                if (this.isIgnoredRecord(record)) {
-
-                    bar1.increment();
-                    continue;
-                }
-
-                const date = dayjs(`${record.date}`, "DD-MM-YYYY");
-
-                // Interest or platform fees do not have a security, so add those immediately.
-                if (record.type.toLocaleLowerCase() === "interest" ||
-                    record.type.toLocaleLowerCase().indexOf("tarieven") > -1) {
-
-                    let orderType = GhostfolioOrderType[record.type];
-                    let description = "";
-
-                    if (record.type.toLocaleLowerCase().indexOf("tarieven") > -1) {
-                        orderType = GhostfolioOrderType.fee;
-                        description = record.type;
+                    if (err) {
+                        errorMsg += ` Details: ${err.message}`
                     }
 
-                    // Add fees record to export.
+                    return errorCallback(new Error(errorMsg))
+                }
+
+                console.log("[i] Read CSV file. Start processing..");
+                const result: GhostfolioExport = {
+                    meta: {
+                        date: new Date(),
+                        version: "v0"
+                    },
+                    activities: []
+                }
+
+                // Populate the progress bar.
+                const bar1 = this.progress.create(records.length, 0);
+
+                for (let idx = 0; idx < records.length; idx++) {
+                    const record = records[idx];
+
+                    // Check if the record should be ignored.
+                    if (this.isIgnoredRecord(record)) {
+
+                        bar1.increment();
+                        continue;
+                    }
+
+                    const date = dayjs(`${record.date}`, "DD-MM-YYYY");
+
+                    // Interest or platform fees do not have a security, so add those immediately.
+                    if (record.type.toLocaleLowerCase() === "interest" ||
+                        record.type.toLocaleLowerCase().indexOf("tarieven") > -1) {
+
+                        let orderType = GhostfolioOrderType[record.type];
+                        let description = "";
+
+                        if (record.type.toLocaleLowerCase().indexOf("tarieven") > -1) {
+                            orderType = GhostfolioOrderType.fee;
+                            description = record.type;
+                        }
+
+                        // Add fees record to export.
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: "",
+                            fee: 0,
+                            quantity: 1,
+                            type: orderType,
+                            unitPrice: record.totalAmount,
+                            currency: record.currency,
+                            dataSource: "MANUAL",
+                            date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: description
+                        });
+
+                        bar1.increment();
+                        continue;
+                    }
+
+                    let security: YahooFinanceRecord;
+                    try {
+                        security = await this.securityService.getSecurity(
+                            record.isin,
+                            null,
+                            record.name,
+                            record.currency,
+                            this.progress);
+                    }
+                    catch (err) {
+                        this.logQueryError(record.isin, idx + 2);
+                        return errorCallback(err);
+                    }
+
+                    // Log whenever there was no match found.
+                    if (!security) {
+                        this.progress.log(`[i] No result found for ${record.type} action for ${record.name}! Please add this manually..\n`);
+                        bar1.increment();
+                        continue;
+                    }
+
+                    let price, quantity, fees = 0;
+
+                    // On dividend records, amount and quantity are reversed.
+                    if (record.type === "dividend") {
+                        quantity = record.price;
+                        price = record.amount;
+                        fees = 0;
+                    }
+                    else {
+                        quantity = record.amount
+                        price = record.price;
+                        fees = record.currencyCosts;
+                    }
+
+                    // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                         comment: "",
-                        fee: 0,
-                        quantity: 1,
-                        type: orderType,
-                        unitPrice: record.totalAmount,
+                        fee: fees,
+                        quantity: quantity,
+                        type: GhostfolioOrderType[record.type],
+                        unitPrice: price,
                         currency: record.currency,
-                        dataSource: "MANUAL",
+                        dataSource: "YAHOO",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: description
+                        symbol: security.symbol
                     });
 
                     bar1.increment();
-                    continue;
                 }
 
-                let security: YahooFinanceRecord;
-                try {
-                    security = await this.securityService.getSecurity(
-                        record.isin,
-                        null,
-                        record.name,
-                        record.currency,
-                        this.progress);
-                }
-                catch (err) {
-                    this.logQueryError(record.isin, idx + 2);
-                    return errorCallback(err);
-                }
+                this.progress.stop();
 
-                // Log whenever there was no match found.
-                if (!security) {
-                    this.progress.log(`[i] No result found for ${record.type} action for ${record.name}! Please add this manually..\n`);
-                    bar1.increment();
-                    continue;
-                }
-
-                let price, quantity, fees = 0;
-
-                // On dividend records, amount and quantity are reversed.
-                if (record.type === "dividend") {
-                    quantity = record.price;
-                    price = record.amount;
-                    fees = 0;
-                }
-                else {
-                    quantity = record.amount
-                    price = record.price;
-                    fees = record.currencyCosts;
-                }
-
-                // Add record to export.
-                result.activities.push({
-                    accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: "",
-                    fee: fees,
-                    quantity: quantity,
-                    type: GhostfolioOrderType[record.type],
-                    unitPrice: price,
-                    currency: record.currency,
-                    dataSource: "YAHOO",
-                    date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
-                });
-
-                bar1.increment();
+                successCallback(result);
             }
-
-            this.progress.stop()
-
-            successCallback(result);
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
+            }
         });
     }
 
