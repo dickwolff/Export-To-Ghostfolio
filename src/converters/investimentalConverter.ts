@@ -145,7 +145,7 @@ export class InvestimentalConverter extends AbstractConverter {
         return orderGroups;
     }
 
-    private combineRecords(orderRecords: InvestimentalRecord[]): InvestimentalRecord | null {
+    public combineRecords(orderRecords: InvestimentalRecord[]): InvestimentalRecord | null {
         orderRecords.sort((a, b) => new Date(a.updateTime).getTime() - new Date(b.updateTime).getTime());
 
         let remainingVolume = 0;

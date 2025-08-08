@@ -2,6 +2,7 @@ import { InvestimentalConverter } from "./investimentalConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
+import { InvestimentalRecord } from "../models/investimentalRecord";
 
 
 describe("investimentalConverter", () => {
@@ -35,7 +36,7 @@ describe("investimentalConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(6);
+      expect(actualExport.activities.length).toBe(7);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
@@ -121,5 +122,526 @@ describe("investimentalConverter", () => {
 
       done();
     }, () => done.fail("Should not have an error!"));
+  });
+
+  describe("test combineRecords", () => {
+    let sut: InvestimentalConverter;
+
+    beforeEach(() => {
+      sut = new InvestimentalConverter(new SecurityService(new YahooFinanceServiceMock()));
+    });
+
+    it("should return null for empty records array", () => {
+      // Act
+      const result = sut.combineRecords([]);
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it("should return null when no executed volume", () => {
+      // Arrange
+      const records: InvestimentalRecord[] = [
+        {
+          orderID: "6750",
+          orderNumber: "58525243",
+          side: "Buy",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
+          price: 24.655,
+          volume: 20,
+          disclosed: 0,
+          value: 493.1,
+          fee: 3.27,
+          term: "Day",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 0,
+          lastTradeTicket: 0,
+          status: "Active",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "New",
+          updateTime: "2024-03-05 10:15:40",
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        }
+      ];
+
+      // Act
+      const result = sut.combineRecords(records);
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it("should combine records with single fill execution", () => {
+      // Arrange
+      const records: InvestimentalRecord[] = [
+        {
+          orderID: "13268",
+          orderNumber: "59479550",
+          side: "Sell",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
+          price: 27.8,
+          volume: 210,
+          disclosed: 0,
+          value: 5838,
+          fee: 0,
+          term: "Open",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 0,
+          lastTradeTicket: 0,
+          status: "Active",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "New",
+          updateTime: "2024-05-31 09:45:00",
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        },
+        {
+          orderID: "13268",
+          orderNumber: "59479550",
+          side: "Sell",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
+          price: 27.19,
+          volume: 64,
+          disclosed: 0,
+          value: 0,
+          fee: 0,
+          term: "Open",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 15094,
+          lastTradeTicket: 24734269,
+          status: "Inactive",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "Fil",
+          updateTime: "2024-05-31 12:48:44",
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        }
+      ];
+
+      // Act
+      const result = sut.combineRecords(records);
+
+      // Assert
+      expect(result).toBeTruthy();
+      expect(result!.volume).toBe(64); // When status is Inactive, executed volume = record.volume = 64
+      expect(result!.price).toBe(27.19);
+      expect(result!.fee).toBe(0);
+      expect(result!.status).toBe("Inactive");
+      expect(result!.updateType).toBe("Fil");
+    });
+
+    it("should combine records with multiple fills and calculate average price", () => {
+      // Arrange
+      const records: InvestimentalRecord[] = [
+        {
+          orderID: "13268",
+          orderNumber: "59479550",
+          side: "Sell",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
+          price: 27.8,
+          volume: 210,
+          disclosed: 0,
+          value: 5838,
+          fee: 0,
+          term: "Open",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 0,
+          lastTradeTicket: 0,
+          status: "Active",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "New",
+          updateTime: "2024-05-31 09:45:00",
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        },
+        {
+          orderID: "13268",
+          orderNumber: "59479550",
+          side: "Sell",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
+          price: 27.185,
+          volume: 200,
+          disclosed: 0,
+          value: 5437,
+          fee: 0,
+          term: "Open",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 15086,
+          lastTradeTicket: 24734177,
+          status: "Active",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "Fil",
+          updateTime: "2024-05-31 12:41:49",
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        },
+        {
+          orderID: "13268",
+          orderNumber: "59479550",
+          side: "Sell",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
+          price: 27.19,
+          volume: 145,
+          disclosed: 0,
+          value: 3942.55,
+          fee: 0,
+          term: "Open",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 15087,
+          lastTradeTicket: 24734207,
+          status: "Active",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "Fil",
+          updateTime: "2024-05-31 12:44:12",
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        },
+        {
+          orderID: "13268",
+          orderNumber: "59479550",
+          side: "Sell",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
+          price: 27.19,
+          volume: 137,
+          disclosed: 0,
+          value: 3725.03,
+          fee: 0,
+          term: "Open",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 15092,
+          lastTradeTicket: 24734255,
+          status: "Active",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "Fil",
+          updateTime: "2024-05-31 12:47:24",
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        },
+        {
+          orderID: "13268",
+          orderNumber: "59479550",
+          side: "Sell",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
+          price: 27.19,
+          volume: 64,
+          disclosed: 0,
+          value: 1740.16,
+          fee: 0,
+          term: "Open",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 15093,
+          lastTradeTicket: 24734266,
+          status: "Active",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "Fil",
+          updateTime: "2024-05-31 12:48:32",
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        },
+        {
+          orderID: "13268",
+          orderNumber: "59479550",
+          side: "Sell",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
+          price: 27.19,
+          volume: 64,
+          disclosed: 0,
+          value: 0,
+          fee: 0,
+          term: "Open",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 15094,
+          lastTradeTicket: 24734269,
+          status: "Inactive",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "Fil",
+          updateTime: "2024-05-31 12:48:44",
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        }
+      ];
+
+      // Act
+      const result = sut.combineRecords(records);
+
+      // Assert
+      expect(result).toBeTruthy();
+      expect(result!.volume).toBe(210); // 10 + 55 + 8 + 73 + 64 = 210 executed
+      expect(result!.price).toBe(27.1898); // Calculated average price rounded to 4 decimal places
+      expect(result!.fee).toBe(0);
+      expect(result!.status).toBe("Inactive");
+    });
+
+    it("should handle records with missing fee values", () => {
+      // Arrange
+      const records: InvestimentalRecord[] = [
+        {
+          orderID: "6750",
+          orderNumber: "58525243",
+          side: "Buy",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
+          price: 24.655,
+          volume: 20,
+          disclosed: 0,
+          value: 493.1,
+          fee: 3.27,
+          term: "Day",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 0,
+          lastTradeTicket: 0,
+          status: "Active",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "New",
+          updateTime: "2024-03-05 10:15:40",
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        },
+        {
+          orderID: "6750",
+          orderNumber: "58525243",
+          side: "Buy",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
+          price: 24.745,
+          volume: 20,
+          disclosed: 0,
+          value: 0,
+          fee: 0, // Missing fee
+          term: "Day",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 7573,
+          lastTradeTicket: 24141773,
+          status: "Inactive",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "Fil",
+          updateTime: "2024-03-05 12:06:20",
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        }
+      ];
+
+      // Act
+      const result = sut.combineRecords(records);
+
+      // Assert
+      expect(result).toBeTruthy();
+      expect(result!.volume).toBe(20);
+      expect(result!.price).toBe(24.745);
+      expect(result!.fee).toBe(3.27); // Should use last valid fee
+    });
+
+    it("should sort records by update time before processing", () => {
+      // Arrange
+      const records: InvestimentalRecord[] = [
+        {
+          orderID: "6750",
+          orderNumber: "58525243",
+          side: "Buy",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
+          price: 24.745,
+          volume: 20,
+          disclosed: 0,
+          value: 0,
+          fee: 3.28,
+          term: "Day",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 7573,
+          lastTradeTicket: 24141773,
+          status: "Inactive",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "Fil",
+          updateTime: "2024-03-05 12:06:20", // Later time
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        },
+        {
+          orderID: "6750",
+          orderNumber: "58525243",
+          side: "Buy",
+          exchange: "BVB",
+          symbol: "TVBETETF",
+          market: "REGS",
+          price: 24.655,
+          volume: 20,
+          disclosed: 0,
+          value: 493.1,
+          fee: 3.27,
+          term: "Day",
+          validity: "",
+          triggerType: "None",
+          triggerPrice: 0,
+          settlementTerm: "T+2",
+          settlementDate: "",
+          settlementType: "Net",
+          shortSell: "No",
+          accountId: "JD123456RR1",
+          accountName: "JOHN DOE [RON]",
+          lastTradeId: 0,
+          lastTradeTicket: 0,
+          status: "Active",
+          initiatedBy: "JD123456",
+          updatedBy: "JD123456",
+          updateType: "New",
+          updateTime: "2024-03-05 10:15:40", // Earlier time
+          requestId: "",
+          requestType: "",
+          requestStatus: ""
+        }
+      ];
+
+      // Act
+      const result = sut.combineRecords(records);
+
+      // Assert
+      expect(result).toBeTruthy();
+      expect(result!.volume).toBe(20);
+      expect(result!.price).toBe(24.745);
+      expect(result!.fee).toBe(3.28);
+      expect(result!.updateTime).toBe("2024-03-05 12:06:20"); // Should use last record's time
+    });
   });
 });
