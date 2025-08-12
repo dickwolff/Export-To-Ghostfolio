@@ -138,7 +138,7 @@ export class SaxoConverter extends AbstractConverter {
                     }
                     else {
 
-                        const actionDetails = record.event.match(/(\d+)\s+@\s+([\d.]+)/)
+                        const actionDetails = record.event.match(/(\d+(?:\.\d+)?)\s+@\s+([\d.]+)/)
 
                         // Make negative numbers (on sell records) absolute.
                         numberOfShares = parseFloat(actionDetails[1]);
