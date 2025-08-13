@@ -18,7 +18,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^22.15.21",
     "jest": "^30.0.5",
-    "ts-jest": "^29.4.0",
+    "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },
@@ -31,7 +31,7 @@
     "csv-parse": "^6.1.0",
     "dayjs": "^1.11.13",
     "dotenv": "^17.2.1",
-    "tsx": "^4.20.3",
+    "tsx": "^4.20.4",
     "yahoo-finance2": "^2.13.3"
   },
   "engines": {
