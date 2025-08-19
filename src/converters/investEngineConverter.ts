@@ -40,6 +40,7 @@ export class InvestEngineConverter extends AbstractConverter {
                     else if (transactionType === "sell") {
                         return "sell";
                     }
+                    // Add dividend in the future?
                 }
 
                 // Remove the pound sign (£) from any field.
@@ -101,7 +102,7 @@ export class InvestEngineConverter extends AbstractConverter {
                             isin,
                             null,
                             null,
-                            "GBP", // InvestEngine uses GBP
+                            "GBP", // InvestEngine uses GBP.
                             this.progress);
                     }
                     catch (err) {
