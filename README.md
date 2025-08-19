@@ -6,7 +6,9 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/dickwolff/export-to-ghostfolio?style=for-the-badge)](https://hub.docker.com/r/dickwolff/export-to-ghostfolio) &nbsp; ![Stars](https://img.shields.io/github/stars/dickwolff/export-to-ghostfolio?style=for-the-badge) &nbsp; [![Quality Gate Status](https://img.shields.io/sonar/quality_gate/dickwolff_Export-To-Ghostfolio.svg?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge)](https://sonarcloud.io/dashboard?id=dickwolff_Export-To-Ghostfolio) &nbsp; ![Code Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/dickwolff/dd5dc24ffa62de59b3d836f856f48a10/raw/cov.json) 
  
 
-This tool allows you to convert CSV transaction exports to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for 22 brokers:
+This tool allows you to convert CSV transaction exports to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for 23 brokers:
+
+![Overview of converters](./assets/social.png)
 
 - [Avanza](https://avanza.se)
 - [Bitvavo](https://bitvavo.com)
@@ -20,6 +22,7 @@ This tool allows you to convert CSV transaction exports to an import file that c
 - [Finpension](https://finpension.ch)
 - [Freetrade](https://freetrade.io)
 - [Interactive Brokers (IBKR)](https://www.interactivebrokers.com)
+- [InvestEngine](https://investengine.com)
 - [Investimental](https://www.investimental.ro/)
 - [Parqet](https://www.parqet.com/)
 - [Rabobank](https://rabobank.nl)
