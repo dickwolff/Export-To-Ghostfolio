@@ -100,7 +100,7 @@ export class InvestEngineConverter extends AbstractConverter {
                         security = await this.securityService.getSecurity(
                             isin,
                             null,
-                            securityName,
+                            null,
                             "GBP", // InvestEngine uses GBP
                             this.progress);
                     }
