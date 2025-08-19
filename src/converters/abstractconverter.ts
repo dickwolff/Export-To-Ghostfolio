@@ -90,6 +90,8 @@ export abstract class AbstractConverter {
                 col = col.slice(0, -3) + "Chf";
             } else if (col.endsWith("CET")) {
                 col = col.slice(0, -3) + "Cet";
+            } else if (col === "securityISIN") {
+                col = "securityIsin";
             }
 
             csvHeaders.push(col);
