@@ -116,52 +116,51 @@ describe("investEngineConverter", () => {
                 done();
             });
         });
-    });
 
-    it("should log when Yahoo Finance returns no symbol", (done) => {
+        it("should log when Yahoo Finance returns no symbol", (done) => {
 
-        // Arrange
-        let tempFileContent = "";
-        tempFileContent += `Security / ISIN,Transaction Type,Quantity,Share Price,Total Trade Value,Trade Date/Time,Settlement Date,Broker\n`;
-        tempFileContent += `Vanguard FTSE All-World / ISIN IE00BK5BQT80,Buy,2.699055,£110.79,£299.04,23/12/24 15:18:12,27/12/24,None`;
+            // Arrange
+            let tempFileContent = "";
+            tempFileContent += `Security / ISIN,Transaction Type,Quantity,Share Price,Total Trade Value,Trade Date/Time,Settlement Date,Broker\n`;
+            tempFileContent += `Vanguard FTSE All-World / ISIN IE00BK5BQT81,Buy,2.699055,£110.79,£299.04,23/12/24 15:18:12,27/12/24,None`;
 
-        // Mock Yahoo Finance service to return no quotes.
-        const yahooFinanceServiceMock = new YahooFinanceServiceMock();
-        jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { return Promise.resolve({ quotes: [] }) });
-        const sut = new InvestEngineConverter(new SecurityService(yahooFinanceServiceMock));
+            // Mock Yahoo Finance service to return no quotes.
+            const yahooFinanceServiceMock = new YahooFinanceServiceMock();
+            jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { return Promise.resolve({ quotes: [] }) });
+            const sut = new InvestEngineConverter(new SecurityService(yahooFinanceServiceMock));
 
-        // Bit hacky, but it works.
-        const consoleSpy = jest.spyOn((sut as any).progress, "log");
+            // Bit hacky, but it works.
+            const consoleSpy = jest.spyOn((sut as any).progress, "log");
 
-        // Act
-        sut.processFileContents(tempFileContent, () => {
+            // Act
+            sut.processFileContents(tempFileContent, () => {
 
-            expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for sell action for IE00BK5BQT80 with currency GBP! Please add this manually..\n");
+                expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for sell action for IE00BK5BQT80 with currency GBP! Please add this manually..\n");
 
-            done();
-        }, () => done.fail("Should not have an error!"));
-    });
+                done();
+            }, () => done.fail("Should not have an error!"));
+        });
 
-    it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
+        it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
 
-        // Arrange
-        const tempFileContent = "Security / ISIN,Transaction Type,Quantity,Share Price,Total Trade Value,Trade Date/Time,Settlement Date,Broker\n";
-        const sut = new InvestEngineConverter(new SecurityService(new YahooFinanceServiceMock()));
+            // Arrange
+            const tempFileContent = "Security / ISIN,Transaction Type,Quantity,Share Price,Total Trade Value,Trade Date/Time,Settlement Date,Broker\n";
+            const sut = new InvestEngineConverter(new SecurityService(new YahooFinanceServiceMock()));
 
-        const consoleSpy = jest.spyOn(console, "log");
+            const consoleSpy = jest.spyOn(console, "log");
 
-        // Act
-        sut.processFileContents(tempFileContent, () => {
-            done.fail("Should not succeed!");
-        }, (err: Error) => {
+            // Act
+            sut.processFileContents(tempFileContent, () => {
+                done.fail("Should not succeed!");
+            }, (err: Error) => {
 
-            // Assert
-            expect(consoleSpy).toHaveBeenCalledWith("[e] An error occurred while processing the file contents. Stack trace:");
-            expect(consoleSpy).toHaveBeenCalledWith(err.stack);
-            expect(err).toBeTruthy();
+                // Assert
+                expect(consoleSpy).toHaveBeenCalledWith("[e] An error occurred while processing the file contents. Stack trace:");
+                expect(consoleSpy).toHaveBeenCalledWith(err.stack);
+                expect(err).toBeTruthy();
 
-            done();
+                done();
+            });
         });
     });
-
 });
