@@ -28,6 +28,16 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '22'
+      
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.10.2
+        with:
+          versionSpec: "5.x"
+
+      - name: Run GitVersion
+        uses: gittools/actions/gitversion/execute@v0.10.2
+        with:
+          useConfigFile: true
 
       - name: Determine version
         run: |
