@@ -28,7 +28,21 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '22'
-  
+
+      - name: Determine version
+        run: |
+          if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
+            echo "IMAGE_VERSION=${{ env.GitVersion_SemVer }}" >> $GITHUB_ENV
+          else
+            echo "IMAGE_VERSION=${{ env.GitVersion_MajorMinorPatch }}" >> $GITHUB_ENV
+          fi
+
+      - name: Update version in sonar-project.properties file
+        run: |
+          sed -i "s/__VERSION__/${{ env.IMAGE_VERSION }}/" sonar-project.properties
+          echo "Updated sonar-project.properties:"
+          cat sonar-project.properties
+
       - run: npm install
 
       - run: npm run test
