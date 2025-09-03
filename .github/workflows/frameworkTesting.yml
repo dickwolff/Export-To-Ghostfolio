@@ -14,6 +14,7 @@ on:
     paths:
       - "src/**"
       - "package.json"
+      - "sonar-project.properties"
   workflow_dispatch: # Also allow manual triggering
 
 jobs:
@@ -23,17 +24,48 @@ jobs:
     permissions: 
       pull-requests: write 
     steps:
-      - uses: actions/checkout@v3
-  
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: actions/setup-node@v3
         with:
           node-version: '22'
-  
+      
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.10.2
+        with:
+          versionSpec: "5.x"
+
+      - name: Run GitVersion
+        uses: gittools/actions/gitversion/execute@v0.10.2
+        with:
+          useConfigFile: true
+
+      - name: Determine version
+        run: |
+          if [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
+            echo "IMAGE_VERSION=${{ env.GitVersion_SemVer }}" >> $GITHUB_ENV
+          else
+            echo "IMAGE_VERSION=${{ env.GitVersion_MajorMinorPatch }}" >> $GITHUB_ENV
+          fi
+
+      - name: Update version in sonar-project.properties file
+        run: |
+          sed -i "s/__VERSION__/${{ env.IMAGE_VERSION }}/" sonar-project.properties
+          echo "Updated sonar-project.properties:"
+          cat sonar-project.properties
+
       - run: npm install
 
       - run: npm run test
         env: 
           E2G_CACHE_FOLDER: 'tmp/e2g-cache'
+
+      - name: Run SonarCloud analysis
+        uses: SonarSource/sonarqube-scan-action@v5
+        env: 
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   
       - name: Convert code coverage results for summary
         uses: irongut/CodeCoverageSummary@v1.3.0
@@ -87,4 +119,4 @@ jobs:
         with:
           token: ${{ secrets.GIST_SECRET }}
           gist_id: dd5dc24ffa62de59b3d836f856f48a10
-          file_path: cov.json 
+          file_path: cov.json

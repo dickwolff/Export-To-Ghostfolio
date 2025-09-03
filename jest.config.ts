@@ -5,16 +5,16 @@ const config: Config.InitialOptions = {
   verbose: true,
   testTimeout: 5000,
   transform: {
-    '^.+\\.tsx?$': 'ts-jest'
+    "^.+\\.tsx?$": "ts-jest"
   },
-  coverageDirectory: 'coverage',
-  collectCoverageFrom: ['src/**/*.ts'],
+  coverageDirectory: "coverage",
+  collectCoverageFrom: ["src/**/*.ts"],
   coveragePathIgnorePatterns: [
-    '/src/models',
-    '/src/manual.ts',
-    '/src/watcher.ts',
-    '/src/converter.ts'],
-  coverageReporters: ['text', 'cobertura', 'html'],
+    "/src/models",
+    "/src/manual.ts",
+    "/src/watcher.ts",
+    "/src/converter.ts"],
+  coverageReporters: ["text", "cobertura", "html", "lcov"],
   setupFiles: ["<rootDir>/src/testing/testEnvVars.js"]
 };
 
