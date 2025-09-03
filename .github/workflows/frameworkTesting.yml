@@ -14,6 +14,7 @@ on:
     paths:
       - "src/**"
       - "package.json"
+      - "sonar-project.properties"
   workflow_dispatch: # Also allow manual triggering
 
 jobs:
