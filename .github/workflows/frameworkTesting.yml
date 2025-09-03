@@ -34,6 +34,11 @@ jobs:
       - run: npm run test
         env: 
           E2G_CACHE_FOLDER: 'tmp/e2g-cache'
+
+      - name: Run SonarCloud analysis
+        uses: SonarSource/sonarqube-scan-action@v5
+        env: 
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   
       - name: Convert code coverage results for summary
         uses: irongut/CodeCoverageSummary@v1.3.0
@@ -87,4 +92,4 @@ jobs:
         with:
           token: ${{ secrets.GIST_SECRET }}
           gist_id: dd5dc24ffa62de59b3d836f856f48a10
-          file_path: cov.json 
+          file_path: cov.json
