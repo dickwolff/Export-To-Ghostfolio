@@ -46,7 +46,7 @@ export class EtoroConverter extends AbstractConverter {
                     else if (action.indexOf("interest") > -1) {
                         return "interest";
                     }
-                    else if (action.indexOf("fee") > -1) {
+                    else if (action.indexOf("fee") > -1 || action.indexOf("sdrt") > -1) {
                         return "fee";
                     }
                     else if (action.indexOf("refund") > -1) {
