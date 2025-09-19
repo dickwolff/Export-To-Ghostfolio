@@ -19,6 +19,7 @@ import { FinpensionConverter } from "./converters/finpensionConverter";
 import { FreetradeConverter } from "./converters/freetradeConverter";
 import { GhostfolioExport } from "./models/ghostfolioExport";
 import { IbkrConverter } from "./converters/ibkrConverter";
+import { InvestEngineConverter } from "./converters/investEngineConverter";
 import { InvestimentalConverter } from "./converters/investimentalConverter";
 import { ParqetConverter } from "./converters/parqetConverter";
 import { RabobankConverter } from "./converters/rabobankConverter";
@@ -169,6 +170,11 @@ async function createConverter(converterType: string, securityService?: Security
         case "ibkr":
             console.log("[i] Processing file using IBKR converter");
             converter = new IbkrConverter(securityService);
+            break;
+        case "ie":
+        case "investengine":
+            console.log("[i] Processing file using InvestEngine converter");
+            converter = new InvestEngineConverter(securityService);
             break;
         case "investimental":
             console.log("[i] Processing file using Investimental converter");
