@@ -68,6 +68,7 @@ export class InvestEngineConverter extends AbstractConverter {
                         errorMsg += ` Details: ${err.message}`
                     }
 
+                    this.progress.stop();
                     return errorCallback(new Error(errorMsg))
                 }
 
@@ -107,6 +108,7 @@ export class InvestEngineConverter extends AbstractConverter {
                     }
                     catch (err) {
                         this.logQueryError(isin || securityName, idx + 2);
+                        this.progress.stop();
                         return errorCallback(err);
                     }
 
