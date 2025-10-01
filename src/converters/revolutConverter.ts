@@ -34,7 +34,7 @@ export class RevolutConverter extends AbstractConverter {
     public isIgnoredRecord(record: RevolutRecord): boolean {
         let ignoredRecordTypes = ["transfer from", "withdrawal", "top-up", "stake", "send", "receive"];
 
-        return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().indexOf(t) > -1)
+        return ignoredRecordTypes.some(t => record.type.toLocaleLowerCase().includes(t))
     }
 
     private processInvestFileContents(input: string, successCallback: any, errorCallback: any): void {
