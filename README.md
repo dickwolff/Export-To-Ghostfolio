@@ -113,6 +113,10 @@ For trades, select "Trades". Then select the following properties: `Buy/Sell, Tr
 
 For dividends, select "Cash Transactions". Then select the following properties: `Type, SettleDate, ISIN, Description, Amount, CurrencyPrimary`.
 
+### InvestEngine
+
+Follow the instructions on the [InvestEngine website](https://help.investengine.com/hc/en-gb/articles/8927819031581-How-to-download-reports-and-statements) to generate a CSV export of your portfolio.
+
 ### Investimental
 
 Login to your Investimental account and click on the "Orders Daily Log". Select account and desired time period then click refresh button. Transactions should appear and then click on the download button.
