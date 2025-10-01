@@ -56,16 +56,16 @@ export class RevolutConverter extends AbstractConverter {
                 if (context.column === "type") {
                     const action = columnValue.toLocaleLowerCase();
 
-                    if (action.indexOf("buy") > -1 || action.indexOf("stock split") > -1) {
+                    if (action.includes("buy") || action.includes("stock split")) {
                         return "buy";
                     }
-                    else if (action.indexOf("sell") > -1) {
+                    else if (action.includes("sell")) {
                         return "sell";
                     }
-                    else if (action.indexOf("dividend") > -1) {
+                    else if (action.includes("dividend")) {
                         return "dividend";
                     }
-                    else if (action.indexOf("fee") > -1) {
+                    else if (action.includes("fee")) {
                         return "fee";
                     }
                 }
@@ -102,7 +102,7 @@ export class RevolutConverter extends AbstractConverter {
                 record.value = this.parseNumericValue(`${record.value}`);
                 record.fees = this.parseNumericValue(`${record.fees}`);
 
-                record.quantity = parseFloat(`${record.quantity}`);
+                record.quantity = Number.parseFloat(`${record.quantity}`);
 
                 return record;
             }
@@ -259,12 +259,12 @@ export class RevolutConverter extends AbstractConverter {
 
         const amount = value.match(/([\d.,]+)/g);
         if (amount) {
-            const result = parseFloat(amount[0].replace(/,/g, ""));
+            const result = Number.parseFloat(amount[0].replace(/,/g, ""));
             if (!Number.isNaN(result)) {
                 return result;
             }
         }
 
-        throw Error(`${value} is not a currency value`);
+        throw new Error(`${value} is not a currency value`);
     }
 }
