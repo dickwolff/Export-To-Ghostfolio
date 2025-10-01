@@ -35,7 +35,7 @@ describe("revolutConverter", () => {
         // Assert
         expect(actualExport).toBeTruthy();
         expect(actualExport.activities.length).toBeGreaterThan(0);
-        expect(actualExport.activities.length).toBe(6);
+        expect(actualExport.activities.length).toBe(7);
         actualExport.activities.forEach(activity => {
           expect(activity.unitPrice).not.toBeNaN();
           expect(activity.quantity).not.toBeNaN();

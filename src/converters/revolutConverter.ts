@@ -73,8 +73,8 @@ export class RevolutConverter extends AbstractConverter {
                 // Parse numbers to floats (from string).
                 if (context.column === "quantity" ||
                     context.column === "pricePerShare" ||
-                    context.column === "totalAmount") {
-                    return this.parseNumericValue(columnValue);
+                    context.column === "totalAmount") {                        
+                    return this.parseNumericValue(columnValue.replace(",", "."));
                 }
 
                 return columnValue;
