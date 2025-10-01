@@ -63,7 +63,7 @@ jobs:
           E2G_CACHE_FOLDER: 'tmp/e2g-cache'
 
       - name: Run SonarCloud analysis
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         env: 
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   
