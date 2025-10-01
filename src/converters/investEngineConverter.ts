@@ -51,7 +51,7 @@ export class InvestEngineConverter extends AbstractConverter {
                     context.column === "sharePrice" ||
                     context.column === "totalTradeValue") {
 
-                    return parseFloat(columnValue || "0");
+                    return Number.parseFloat(columnValue || "0");
                 }
 
                 return columnValue;
