@@ -47,6 +47,9 @@ export class FinpensionConverter extends AbstractConverter {
                     else if (action.indexOf("fee") > -1) {
                         return "fee";
                     }
+                    else if (action.indexOf("interest") > -1) {
+                        return "interest";
+                    }
                 }
 
                 // Parse numbers to floats (from string).
@@ -94,7 +97,7 @@ export class FinpensionConverter extends AbstractConverter {
                         continue;
                     }
 
-                    // Fees do not have a security, so add those immediately.
+                    // Fees and interests do not have a security, so add those immediately.
                     if (record.category.toLocaleLowerCase() === "fee") {
 
                         const feeAmount = Math.abs(record.cashFlow);
@@ -107,6 +110,28 @@ export class FinpensionConverter extends AbstractConverter {
                             quantity: 1,
                             type: GhostfolioOrderType[record.category],
                             unitPrice: feeAmount,
+                            currency: record.assetCurrency,
+                            dataSource: "MANUAL",
+                            date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
+                            symbol: record.category
+                        });
+
+                        bar1.increment();
+                        continue;
+                    }
+
+                    if (record.category.toLocaleLowerCase() === "interest") {
+
+                        const interestAmount = Math.abs(record.cashFlow);
+
+                        // Add interest record to export.
+                        result.activities.push({
+                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                            comment: "",
+                            fee: 0,
+                            quantity: 1,
+                            type: GhostfolioOrderType[record.category],
+                            unitPrice: interestAmount,
                             currency: record.assetCurrency,
                             dataSource: "MANUAL",
                             date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),

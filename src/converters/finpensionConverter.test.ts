@@ -34,7 +34,7 @@ describe("finpensionConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(24);
+      expect(actualExport.activities.length).toBe(26);
 
       done();
     }, () => { done.fail("Should not have an error!"); });
@@ -163,5 +163,38 @@ describe("finpensionConverter", () => {
 
       done();
     });
+  });
+
+  it("should process interests records", (done) => {
+
+    // Arrange
+    let tempFileContent = "";
+    tempFileContent += `Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Price in CHF";"Cash Flow";Balance\n`;
+    tempFileContent += `2025-01-07;Interests;;;;CHF;1.0000000000;;0.450000;200.988502\n`;
+    tempFileContent += `2025-04-07;Interests;;;;CHF;1.0000000000;;0.230000;201.218502`;
+
+    const sut = new FinpensionConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+    // Act
+    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+
+      // Assert
+      expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBe(2);
+
+      expect(actualExport.activities[0].type).toBe("INTEREST");
+      expect(actualExport.activities[0].unitPrice).toBe(0.450000);
+      expect(actualExport.activities[0].quantity).toBe(1);
+      expect(actualExport.activities[0].currency).toBe("CHF");
+      expect(actualExport.activities[0].dataSource).toBe("MANUAL");
+      expect(actualExport.activities[0].symbol).toBe("interest");
+
+      expect(actualExport.activities[1].type).toBe("INTEREST");
+      expect(actualExport.activities[1].unitPrice).toBe(0.230000);
+      expect(actualExport.activities[1].quantity).toBe(1);
+      expect(actualExport.activities[1].symbol).toBe("interest");
+
+      done();
+    }, () => done.fail("Should not have an error!"));
   });
 });
