@@ -184,6 +184,7 @@ describe("finpensionConverter", () => {
 
       expect(actualExport.activities[0].type).toBe("INTEREST");
       expect(actualExport.activities[0].unitPrice).toBe(0.450000);
+      expect(actualExport.activities[0].fee).toBe(0);
       expect(actualExport.activities[0].quantity).toBe(1);
       expect(actualExport.activities[0].currency).toBe("CHF");
       expect(actualExport.activities[0].dataSource).toBe("MANUAL");
@@ -191,7 +192,10 @@ describe("finpensionConverter", () => {
 
       expect(actualExport.activities[1].type).toBe("INTEREST");
       expect(actualExport.activities[1].unitPrice).toBe(0.230000);
+      expect(actualExport.activities[1].fee).toBe(0);
       expect(actualExport.activities[1].quantity).toBe(1);
+      expect(actualExport.activities[1].currency).toBe("CHF");
+      expect(actualExport.activities[1].dataSource).toBe("MANUAL");
       expect(actualExport.activities[1].symbol).toBe("interest");
 
       done();

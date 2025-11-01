@@ -98,40 +98,19 @@ export class FinpensionConverter extends AbstractConverter {
                     }
 
                     // Fees and interests do not have a security, so add those immediately.
-                    if (record.category.toLocaleLowerCase() === "fee") {
+                    const categoryLower = record.category.toLocaleLowerCase();
+                    if (categoryLower === "fee" || categoryLower === "interest") {
 
-                        const feeAmount = Math.abs(record.cashFlow);
+                        const amount = Math.abs(record.cashFlow);
 
-                        // Add fees record to export.
+                        // Add fee or interest record to export.
                         result.activities.push({
                             accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                             comment: null,
-                            fee: feeAmount,
+                            fee: categoryLower === "fee" ? amount : 0,
                             quantity: 1,
                             type: GhostfolioOrderType[record.category],
-                            unitPrice: feeAmount,
-                            currency: record.assetCurrency,
-                            dataSource: "MANUAL",
-                            date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                            symbol: record.category
-                        });
-
-                        bar1.increment();
-                        continue;
-                    }
-
-                    if (record.category.toLocaleLowerCase() === "interest") {
-
-                        const interestAmount = Math.abs(record.cashFlow);
-
-                        // Add interest record to export.
-                        result.activities.push({
-                            accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                            comment: null,
-                            fee: 0,
-                            quantity: 1,
-                            type: GhostfolioOrderType[record.category],
-                            unitPrice: interestAmount,
+                            unitPrice: amount,
                             currency: record.assetCurrency,
                             dataSource: "MANUAL",
                             date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
