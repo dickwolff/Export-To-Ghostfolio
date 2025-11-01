@@ -1,26 +1,16 @@
-﻿Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Price in CHF";"Cash Flow";Balance
+Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Price in CHF";"Cash Flow";Balance
+2025-01-07;Interests;;;;CHF;1.0000000000;;0.450000;200.988502
 2023-10-07;"Flat-rate administrative fee";;;;CHF;1.000000;;-1.324000;15.160551
 2023-07-11;Buy;"CSIF (CH) Bond Corporate Global ex CHF Blue ZBH";CH0189956813;0.001000;CHF;1.000000;821.800000;-0.821800;16.484551
 2023-07-11;Sell;"CSIF (CH) III Equity World ex CH Small Cap Blue - Pension Fund DB";CH0214967314;-0.002000;CHF;1.000000;1773.370000;3.546740;17.306351
 2023-07-11;Buy;"CSIF (CH) I Bond Government Global ex CHF Blue ZBH";CH0188772989;0.001000;CHF;1.000000;828.650000;-0.828650;13.759611
 2023-07-11;Sell;"CSIF (CH) III Equity World ex CH Blue - Pension Fund Plus ZB";CH0429081620;-0.006000;CHF;1.000000;1336.950000;8.021700;14.588261
-2023-07-11;Sell;"CSIF (CH) III Equity World ex CH Blue - Pension Fund Plus ZBH";CH0429081638;-0.007000;CHF;1.000000;1373.170000;9.612190;6.566561
-2023-07-11;Buy;"CSIF (CH) Equity Switzerland Small & Mid Cap ZB";CH0110869143;0.001000;CHF;1.000000;2340.630000;-2.340630;-3.045629
-2023-07-11;Buy;"CSIF (CH) Equity Switzerland Large Cap Blue ZB";CH0033782431;0.011000;CHF;1.000000;1542.810000;-16.970910;-0.704999
-2023-07-07;"Flat-rate administrative fee";;;;CHF;1.000000;;-0.676100;16.265911
-2023-05-16;Buy;"CSIF (CH) Bond Government Emerging Markets USD Blue DBH";CH0259132261;0.001000;CHF;1.000000;690.790000;-0.690790;16.942011
-2023-05-16;Buy;"CSIF (CH) Equity Emerging Markets Blue DB";CH0017844686;0.003000;CHF;1.000000;1684.450000;-5.053350;17.632801
-2023-05-16;Buy;"CSIF (CH) III Equity World ex CH Small Cap Blue - Pension Fund DB";CH0214967314;0.002000;CHF;1.000000;1723.120000;-3.446240;22.686151
-2023-05-16;Buy;"CSIF (CH) III Real Estate World ex CH - Pension Fund ZB";CH0217837456;0.001000;CHF;1.000000;1108.210000;-1.108210;26.132391
-2023-05-16;Buy;"CSIF (CH) III Equity World ex CH Blue - Pension Fund Plus ZB";CH0429081620;0.002000;CHF;1.000000;1304.040000;-2.608080;27.240601
-2023-05-16;Buy;"CSIF (CH) III Equity World ex CH Blue - Pension Fund Plus ZBH";CH0429081638;0.003000;CHF;1.000000;1307.410000;-3.922230;29.848681
-2023-05-16;Buy;"CSIF (CH) Bond Corporate Global ex CHF Blue ZBH";CH0189956813;0.001000;CHF;1.000000;820.640000;-0.820640;33.770911
-2023-05-16;Sell;"CSIF (CH) Equity Switzerland Large Cap Blue ZB";CH0033782431;-0.002000;CHF;1.000000;1619.660000;3.239320;34.591551
-2023-05-11;Dividend;"CSIF (CH) III Equity World ex CH Blue - Pension Fund Plus ZB";CH0429081620;;CHF;1.000000;;1.548762;31.352231
-2023-05-11;Dividend;"CSIF (CH) Bond Government Emerging Markets USD Blue DBH";CH0259132261;;CHF;1.000000;;0.229673;29.803469
+2023-07-11;Sell;"CSIF (CH) III Equity World ex CH Blue - Pension Fund Plus ZBH";CH0429081638;-0.007Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Pricll2025-01-07;Interests;;;;CHF;1.0000000000;;0.450000;200.988502
+2023-10-07;"Flat-rate administrative fee";;;;CHF;1.000000;;-1an2023-10-07;"Flat-rate administrative fee";;;;CHF;1.000000;;-.82023-07-11;Buy;"CSIF (CH) Bond Corporate Global ex CHF Blue ZBH";CH0189956813.02023-07-11;Sell;"CSIF (CH) III Equity World ex CH Small Cap Blue - Pension Fund DB";CH0214967314;-0.002000;CHF;1.000000;1773.3700002023-07-11;Buy;"CSIF (CH) I Bond Government Global ex CHF Blue ZBH";CH0188772989;0.001000;CHF;1.000000;828.650000;-0.828650;13.759611
+2023-07-11;Sell0;2023-07-11;Sell;"CSIF (CH) III Equity World ex CH Blue - Pension Fund Plus ZB";CH0429081620;-0.006000;CHF;1.000000;1336.950000;8.021.12023-07-11;Sell;"CSIF (CH) III Equity World ex CH Blue - Pension Fund Plus ZBH";CH0429081638;-0.007Date;Category;"Asset Name";ISIN;"Number of Sh0;2023-10-07;"Flat-rate administrative fee";;;;CHF;1.000000;;-1an2023-10-07;"Flat-rate administrative fee";;;;CHF;1.000000;;-.82023-07-11;Buy;"CSIF (CH) Bond Corporate Global ex CHF Blue ZBH";CH0189956813.02023-07-11;Sell;"CSIF (CH) III Equity World ex CH Sm;02023-07-11;Sell0;2023-07-11;Sell;"CSIF (CH) III Equity World ex CH Blue - Pension Fund Plus ZB";CH0429081620;-0.006000;CHF;1.000000;1336.950000;8.021.12023-07-11;Sell;"CSIF (CH) III Equity World ex CH Blue - Pension Fund Plus ZBH";CH0429081638;-0.007Date;Category;"Asset Name";ISIN;"Number of Sh0;2023-10-07;"Flat-rate administrative fee";;;;CHF;1.000000;;-1an2023-10-07;"Flat-rate administrative fee";;;;CHF;1.000000;;-.82023-07-11;Buy;"CSIF (CH) Bond Corporate GlobCSIF (CH) Bond Government Emerging Markets USD Blue DBH";CH0259132261;;CHF;1.000000;;0.229673;29.803469
 2023-05-11;Dividend;"CSIF (CH) III Real Estate World ex CH - Pension Fund ZB";CH0217837456;;CHF;1.000000;;0.949483;29.573796
 2023-05-11;Dividend;"CSIF (CH) III Equity World ex CH Blue - Pension Fund Plus ZBH";CH0429081638;;CHF;1.000000;;1.483142;28.624313
 2023-05-11;Dividend;"CSIF (CH) Bond Switzerland AAA-BBB Blue ZB";CH0039003055;;CHF;1.000000;;0.120375;27.141171
 2023-05-11;Dividend;"CSIF (CH) Bond Corporate Global ex CHF Blue ZBH";CH0189956813;;CHF;1.000000;;0.621280;27.020796
-2023-05-11;Dividend;"CSIF (CH) III Equity World ex CH Small Cap Blue - Pension Fund DB";CH0214967314;;CHF;1.000000;;0.750471;26.39
+2023-05-11;Dividend;"CSIF (CH) III Equity World ex CH Small Cap Blue - Pension Fund DB";CH0214967314;;CHF;1.000000;;0.750471;26.399516
 2022-05-11;Deposit;;;;CHF;1.000000;;1376.600000;1376.600000
