@@ -93,7 +93,9 @@ Login to your eToro account and navigate to "Portfolio". Then select "History" i
 
 ### Finpension
 
-Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select “Transactions”, on the following page to the right notice “transaction report (CSV-file)” and click to email or click to download locally.
+Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select "Transactions", on the following page to the right notice "transaction report (CSV-file)" and click to email or click to download locally.
+
+**Note:** This converter supports both Finpension 3a and BVG (Pillar 2) account formats.
 
 ### Freetrade
 
