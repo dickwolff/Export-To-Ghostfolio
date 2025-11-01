@@ -130,7 +130,7 @@ export class Trading212Converter extends AbstractConverter {
                         // Add fees record to export.
                         result.activities.push({
                             accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                            comment: "",
+                            comment: null,
                             fee: feeAmount,
                             quantity: 1,
                             type: GhostfolioOrderType[record.action],
@@ -169,7 +169,7 @@ export class Trading212Converter extends AbstractConverter {
                     // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: "",
+                        comment: null,
                         fee: 0,
                         quantity: record.noOfShares,
                         type: GhostfolioOrderType[record.action],

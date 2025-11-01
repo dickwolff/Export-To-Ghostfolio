@@ -200,7 +200,7 @@ export class InvestimentalConverter extends AbstractConverter {
 
         return {
             accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-            comment: "",
+            comment: null,
             fee: record.fee,
             quantity: record.volume,
             type: GhostfolioOrderType[record.side.toLowerCase()],

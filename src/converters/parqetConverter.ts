@@ -106,7 +106,7 @@ export class ParqetConverter extends AbstractConverter {
                     // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: "",
+                        comment: null,
                         fee: fees,
                         quantity: record.shares,
                         type: GhostfolioOrderType[record.type.toLocaleLowerCase()],

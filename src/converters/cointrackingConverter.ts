@@ -134,7 +134,7 @@ export class CointrackingConverter extends AbstractConverter {
                     // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: "",
+                        comment: null,
                         fee: fee,
                         quantity: quantity,
                         type: GhostfolioOrderType[action],

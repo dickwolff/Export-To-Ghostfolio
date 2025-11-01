@@ -124,7 +124,7 @@ export class InvestEngineConverter extends AbstractConverter {
                     // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: "",
+                        comment: null,
                         fee: 0,
                         quantity: record.quantity,
                         type: GhostfolioOrderType[record.transactionType],

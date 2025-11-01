@@ -128,7 +128,7 @@ export class TradeRepublicConverter extends AbstractConverter {
                     // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: "",
+                        comment: null,
                         fee: Math.abs(record.costs),
                         quantity: record.transactionType === "dividend" ? 1 : Math.abs(record.amount),
                         type: GhostfolioOrderType[record.transactionType],

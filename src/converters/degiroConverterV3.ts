@@ -85,11 +85,14 @@ export class DeGiroConverterV3 extends AbstractConverter {
           // Dividend records never have an order ID, so check for a marking there.
           // If a match was found, skip the record and move next.
           if (result.activities.findIndex(a =>
+            a.comment !== null &&
             a.comment !== "" &&
-            a.comment === record.orderId ||
-            a.comment.startsWith(`Buy ${record.isin} @ ${record.date}T`) ||
-            a.comment.startsWith(`Sell ${record.isin} @ ${record.date}T`) ||
-            a.comment.startsWith(`Dividend ${record.isin} @ ${record.date}T`)) > -1) {
+            (
+              a.comment === record.orderId ||
+              a.comment.startsWith(`Buy ${record.isin} @ ${record.date}T`) ||
+              a.comment.startsWith(`Sell ${record.isin} @ ${record.date}T`) ||
+              a.comment.startsWith(`Dividend ${record.isin} @ ${record.date}T`))
+          ) > -1) {
 
             bar1.increment();
             continue;
@@ -106,7 +109,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
             result.activities.push({
               accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-              comment: "",
+              comment: null,
               fee: feeAmount,
               quantity: 1,
               type: GhostfolioOrderType.fee,
@@ -129,7 +132,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
             result.activities.push({
               accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-              comment: "",
+              comment: null,
               fee: 0,
               quantity: 1,
               type: GhostfolioOrderType.interest,

@@ -120,7 +120,7 @@ export class SwissquoteConverter extends AbstractConverter {
                         // Add fees record to export.
                         result.activities.push({
                             accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                            comment: "",
+                            comment: null,
                             fee: feeAmount,
                             quantity: 1,
                             type: GhostfolioOrderType[record.transaction],
@@ -161,7 +161,7 @@ export class SwissquoteConverter extends AbstractConverter {
                     // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: "",
+                        comment: null,
                         fee: record.costs,
                         quantity: record.quantity,
                         type: GhostfolioOrderType[record.transaction],
