@@ -1,0 +1,4 @@
+Date,Transaction Type,BTC Amount,BTC Price,Currency Pair,Fiat Amount (excl. fees),Fiat Currency,Fee,Fee Currency,Destination,Operation ID,Counterparty
+2024-09-15T14:23:17Z,Sell,0.02847593,92341.28,BTC/CHF,2629.45,CHF,0.00,CHF,CH7621849305726481953,39a4ed08-b7f2-4c5e-a1d3-f8e2c9b4a7d6,Relai Switzerland
+2024-07-22T09:41:06Z,Buy,0.00284516,95287.63,BTC/CHF,271.05,CHF,2.45,CHF,bc1q2xuea8y8un9xqzrngyy2yn9ulbl0k2ngnmxfff,02731d4a-9b8c-42f7-b6e5-c3a8f1d9e2b4,Relai Switzerland
+2024-06-18T16:52:31Z,Buy,0.00371249,86593.42,BTC/CHF,321.45,CHF,2.90,CHF,bc1q5m7n2p9r4s8txkfg3h6j9wvxc2d4e6f8g0h1j,59ac51d2-b07c-438f-a1e4-d6c9f2b8a5e7,Relai Switzerland
