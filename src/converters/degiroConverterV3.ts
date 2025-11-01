@@ -85,11 +85,14 @@ export class DeGiroConverterV3 extends AbstractConverter {
           // Dividend records never have an order ID, so check for a marking there.
           // If a match was found, skip the record and move next.
           if (result.activities.findIndex(a =>
+            a.comment !== null &&
             a.comment !== "" &&
-            a.comment === record.orderId ||
-            a.comment.startsWith(`Buy ${record.isin} @ ${record.date}T`) ||
-            a.comment.startsWith(`Sell ${record.isin} @ ${record.date}T`) ||
-            a.comment.startsWith(`Dividend ${record.isin} @ ${record.date}T`)) > -1) {
+            (
+              a.comment === record.orderId ||
+              a.comment.startsWith(`Buy ${record.isin} @ ${record.date}T`) ||
+              a.comment.startsWith(`Sell ${record.isin} @ ${record.date}T`) ||
+              a.comment.startsWith(`Dividend ${record.isin} @ ${record.date}T`))
+          ) > -1) {
 
             bar1.increment();
             continue;
