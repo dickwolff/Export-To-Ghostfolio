@@ -145,7 +145,7 @@ export class SchwabConverter extends AbstractConverter {
                         // Add fees record to export.
                         result.activities.push({
                             accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                            comment: "",
+                            comment: null,
                             fee: feeAmount,
                             quantity: 1,
                             type: GhostfolioOrderType[record.action],
@@ -205,7 +205,7 @@ export class SchwabConverter extends AbstractConverter {
                     // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: "",
+                        comment: null,
                         fee: feesCommissions,
                         quantity: numberOfShares,
                         type: GhostfolioOrderType[record.action],

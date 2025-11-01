@@ -117,7 +117,7 @@ export class RabobankConverter extends AbstractConverter {
                         // Add fees record to export.
                         result.activities.push({
                             accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                            comment: "",
+                            comment: null,
                             fee: 0,
                             quantity: 1,
                             type: orderType,
@@ -170,7 +170,7 @@ export class RabobankConverter extends AbstractConverter {
                     // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                        comment: "",
+                        comment: null,
                         fee: fees,
                         quantity: quantity,
                         type: GhostfolioOrderType[record.type],

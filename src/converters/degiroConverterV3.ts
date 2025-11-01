@@ -106,7 +106,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
             result.activities.push({
               accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-              comment: "",
+              comment: null,
               fee: feeAmount,
               quantity: 1,
               type: GhostfolioOrderType.fee,
@@ -129,7 +129,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
             result.activities.push({
               accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-              comment: "",
+              comment: null,
               fee: 0,
               quantity: 1,
               type: GhostfolioOrderType.interest,

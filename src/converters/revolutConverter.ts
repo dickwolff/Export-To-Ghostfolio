@@ -207,7 +207,7 @@ export class RevolutConverter extends AbstractConverter {
                 // Add record to export.
                 result.activities.push({
                     accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
-                    comment: "",
+                    comment: null,
                     fee: 0,
                     quantity: quantity,
                     type: GhostfolioOrderType[record.type],
