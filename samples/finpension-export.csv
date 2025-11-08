@@ -1,4 +1,5 @@
 ﻿Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Price in CHF";"Cash Flow";Balance
+2023-11-07;Interests;;;;CHF;1.0000000000;;0.450000;200.988502
 2023-10-07;"Flat-rate administrative fee";;;;CHF;1.000000;;-1.324000;15.160551
 2023-07-11;Buy;"CSIF (CH) Bond Corporate Global ex CHF Blue ZBH";CH0189956813;0.001000;CHF;1.000000;821.800000;-0.821800;16.484551
 2023-07-11;Sell;"CSIF (CH) III Equity World ex CH Small Cap Blue - Pension Fund DB";CH0214967314;-0.002000;CHF;1.000000;1773.370000;3.546740;17.306351
