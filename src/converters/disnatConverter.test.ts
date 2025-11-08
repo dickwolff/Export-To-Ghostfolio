@@ -84,7 +84,7 @@ describe("disnatConverter", () => {
 
             let tempFileContent = "";
             tempFileContent += "Date de transaction,Date de règlement,Type de transaction,Classe d'actif,Symbole,Description,Marché,Quantité,Prix,Devise du prix,Commission payée,Montant de l'opération,Devise du compte\n";
-            tempFileContent += `2025-01-13,2025-01-14,Vente,Actions,AAPL,Apple Inc.,NASDAQ,-10,150,USD,0,0,USD\n`;
+            tempFileContent += `2025-08-01,2025-08-05,VENTE,Actions,CASH-C,GLB X HIGH INT SVGS-A ETF,CAN,-10,50,CAN,0,500,CAN,,\n`;
 
             // Act
             sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -102,7 +102,7 @@ describe("disnatConverter", () => {
             // Arrange
             let tempFileContent = "";
             tempFileContent += "Date de transaction,Date de règlement,Type de transaction,Classe d'actif,Symbole,Description,Marché,Quantité,Prix,Devise du prix,Commission payée,Montant de l'opération,Devise du compte\n";
-            tempFileContent += `2025-01-13,2025-01-14,Vente,Actions,AAPL,Apple Inc.,NASDAQ,-10,150,USD,0,0,USD\n`;
+            tempFileContent += `2025-08-01,2025-08-05,VENTE,Actions,CASH-C,GLB X HIGH INT SVGS-A ETF,CAN,-10,50,CAN,0,500,CAN\n`;
 
             // Mock Yahoo Finance service to throw error.
             const yahooFinanceServiceMock = new YahooFinanceServiceMock();
@@ -126,7 +126,7 @@ describe("disnatConverter", () => {
         // Arrange
         let tempFileContent = "";
         tempFileContent += "Date de transaction,Date de règlement,Type de transaction,Classe d'actif,Symbole,Description,Marché,Quantité,Prix,Devise du prix,Commission payée,Montant de l'opération,Devise du compte\n";
-        tempFileContent += `2025-01-13,2025-01-14,Vente,Actions,AAPL,Apple Inc.,NASDAQ,-10,150,USD,0,0,USD\n`;
+        tempFileContent += `2025-08-01,2025-08-05,VENTE,Actions,CASH-C,GLB X HIGH INT SVGS-A ETF,CAN,-10,50,CAN,0,500,CAN\n`;
 
         // Mock Yahoo Finance service to return no quotes.
         const yahooFinanceServiceMock = new YahooFinanceServiceMock();
@@ -139,7 +139,7 @@ describe("disnatConverter", () => {
         // Act
         sut.processFileContents(tempFileContent, () => {
 
-            expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for sell action for NO0010827280 with currency SEK! Please add this manually..\n");
+            expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for sell action for CASH-C with currency CAD! Please add this manually..\n");
 
             done();
         }, () => done.fail("Should not have an error!"));
