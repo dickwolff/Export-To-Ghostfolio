@@ -28,13 +28,15 @@ export class CryptoComConverter extends AbstractConverter {
                 // Custom mapping below.
 
                 // Convert transaction kinds to Ghostfolio types.
-                if (context.column === "transactionDescription") {
+                if (context.column === "transactionKind") {
                     const type = columnValue.toLowerCase();
 
-                    if (type.includes("->") && !type.includes("transfer")) {
+                    if (type.includes("crypto_exchange")) {
                         return "buy";
                     }
-                    else if (type.includes("reward") || type.includes("cashback")) {
+                    else if (type.includes("compound_interest") ||
+                        type.includes("referral_card_cashback") ||
+                        type.includes("stake_reward")) {
                         return "dividend";
                     }
                 }
@@ -54,18 +56,6 @@ export class CryptoComConverter extends AbstractConverter {
 
                 return columnValue;
             },
-            on_record: (record: CryptoComRecord) => {
-
-                // If a buy record is to the native currency, change it to a sell.
-                // This can be found in the des
-                if (record.transactionDescription.toLowerCase() === "buy" &&
-                    record.transactionDescription.slice(-3) === record.nativeCurrency) {
-                    record.transactionDescription = "sell";
-                    console.log(record)
-                }
-
-                return record;
-            }
         }, async (err, records: CryptoComRecord[]) => {
 
             try {
@@ -120,7 +110,7 @@ export class CryptoComConverter extends AbstractConverter {
 
                     // Log whenever there was no match found.
                     if (!security) {
-                        this.progress.log(`[i] No result found for ${record.transactionDescription} action for ${cryptoSymbol}! Please add this manually..\n`);
+                        this.progress.log(`[i] No result found for ${record.transactionKind} action for ${cryptoSymbol}! Please add this manually..\n`);
                         bar1.increment();
                         continue;
                     }
@@ -134,7 +124,7 @@ export class CryptoComConverter extends AbstractConverter {
                         comment: null,
                         fee: 0,
                         quantity: quantity,
-                        type: GhostfolioOrderType[record.transactionDescription],
+                        type: GhostfolioOrderType[record.transactionKind],
                         unitPrice: unitPrice,
                         currency: record.nativeCurrency,
                         dataSource: "YAHOO",
@@ -184,8 +174,8 @@ export class CryptoComConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: CryptoComRecord): boolean {
-        let ignoredRecordTypes = ["transfer", "conversion", "deposit", "withdrawal"];
+        let ignoredRecordTypes = ["deposit", "top_up", "lock", "transfer", "swap", "withdraw", "unlock"];
 
-        return ignoredRecordTypes.some(t => record.transactionDescription.toLowerCase().includes(t))
+        return ignoredRecordTypes.some(t => record.transactionKind.toLowerCase().includes(t))
     }
 }
