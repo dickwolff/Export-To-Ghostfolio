@@ -167,7 +167,7 @@ export class DisnatConverter extends AbstractConverter {
 
                     // Log whenever there was no match found.
                     if (!security) {
-                        this.progress.log(`[i] No result found for ${record.typeDeTransaction} action for ${record.symbole ?? record.description} ! Please add this manually..\n`);
+                        this.progress.log(`[i] No result found for ${record.typeDeTransaction} action for ${record.symbole ?? record.description} with currency ${record.currency}! Please add this manually..\n`);
                         bar1.increment();
                         continue;
                     }
@@ -196,8 +196,12 @@ export class DisnatConverter extends AbstractConverter {
 
                 successCallback(result);
 
-            } catch (error) {
-                return errorCallback(error);
+            }
+            catch (error) {
+                console.log("[e] An error occurred while processing the file contents. Stack trace:");
+                console.log(error.stack);
+                this.progress.stop();
+                errorCallback(error);
             }
         });
     }
