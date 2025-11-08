@@ -26,24 +26,26 @@ export class DisnatConverter extends AbstractConverter {
             cast: (columnValue, context) => {
 
                 // Convert transaction types to Ghostfolio types.
-                if (context.column === "type") {
-                    const action = columnValue.toLocaleLowerCase();
+                if (context.column === "typeDeTransaction") {
+                    const action = columnValue.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-                    if (action.includes("achat") || action.includes("buy")) {
-                        return "buy";
-                    }
-                    else if (action.includes("vente") || action.includes("sell")) {
-                        return "sell";
-                    }
-                    else if (action.includes("dividende") || action.includes("dividend")) {
-                        return "dividend";
-                    }
-                    else if (action.includes("intérêts") || action.includes("interet") || action.includes("interest")) {
-                        return "interest";
-                    }
-                    else if (action.includes("frais") || action.includes("taxe") || action.includes("fee") || action.includes("tax")) {
+                    if (action.includes("frais") || action.includes("taxe") || action.includes("tax")) {
+
                         return "fee";
                     }
+                    if (action.includes("achat")) {
+                        return "buy";
+                    }
+                    else if (action.includes("vente")) {
+                        return "sell";
+                    }
+                    else if (action.includes("dividende")) {
+                        return "dividend";
+                    }
+                    else if (action.includes("interets")) {
+                        return "interest";
+                    }
+
                 }
 
                 // Parse numbers to floats (from string), handling French decimal format.
@@ -116,8 +118,8 @@ export class DisnatConverter extends AbstractConverter {
                         continue;
                     }
 
-                    const isFee = record.type === "fee";
-                    const isInterest = record.type === "interest";
+                    const isFee = record.typeDeTransaction === "fee";
+                    const isInterest = record.typeDeTransaction === "interest";
 
                     // Interest and fees don't have a security, so add those immediately.
                     if (isFee || isInterest) {
@@ -144,9 +146,16 @@ export class DisnatConverter extends AbstractConverter {
                     let security: YahooFinanceRecord;
 
                     try {
+
+                        // Some symbols are postfixed with -C for Canadian stocks, need to convert those to Yahoo Finance format (.TO).
+                        let symbol = record.symbole;
+                        if (symbol.endsWith("-C")) {
+                            symbol = `${symbol.slice(0, -2)}.TO`;
+                        }
+
                         security = await this.securityService.getSecurity(
                             null, // ISIN not provided in Disnat exports
-                            record.symbole,
+                            symbol,
                             record.description,
                             record.currency,
                             null);
@@ -158,21 +167,21 @@ export class DisnatConverter extends AbstractConverter {
 
                     // Log whenever there was no match found.
                     if (!security) {
-                        this.progress.log(`[i] No result found for ${record.type} action for ${record.isin}! Please add this manually..\n`);
+                        this.progress.log(`[i] No result found for ${record.typeDeTransaction} action for ${record.symbole ?? record.description} ! Please add this manually..\n`);
                         bar1.increment();
                         continue;
                     }
 
-                    const quantity = record.type === "dividend" ? 1 : Math.abs(record.quantite);
-                    const unitPrice = record.type === "dividend" ? Math.abs(record.montantDeLOperation) : record.prix;
+                    const quantity = record.typeDeTransaction === "dividend" ? 1 : Math.abs(record.quantite);
+                    const unitPrice = record.typeDeTransaction === "dividend" ? Math.abs(record.montantDeLOperation) : record.prix;
 
                     // Add record to export with Yahoo Finance data.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                         comment: "",
-                        fee: record.commissionPayee || 0,
+                        fee: Math.abs(record.commissionPayee || 0),
                         quantity: quantity,
-                        type: GhostfolioOrderType[record.type],
+                        type: GhostfolioOrderType[record.typeDeTransaction],
                         unitPrice: unitPrice,
                         currency: record.currency,
                         dataSource: "YAHOO",
@@ -199,7 +208,7 @@ export class DisnatConverter extends AbstractConverter {
     public isIgnoredRecord(record: DisnatRecord): boolean {
 
         // Ignore internal cash movements that don't represent actual trading activities
-        const ignoredTypes = ["cotisation", "contribution", "transfert", "transfer", "subvention", "résiliation", "retrait"];
+        const ignoredTypes = ["cotisation", "contribution", "transfert", "transfer", "subvention", "résiliation", "retrait", "incitatif"];
         const transactionType = record.typeDeTransaction?.toLowerCase();
 
         return ignoredTypes.some((t) => transactionType?.includes(t));
@@ -210,51 +219,24 @@ export class DisnatConverter extends AbstractConverter {
      */
     public processHeaders(input: string): string[] {
 
-        // Read first line and extract headers.
-        const lines = input.split("\n");
+        // Generic header mapping from the DISNAT CSV export.
+        const csvHeaders = [
+            "dateDeTransaction",
+            "dateDeReglement",
+            "typeDeTransaction",
+            "classeDActif",
+            "symbole",
+            "description",
+            "marche",
+            "quantite",
+            "prix",
+            "deviseDuPrix",
+            "commissionPayee",
+            "montantDeLOperation",
+            "deviseDuCompte"
+        ];
 
-        if (lines.length === 0) {
-            throw new Error("Invalid CSV format!");
-        }
-
-        const columns = lines[0].split(",");
-
-        // Map French headers to English property names
-        const headerMappings = {
-            "Date de transaction": "dateDeTransaction",
-            "Date de règlement": "dateDeReglement",
-            "Type de transaction": "typeDeTransaction",
-            "Classe d'actif": "classeDActif",
-            "Symbole": "symbole",
-            "Description": "description",
-            "Marché": "marche",
-            "Quantité": "quantite",
-            "Prix": "prix",
-            "Devise du prix": "deviseDuPrix",
-            "Commission payée": "commissionPayee",
-            "Montant de l'opération": "montantDeLOperation",
-            "Devise du compte": "deviseDuCompte"
-        };
-
-        const processedHeaders = [];
-
-        for (const column of columns) {
-            // eslint-disable-next-line prefer-string-replace-all
-            const trimmedColumn = column.trim().replace(/"/g, "");
-
-            if (headerMappings[trimmedColumn]) {
-                processedHeaders.push(headerMappings[trimmedColumn]);
-            } else {
-                // Fallback for unmapped headers
-                // eslint-disable-next-line prefer-string-replace-all
-                processedHeaders.push(trimmedColumn.toLowerCase().replace(/\s+/g, ""));
-            }
-        }
-
-        // Add 'type' column for processed transaction type
-        processedHeaders.push("type");
-
-        return processedHeaders;
+        return csvHeaders;
     }
 
     /**
