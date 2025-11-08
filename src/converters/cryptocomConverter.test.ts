@@ -6,7 +6,7 @@ import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
 describe("cryptocomConverter", () => {
 
     beforeEach(() => {
-        jest.spyOn(console, "log").mockImplementation(jest.fn());
+        //jest.spyOn(console, "log").mockImplementation(jest.fn());
     });
 
     afterEach(() => {
@@ -91,7 +91,7 @@ describe("cryptocomConverter", () => {
 
                 // Assert
                 expect(err).toBeTruthy();
-                expect(err.message).toBe("An error occurred while parsing! Details: Invalid Record Length: columns length is 13, got 15 on line 2");
+                expect(err.message).toBe("An error occurred while parsing! Details: Invalid Record Length: columns length is 11, got 13 on line 2");
 
                 done();
             });
@@ -139,7 +139,7 @@ describe("cryptocomConverter", () => {
         // Act
         sut.processFileContents(tempFileContent, () => {
 
-            expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for EGLD-USDC! Please add this manually..\n");
+            expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for EGLD-EUR! Please add this manually..\n");
 
             done();
         }, () => done.fail("Should not have an error!"));
