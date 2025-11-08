@@ -131,7 +131,7 @@ export class DisnatConverter extends AbstractConverter {
                             comment: record.description,
                             fee: isFee ? amount : 0,
                             quantity: 1,
-                            type: GhostfolioOrderType[record.type],
+                            type: GhostfolioOrderType[record.typeDeTransaction],
                             unitPrice: isInterest ? amount : 0,
                             currency: record.currency,
                             dataSource: "MANUAL",
