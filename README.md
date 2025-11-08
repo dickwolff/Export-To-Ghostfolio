@@ -6,7 +6,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/dickwolff/export-to-ghostfolio?style=for-the-badge)](https://hub.docker.com/r/dickwolff/export-to-ghostfolio) &nbsp; ![Stars](https://img.shields.io/github/stars/dickwolff/export-to-ghostfolio?style=for-the-badge) &nbsp; [![Quality Gate Status](https://img.shields.io/sonar/quality_gate/dickwolff_Export-To-Ghostfolio.svg?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge)](https://sonarcloud.io/dashboard?id=dickwolff_Export-To-Ghostfolio) &nbsp; ![Code Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/dickwolff/dd5dc24ffa62de59b3d836f856f48a10/raw/cov.json) 
  
 
-This tool allows you to convert CSV transaction exports to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for 24 brokers:
+This tool allows you to convert CSV transaction exports to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for 25 brokers:
 
 ![Overview of converters](./assets/social.png)
 
@@ -18,6 +18,7 @@ This tool allows you to convert CSV transaction exports to an import file that c
 - [DEGIRO](https://degiro.com)
 - [Delta](https://delta.app)
 - [Directa](https://directatrading.com)
+- [Disnat](https://www.disnat.com)
 - [eToro](https://www.etoro.com/)
 - [Finpension](https://finpension.ch)
 - [Freetrade](https://freetrade.io)
@@ -87,6 +88,10 @@ Open Directa App, select "Libera" mode and go on Transactions ("Movimenti").
 Choose date range on the right and click on "Excel" icon, in the modal select "File separato da virgole (csv)" and "Estrai"
 
 ![Export instructions for Directa, Export](./assets/directa-export.png)
+
+### Disnat
+
+<to come>
 
 ### eToro
 
