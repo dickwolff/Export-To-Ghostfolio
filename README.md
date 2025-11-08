@@ -281,6 +281,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | BUX           | `run start bux`                     |
 | Coinbase      | `run start coinbase` (or `cb`)      |
 | CoinTracking  | `run start cointracking` (or `ct`)  |
+| Crypto.com    | `run start cryptocom`               |
 | DEGIRO        | `run start degiro`                  |
 | Delta         | `run start delta`                   |
 | Directa       | `run start directa`                 |
