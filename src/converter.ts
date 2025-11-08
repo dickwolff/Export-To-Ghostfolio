@@ -9,6 +9,7 @@ import { BitvavoConverter } from "./converters/bitvavoConverter";
 import { BuxConverter } from "./converters/buxConverter";
 import { CoinbaseConverter } from "./converters/coinbaseConverter";
 import { CointrackingConverter } from "./converters/cointrackingConverter";
+import { CryptoComConverter } from "./converters/cryptocomConverter";
 import { DeGiroConverter } from "./converters/degiroConverter";
 import { DeGiroConverterV2 } from "./converters/degiroConverterV2";
 import { DeGiroConverterV3 } from "./converters/degiroConverterV3";
@@ -128,6 +129,10 @@ async function createConverter(converterType: string, securityService?: Security
         case "cointracking":
             console.log("[i] Processing file using CoinTracking converter");
             converter = new CointrackingConverter(securityService);
+            break;
+        case "cryptocom":
+            console.log("[i] Processing file using Crypto.com converter");
+            converter = new CryptoComConverter(securityService);
             break;
         case "degiro-v1":
             console.log("[i] Processing file using DeGiro converter (V1)");
