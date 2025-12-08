@@ -179,6 +179,19 @@ export class SecurityService {
     }
 
     /**
+     * Get the overridden symbol for a given key (ISIN or symbol).
+     *
+     * @param key The ISIN or symbol to look up
+     * @returns The overridden symbol if found, otherwise null
+     */
+    public getSymbolOverride(key: string): string | null {
+        if (this.isinOverrideCache.has(key)) {
+            return this.isinOverrideCache.get(key);
+        }
+        return null;
+    }
+
+    /**
      * Load the cache with ISIN and symbols.
      *
      * @returns The size of the loaded cache

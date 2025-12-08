@@ -6,7 +6,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/dickwolff/export-to-ghostfolio?style=for-the-badge)](https://hub.docker.com/r/dickwolff/export-to-ghostfolio) &nbsp; ![Stars](https://img.shields.io/github/stars/dickwolff/export-to-ghostfolio?style=for-the-badge) &nbsp; [![Quality Gate Status](https://img.shields.io/sonar/quality_gate/dickwolff_Export-To-Ghostfolio.svg?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge)](https://sonarcloud.io/dashboard?id=dickwolff_Export-To-Ghostfolio) &nbsp; ![Code Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/dickwolff/dd5dc24ffa62de59b3d836f856f48a10/raw/cov.json) 
  
 
-This tool allows you to convert CSV transaction exports to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for 23 brokers:
+This tool allows you to convert CSV transaction exports to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for 24 brokers:
 
 ![Overview of converters](./assets/social.png)
 
@@ -26,6 +26,7 @@ This tool allows you to convert CSV transaction exports to an import file that c
 - [Investimental](https://www.investimental.ro/)
 - [Parqet](https://www.parqet.com/)
 - [Rabobank](https://rabobank.nl)
+- [Relai](https://relai.app)
 - [Revolut](https://revolut.com)
 - [Saxo](https://www.home.saxo)
 - [Schwab](https://www.schwab.com)
@@ -134,6 +135,10 @@ Login to Parquet and navigate to the "Activities" section (in German, "Aktivitä
 ### Rabobank
 
 Login to Rabobank and navigate to your investments. Navigate to "Transactions & Contract Notes" (Mutaties & Nota's). Select the range you wish to export at the top. Then scroll to the bottom of the page and click "Export as .csv"
+
+### Relai
+
+Open the Relai app. Tap "Transactions". Tap the download symbol in the top-right corner. Export as CSV.
 
 ### Revolut (Invest and Crypto)
 
@@ -283,6 +288,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | Investimental | `run start investimental`           |
 | Parqet        | `run start parqet`                  |
 | Rabobank      | `run start rabobank`                |
+| Relai         | `run start relai`                   |
 | Revolut       | `run start revolut`                 |
 | Saxo          | `run start saxo`                    |
 | Schwab        | `run start schwab`                  |
@@ -299,13 +305,19 @@ The tool uses `cacache` to store data retrieved from Yahoo Finance on disk. This
 
 Since 0.25.0 you can specify ISIN symbol overrides. This gives you more control to make Export to Ghostfolio to look for a specific symbol. For example `IE00B3RBWM25` (Vanguard FTSE All-World UCITS ETF) will by default return `VWRL.L`. If you bought `VWRL.AS` and want to have this reflected in the export file, you can add this to the overrides file.
 
-The file is a simple key-value pair `.txt` file, which you can provide by environment variable via Docker, or by locally renaming `isin-overrides-sample.txt` to `isin-overrides.txt`. The contenst look like:
+The file is a simple key-value pair `.txt` file, which you can provide by environment variable via Docker, or by locally renaming `isin-overrides-sample.txt` to `isin-overrides.txt`. The contents look like:
 
 ```txt
 IE00B3RBWM25=VWRL.AS
 IE00B02KXK85=FXAC.AS
-...=...
+
+# For cryptocurrency converters (Relai) that construct symbols directly,
+# you can map the constructed symbol to your custom Ghostfolio symbol:
+BTC-CHF=GF_BTC-CHF
+BTC-USD=7a3c4f2e-8b1d-4e9a-a5c6-3d8f1b2e4a9c
 ```
+
+**Note:** Some converters (Relai) construct cryptocurrency symbols directly from the export data (e.g., `BTC-CHF`, `BTC-EUR`) and do not use Yahoo Finance lookups. These converters set `dataSource: "MANUAL"` in the output. You can use the override file to map these symbols to your custom Ghostfolio symbols (e.g., `GF_BTC-CHF` or a UUID like `7a3c4f2e-8b1d-4e9a-a5c6-3d8f1b2e4a9c`).
 
 </details>
 

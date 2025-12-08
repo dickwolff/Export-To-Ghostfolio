@@ -112,7 +112,6 @@ export class FinpensionConverter extends AbstractConverter {
 
                     // Fees and interests do not have a security, so add those immediately.
                     if (categoryLower === "fee" || categoryLower === "interest") {
-
                         const amount = Math.abs(record.cashFlow);
 
                         // Add fee or interest record to export.
@@ -198,7 +197,7 @@ export class FinpensionConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: FinpensionRecord): boolean {
-        let ignoredRecordTypes = ["deposit", "withdraw", "transfer"];
+        let ignoredRecordTypes = ["deposit", "withdraw"];
 
         return ignoredRecordTypes.some(t => record.category.toLocaleLowerCase().indexOf(t) > -1)
     }

@@ -117,6 +117,7 @@ headers.set(`Security / ISIN,Transaction Type,Quantity,Share Price,Total Trade V
 headers.set(`Trades Date,Exchange,Symbol,Side,Trades Count,Average Price,Total Volume,Total Value,Total Fees,Account ID,Account Name`, "investimental");
 headers.set(`"datetime";"date";"time";"price";"shares";"amount";"tax";"fee";"realizedgains";"type";"broker";"assettype";"identifier";"wkn";"originalcurrency";"currency";"fxrate";"holding";"holdingname";"holdingnickname";"exchange";"avgholdingperiod"`, "parqet");
 headers.set(`Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs`, "rabobank");
+headers.set(`Date,Transaction Type,BTC Amount,BTC Price,Currency Pair,Fiat Amount (excl. fees),Fiat Currency,Fee,Fee Currency,Destination,Operation ID,Counterparty`, "relai");
 headers.set(`Symbol,Type,Quantity,Price,Value,Fees,Date`, "revolut");
 headers.set(`Date,Ticker,Type,Quantity,Price per share,Total Amount,Currency,FX Rate`, "revolut");
 headers.set(`Client ID,Trade Date,Value Date,Type,Instrument,Instrument ISIN,Instrument currency,Exchange Description,Instrument Symbol,Event,Amount,Order ID,Conversion Rate`, "saxo");
