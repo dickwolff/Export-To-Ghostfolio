@@ -1,4 +1,6 @@
 import http from "http";
+import fs from "fs";
+import path from "path";
 import { convertToGhostfolio } from "./coreConverter";
 import { detectConverterType } from "./converterAutoDetect";
 import dotenv from "dotenv";
@@ -117,6 +119,34 @@ function readBody(req: http.IncomingMessage): Promise<Buffer> {
  */
 function handleHealth(res: http.ServerResponse) {
     sendJsonResponse(res, 200, { ok: true });
+}
+
+/**
+ * Handle web interface - serve HTML page
+ */
+function handleWebInterface(res: http.ServerResponse) {
+    // Try multiple possible paths for the HTML file
+    const possiblePaths = [
+        path.join(process.cwd(), "src", "web", "index.html"),
+        path.join(process.cwd(), "web", "index.html"),
+        "/src/web/index.html"  // Docker path
+    ];
+
+    for (const htmlPath of possiblePaths) {
+        try {
+            if (fs.existsSync(htmlPath)) {
+                const html = fs.readFileSync(htmlPath, "utf-8");
+                res.writeHead(200, { "Content-Type": "text/html" });
+                res.end(html);
+                return;
+            }
+        } catch {
+            continue;
+        }
+    }
+
+    res.writeHead(500, { "Content-Type": "text/plain" });
+    res.end("Web interface not available");
 }
 
 /**
@@ -247,7 +277,9 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
     }
 
     try {
-        if (method === "GET" && url === "/health") {
+        if (method === "GET" && (url === "/" || url === "/index.html")) {
+            handleWebInterface(res);
+        } else if (method === "GET" && url === "/health") {
             handleHealth(res);
         } else if (method === "POST" && url === "/convert") {
             await handleConvert(req, res);
@@ -268,6 +300,7 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
 }
 
 // Register routes
+registerRoute("GET", "/");
 registerRoute("GET", "/health");
 registerRoute("POST", "/convert");
 
