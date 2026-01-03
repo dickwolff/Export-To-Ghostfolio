@@ -3,34 +3,8 @@ import * as fs from "fs";
 import dayjs from "dayjs";
 import { SecurityService } from "./securityService";
 import GhostfolioService from "./ghostfolioService";
-import { AbstractConverter } from "./converters/abstractconverter";
-import { AvanzaConverter } from "./converters/avanzaConverter";
-import { BitvavoConverter } from "./converters/bitvavoConverter";
-import { BuxConverter } from "./converters/buxConverter";
-import { CoinbaseConverter } from "./converters/coinbaseConverter";
-import { CointrackingConverter } from "./converters/cointrackingConverter";
-import { DeGiroConverter } from "./converters/degiroConverter";
-import { DeGiroConverterV2 } from "./converters/degiroConverterV2";
-import { DeGiroConverterV3 } from "./converters/degiroConverterV3";
-import { DeltaConverter } from "./converters/deltaConverter";
-import { DirectaConverter } from "./converters/directaConverter";
-import { EtoroConverter } from "./converters/etoroConverter";
-import { FinpensionConverter } from "./converters/finpensionConverter";
-import { FreetradeConverter } from "./converters/freetradeConverter";
 import { GhostfolioExport } from "./models/ghostfolioExport";
-import { IbkrConverter } from "./converters/ibkrConverter";
-import { InvestEngineConverter } from "./converters/investEngineConverter";
-import { InvestimentalConverter } from "./converters/investimentalConverter";
-import { ParqetConverter } from "./converters/parqetConverter";
-import { RabobankConverter } from "./converters/rabobankConverter";
-import { RelaiConverter } from "./converters/relaiConverter";
-import { RevolutConverter } from "./converters/revolutConverter";
-import { SaxoConverter } from "./converters/saxoConverter";
-import { SchwabConverter } from "./converters/schwabConverter";
-import { SwissquoteConverter } from "./converters/swissquoteConverter";
-import { TradeRepublicConverter } from "./converters/tradeRepublicConverter";
-import { Trading212Converter } from "./converters/trading212Converter";
-import { XtbConverter } from "./converters/xtbConverter";
+import { createConverter as createConverterCore } from "./coreConverter";
 
 import packageInfo from "../package.json";
 
@@ -92,144 +66,11 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
     }, (error) => errorCallback(error));
 }
 
-async function createConverter(converterType: string, securityService?: SecurityService): Promise<AbstractConverter> {
-
-    // If no security service is provided, create a new one.
-    if (!securityService) {
-        securityService = new SecurityService();
-    }
-
-    const cacheSize = await securityService.loadCache();
-    console.log(`[i] Restored ${cacheSize[0]} ISIN-symbol pairs and ${cacheSize[1]} symbols from cache..`);
-
-    let converter: AbstractConverter;
-
-    switch (converterType) {
-
-        case "avanza":
-            console.log("[i] Processing file using Avanza converter");
-            converter = new AvanzaConverter(securityService);
-            break;
-        case "bv":
-        case "bitvavo":
-            console.log("[i] Processing file using Bitvavo converter");
-            converter = new BitvavoConverter(securityService);
-            break;
-        case "bux":
-            console.log("[i] Processing file using Bux converter");
-            converter = new BuxConverter(securityService);
-            break;
-        case "cb":
-        case "coinbase":
-            console.log("[i] Processing file using Coinbase converter");
-            converter = new CoinbaseConverter(securityService);
-            break;
-        case "ct":
-        case "cointracking":
-            console.log("[i] Processing file using CoinTracking converter");
-            converter = new CointrackingConverter(securityService);
-            break;
-        case "degiro-v1":
-            console.log("[i] Processing file using DeGiro converter (V1)");
-            console.log("[i] NOTE: This version of the DeGiro converter is deprecated and will no longer receive updates.");
-            converter = new DeGiroConverter(securityService);
-            break;
-        case "degiro":
-            console.log("[i] Processing file using DeGiro converter");
-            console.log("[i] There is a new version of the DEGIRO converter available in public beta and we're looking for feedback!");
-            console.log("[i] You can enable the new converter by setting the environment variable DEGIRO_FORCE_V3=true");
-            converter = new DeGiroConverterV2(securityService);
-            break;
-        case "degiro-v3":
-            console.log("[i] Processing file using DeGiro converter V3");
-            console.log("[i] NOTICE: This converter is currently in public beta and may not be complete!");
-            console.log("[i] Should you have issues with the result of the converter, please report a bug at https://git.new/degiro-v3-bug");
-            converter = new DeGiroConverterV3(securityService);
-            break;
-        case "delta":
-            console.log("[i] Processing file using Delta converter");
-            converter = new DeltaConverter(securityService);
-            break;
-        case "directa":
-            console.log("[i] Processing file using Directa converter, this is an experimental converter!");
-            converter = new DirectaConverter(securityService);
-            break;
-        case "etoro":
-            console.log("[i] Processing file using Etoro converter");
-            converter = new EtoroConverter(securityService);
-            break;
-        case "fp":
-        case "finpension":
-            console.log("[i] Processing file using Finpension converter");
-            converter = new FinpensionConverter(securityService);
-            break;
-        case "ft":
-        case "freetrade":
-            console.log("[i] Processing file using Freetrade converter");
-            converter = new FreetradeConverter(securityService);
-            break;
-        case "ibkr":
-            console.log("[i] Processing file using IBKR converter");
-            converter = new IbkrConverter(securityService);
-            break;
-        case "ie":
-        case "investengine":
-            console.log("[i] Processing file using InvestEngine converter");
-            converter = new InvestEngineConverter(securityService);
-            break;
-        case "investimental":
-            console.log("[i] Processing file using Investimental converter");
-            converter = new InvestimentalConverter(securityService);
-            break;
-        case "parqet":
-            console.log("[i] Processing file using Parqet converter");
-            converter = new ParqetConverter(securityService);
-            break;
-        case "rabobank":
-            console.log("[i] Processing file using Rabobank converter");
-            converter = new RabobankConverter(securityService);
-            break;
-        case "relai":
-            console.log("[i] Processing file using Relai converter");
-            converter = new RelaiConverter(securityService);
-            break;
-        case "revolut":
-            console.log("[i] Processing file using Revolut converter");
-            converter = new RevolutConverter(securityService);
-            break;
-        case "saxo":
-            console.log("[i] Processing file using Saxo converter");
-            converter = new SaxoConverter(securityService);
-            break;
-        case "schwab":
-            console.log("[i] Processing file using Schwab converter");
-            converter = new SchwabConverter(securityService);
-            break;
-        case "sq":
-        case "swissquote":
-            console.log("[i] Processing file using Swissquote converter");
-            converter = new SwissquoteConverter(securityService);
-            break;
-        case "tr":
-        case "traderepublic":
-            console.log("[i] Processing file using TradeRepublic converter");
-            console.log("[i] NOTE: This converted is currently experimental");
-            converter = new TradeRepublicConverter(securityService);
-            break;
-        case "t212":
-        case "trading212":
-            console.log("[i] Processing file using Trading212 converter");
-            converter = new Trading212Converter(securityService);
-            break;
-        case "xtb":
-            console.log("[i] Processing file using XTB converter");
-            converter = new XtbConverter(securityService);
-            break;
-        default:
-            throw new Error(`Unknown converter '${converterType}' provided`);
-    }
-
-    return converter;
+/**
+ * Create a converter instance for the given converter type.
+ */
+async function createConverter(converterType: string, securityService?: SecurityService) {
+    return createConverterCore(converterType, securityService);
 }
 
 async function tryAutomaticValidationAndImport(outputFileName: string) {

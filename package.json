@@ -5,6 +5,7 @@
   "description": "Convert multiple broker exports to Ghostfolio import",
   "scripts": {
     "start": "tsx ./src/manual.ts",
+    "start:api": "tsx ./src/api.ts",
     "watch": "tsx ./src/watcher.ts",
     "test": "jest --coverage"
   },

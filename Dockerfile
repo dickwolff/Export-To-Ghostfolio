@@ -13,6 +13,7 @@ WORKDIR /
 COPY ./src ./src
 COPY package.json .
 COPY package-lock.json .
+COPY docker-entrypoint.sh .
 
 RUN npm install --omit=dev
 
@@ -20,5 +21,14 @@ RUN mkdir /var/tmp/e2g-input
 RUN mkdir /var/tmp/e2g-output
 RUN mkdir /var/tmp/e2g-cache
 
-ENTRYPOINT [ "npm" ]
-CMD ["run", "watch"]
+RUN chmod +x /docker-entrypoint.sh
+
+# Default mode: watcher (set to "api" for API mode)
+ENV MODE="watcher"
+
+# API port (only used in API mode)
+ENV API_PORT=8080
+
+EXPOSE 8080
+
+ENTRYPOINT [ "/docker-entrypoint.sh" ]

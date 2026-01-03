@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Test and coverage
+coverage/
+*.test.ts
+*.test.js
+jest.config.ts
+
+# IDE and editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+SECURITY.md
+CODE_OF_CONDUCT.md
+FUNDING.yml
+LICENSE
+assets/
+
+# Sample and test files
+samples/
+input/
+output/
+isin-overrides-sample.txt
+isin-overrides-test.txt
+
+# Environment files
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+*.md
+sonar-project.properties
+GitVersion.yml
+
