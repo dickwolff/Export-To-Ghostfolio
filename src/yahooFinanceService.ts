@@ -1,17 +1,12 @@
-import yahooFinance from "yahoo-finance2";
-import { SearchOptions } from "yahoo-finance2/dist/esm/src/modules/search";
-import { YahooFinanceOptions } from "yahoo-finance2/dist/esm/src/lib/options";
-import { QuoteSummaryOptions } from "yahoo-finance2/dist/esm/src/modules/quoteSummary";
-import { ModuleOptionsWithValidateFalse } from "yahoo-finance2/dist/esm/src/lib/moduleCommon";
+import YahooFinance from "yahoo-finance2";
 import { YahooFinanceTestdata } from "./testing/yahooFinanceTestdataWriter";
 
 /**
  * Interface what wraps yahoo-finance2.
  */
-interface YahooFinance {
-    setGlobalConfig(_config: YahooFinanceOptions);
-    search(query: string, queryOptionsOverrides?: SearchOptions, moduleOptions?: ModuleOptionsWithValidateFalse): Promise<any>;
-    quoteSummary(symbol: string, queryOptionsOverrides?: QuoteSummaryOptions, moduleOptions?: ModuleOptionsWithValidateFalse): Promise<any>;
+interface IYahooFinance {
+    search(query: string, queryOptionsOverrides?: any, moduleOptions?: any): Promise<any>;
+    quoteSummary(symbol: string, queryOptionsOverrides?: any, moduleOptions?: any): Promise<any>;
 }
 
 /**
@@ -19,19 +14,19 @@ interface YahooFinance {
  * 
  * Also has the possibility to add testdata to the mock.
  */
-class YahooFinanceService implements YahooFinance {
+class YahooFinanceService implements IYahooFinance {
 
-    constructor(private yahooFinanceTestdataWriter?: YahooFinanceTestdata) { }
+    private yahooFinance: InstanceType<typeof YahooFinance>;
 
-    /** @inheritdoc */
-    public setGlobalConfig(_config: YahooFinanceOptions) {
-        yahooFinance.setGlobalConfig(_config);
+    constructor(config?: any, private yahooFinanceTestdataWriter?: YahooFinanceTestdata) {
+        // v3 API: configuration is passed to the constructor
+        this.yahooFinance = new YahooFinance(config);
     }
 
     /** @inheritdoc */
-    public async search(query: string, queryOptionsOverrides?: SearchOptions, moduleOptions?: ModuleOptionsWithValidateFalse): Promise<any> {
+    public async search(query: string, queryOptionsOverrides?: any, moduleOptions?: any): Promise<any> {
 
-        const result = await yahooFinance.search(query, queryOptionsOverrides, moduleOptions);
+        const result = await this.yahooFinance.search(query, queryOptionsOverrides, moduleOptions);
 
         // If the testdata writer is provided, save result to test data file.
         this.yahooFinanceTestdataWriter?.addSearchResult(query, result);
@@ -40,9 +35,9 @@ class YahooFinanceService implements YahooFinance {
     }
 
     /** @inheritdoc */
-    public async quoteSummary(symbol: string, queryOptionsOverrides?: QuoteSummaryOptions, moduleOptions?: ModuleOptionsWithValidateFalse): Promise<any> {
+    public async quoteSummary(symbol: string, queryOptionsOverrides?: any, moduleOptions?: any): Promise<any> {
 
-        const result = await yahooFinance.quoteSummary(symbol, queryOptionsOverrides, moduleOptions);
+        const result = await this.yahooFinance.quoteSummary(symbol, queryOptionsOverrides, moduleOptions);
 
         // If the testdata writer is provided, save result to test data file.
         this.yahooFinanceTestdataWriter?.addQuoteSummaryResult(symbol, result);
@@ -52,6 +47,6 @@ class YahooFinanceService implements YahooFinance {
 }
 
 export {
-    YahooFinance,
+    IYahooFinance as YahooFinance,
     YahooFinanceService
 }
