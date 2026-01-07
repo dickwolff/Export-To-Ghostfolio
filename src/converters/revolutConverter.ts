@@ -6,6 +6,7 @@ import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class RevolutConverter extends AbstractConverter {
 
@@ -161,7 +162,8 @@ export class RevolutConverter extends AbstractConverter {
                         currency: record.currency,
                         dataSource: "MANUAL",
                         date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: `Revolut ${record.type.toLocaleLowerCase()}`
+                        symbol: `Revolut ${record.type.toLocaleLowerCase()}`,
+                        tags: getTags()
                     });
 
                     bar1.increment();
@@ -215,7 +217,8 @@ export class RevolutConverter extends AbstractConverter {
                     currency: record.currency,
                     dataSource: "YAHOO",
                     date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                    symbol: security.symbol
+                    symbol: security.symbol,
+                    tags: getTags()
                 });
 
                 bar1.increment();

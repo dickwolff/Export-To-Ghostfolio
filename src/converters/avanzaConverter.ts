@@ -6,6 +6,7 @@ import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class AvanzaConverter extends AbstractConverter {
 
@@ -134,7 +135,8 @@ export class AvanzaConverter extends AbstractConverter {
                             currency: record.currency,
                             dataSource: "MANUAL",
                             date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                            symbol: record.description
+                            symbol: record.description,
+                            tags: getTags()
                         });
 
                         bar1.increment();
@@ -176,7 +178,8 @@ export class AvanzaConverter extends AbstractConverter {
                         currency: record.instrumentCurrency,
                         dataSource: "YAHOO",
                         date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

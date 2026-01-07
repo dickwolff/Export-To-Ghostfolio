@@ -6,6 +6,7 @@ import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class BuxConverter extends AbstractConverter {
 
@@ -126,7 +127,8 @@ export class BuxConverter extends AbstractConverter {
                             currency: record.transactionCurrency,
                             dataSource: "MANUAL",
                             date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
-                            symbol: `Bux ${record.transactionType.toLocaleLowerCase()}`
+                            symbol: `Bux ${record.transactionType.toLocaleLowerCase()}`,
+                            tags: getTags()
                         });
 
                         bar1.increment();
@@ -175,7 +177,8 @@ export class BuxConverter extends AbstractConverter {
                         currency: record.transactionCurrency,
                         dataSource: "YAHOO",
                         date: dayjs(record.transactionTimeCet).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

@@ -6,6 +6,7 @@ import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { FinpensionRecord } from "../models/finpensionRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class FinpensionConverter extends AbstractConverter {
 
@@ -114,7 +115,8 @@ export class FinpensionConverter extends AbstractConverter {
                             currency: record.assetCurrency,
                             dataSource: "MANUAL",
                             date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                            symbol: record.category
+                            symbol: record.category,
+                            tags: getTags()
                         });
 
                         bar1.increment();
@@ -163,7 +165,8 @@ export class FinpensionConverter extends AbstractConverter {
                         currency: record.assetCurrency,
                         dataSource: "YAHOO",
                         date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

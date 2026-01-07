@@ -6,6 +6,7 @@ import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 import { CointrackingRecord } from "../models/cointrackingRecord";
+import { getTags } from "../helpers/tagHelpers";
 
 export class CointrackingConverter extends AbstractConverter {
 
@@ -142,7 +143,8 @@ export class CointrackingConverter extends AbstractConverter {
                         currency: security.currency,
                         dataSource: "YAHOO",
                         date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

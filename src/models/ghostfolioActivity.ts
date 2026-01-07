@@ -11,4 +11,5 @@ export class GhostfolioActivity {
     dataSource: string;
     date: string;
     symbol: string;
+    tags: string[];
 }

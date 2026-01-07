@@ -8,6 +8,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import { GhostfolioActivity } from "../models/ghostfolioActivity";
 import { InvestimentalRecord } from "../models/investimentalRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class InvestimentalConverter extends AbstractConverter {
 
@@ -209,6 +210,7 @@ export class InvestimentalConverter extends AbstractConverter {
             dataSource: "YAHOO",
             date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
             symbol: security.symbol,
+            tags: getTags()
         };
     }
 

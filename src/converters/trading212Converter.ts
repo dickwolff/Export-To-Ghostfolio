@@ -6,6 +6,7 @@ import { GhostfolioExport } from "../models/ghostfolioExport";
 import { Trading212Record } from "../models/trading212Record";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class Trading212Converter extends AbstractConverter {
 
@@ -138,7 +139,8 @@ export class Trading212Converter extends AbstractConverter {
                             currency: record.currencyTotal,
                             dataSource: "MANUAL",
                             date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
-                            symbol: record.notes
+                            symbol: record.notes,
+                            tags: getTags()
                         });
 
                         bar1.increment();
@@ -177,7 +179,8 @@ export class Trading212Converter extends AbstractConverter {
                         currency: record.currencyPriceShare,
                         dataSource: "YAHOO",
                         date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

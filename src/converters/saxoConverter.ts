@@ -6,6 +6,7 @@ import { GhostfolioExport } from "../models/ghostfolioExport";
 import { SaxoRecord } from "../models/saxoRecord";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class SaxoConverter extends AbstractConverter {
 
@@ -98,7 +99,8 @@ export class SaxoConverter extends AbstractConverter {
                             currency: record.instrumentCurrency,
                             dataSource: "MANUAL",
                             date: dayjs(record.tradeDate).format("YYYY-MM-DDTHH:mm:ssZ"),
-                            symbol: record.event
+                            symbol: record.event,
+                            tags: getTags()
                         });
 
                         bar1.increment();
@@ -156,7 +158,8 @@ export class SaxoConverter extends AbstractConverter {
                         currency: record.instrumentCurrency,
                         dataSource: "YAHOO",
                         date: dayjs(record.tradeDate).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();
