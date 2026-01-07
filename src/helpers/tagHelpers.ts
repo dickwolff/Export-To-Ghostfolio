@@ -1,11 +1,11 @@
 /**
- * Get tags from the GHOSTFOLIO_TAGS environment variable.
+ * Get tags from the GHOSTFOLIO_TAG_IDS environment variable.
  * Tags should be provided as a comma-separated list of UUIDs.
  *
  * @returns An array of tag UUIDs.
  */
 function getTags(): string[] {
-    const tagsEnv = process.env.GHOSTFOLIO_TAGS;
+    const tagsEnv = process.env.GHOSTFOLIO_TAG_IDS;
 
     if (!tagsEnv || tagsEnv.trim() === "") {
         return [];
