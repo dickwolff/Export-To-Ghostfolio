@@ -91,7 +91,7 @@ Choose date range on the right and click on "Excel" icon, in the modal select "F
 
 ### Disnat
 
-<to come>
+Login to Disnat and go to the account you want to export. Select "History", then "Account" and select the period you want. Click the export button to generate a `.xslx` file. Open this in your editor of choice (e.g. Libreoffice or Excel) and save it as CSV (**set the separation character to comma (`,`)**).
 
 ### eToro
 
