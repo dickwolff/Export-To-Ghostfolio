@@ -130,7 +130,7 @@ export class IbkrConverter extends AbstractConverter {
 
                     let fees = 0, quantity = 0, price = 0;
                     let type = GhostfolioOrderType.buy;
-                    let comment = "";
+                    let comment = null;
 
                     if ((record as IbkrDividendRecord).currency) {
                         const dividendRecord = record as IbkrDividendRecord;
