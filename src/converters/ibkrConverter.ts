@@ -138,7 +138,8 @@ export class IbkrConverter extends AbstractConverter {
                         // Check for PIL (cash credit or debit made to an account in recognition of a cash dividend paid to stockholders of the issuer).
                         if (dividendRecord.description.toLocaleLowerCase().indexOf("in lieu of") > -1) {
 
-                            quantity = dividendRecord.amount;
+                            price = dividendRecord.amount;
+                            quantity = 1;
                             comment = dividendRecord.description;
                             type = GhostfolioOrderType.dividend;
                         }
