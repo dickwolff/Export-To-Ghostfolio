@@ -3,10 +3,6 @@
 import * as fs from "fs";
 import { YahooFinance } from "../yahooFinanceService";
 import { mapReviver } from "../helpers/dictionaryHelpers";
-import { SearchOptions } from "yahoo-finance2/dist/esm/src/modules/search";
-import { YahooFinanceOptions } from "yahoo-finance2/dist/esm/src/lib/options";
-import { QuoteSummaryOptions } from "yahoo-finance2/dist/esm/src/modules/quoteSummary";
-import { ModuleOptionsWithValidateFalse } from "yahoo-finance2/dist/esm/src/lib/moduleCommon";
 import { YF_QUOTESUMMARYRESULTS_FILENAME, YF_SEARCHRESULTS_FILENAME } from "./yahooFinanceTestdataWriter";
 
 export default class YahooFinanceServiceMock implements YahooFinance {
@@ -27,10 +23,7 @@ export default class YahooFinanceServiceMock implements YahooFinance {
     }
 
     /** @inheritdoc */
-    public setGlobalConfig(_config: YahooFinanceOptions) { }
-
-    /** @inheritdoc */
-    public async search(query: string, _?: SearchOptions, __?: ModuleOptionsWithValidateFalse): Promise<any> {
+    public async search(query: string, _?: any, __?: any): Promise<any> {
 
         if (this.yahooFinanceSearchResults.has(query)) {
             return this.yahooFinanceSearchResults.get(query);
@@ -40,7 +33,7 @@ export default class YahooFinanceServiceMock implements YahooFinance {
     }
 
     /** @inheritdoc */
-    public async quoteSummary(symbol: string, _?: QuoteSummaryOptions, __?: ModuleOptionsWithValidateFalse): Promise<any> {
+    public async quoteSummary(symbol: string, _?: any, __?: any): Promise<any> {
 
         if (this.yahooFinanceQuoteSummaryResults.has(symbol)) {
             return this.yahooFinanceQuoteSummaryResults.get(symbol);
