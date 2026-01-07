@@ -64,7 +64,7 @@ describe("cryptocomConverter", () => {
             const sut = new CryptoComConverter(new SecurityService(new YahooFinanceServiceMock()));
 
             let tempFileContent = "";
-            tempFileContent += "Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind,Transaction Hash\n";
+            tempFileContent += "Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind\n";
 
             // Act
             sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
@@ -83,15 +83,15 @@ describe("cryptocomConverter", () => {
             const sut = new CryptoComConverter(new SecurityService(new YahooFinanceServiceMock()));
 
             let tempFileContent = "";
-            tempFileContent += "Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind,Transaction Hash\n";
-            tempFileContent += `2025-01-07 11:43:48,EGLD -> USDC,EGLD,-4.15,USDC,150.865358,EUR,143.33016114556153037260009689941121,169.3696337724427464682749300795884857180596,crypto_exchange,,,`;
+            tempFileContent += "Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind\n";
+            tempFileContent += `2025-01-07 11:43:48,EGLD -> USDC,EGLD,-4.15,USDC,150.865358,EUR,143.33016114556153037260009689941121,169.3696337724427464682749300795884857180596,crypto_exchange,,`;
 
             // Act
             sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
 
                 // Assert
                 expect(err).toBeTruthy();
-                expect(err.message).toBe("An error occurred while parsing! Details: Invalid Record Length: columns length is 11, got 13 on line 2");
+                expect(err.message).toBe("An error occurred while parsing! Details: Invalid Record Length: columns length is 10, got 12 on line 2");
 
                 done();
             });
@@ -101,8 +101,8 @@ describe("cryptocomConverter", () => {
 
             // Arrange
             let tempFileContent = "";
-            tempFileContent += "Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind,Transaction Hash\n";
-            tempFileContent += `2025-01-07 11:43:48,EGLD -> USDC,EGLD,-4.15,USDC,150.865358,EUR,143.33016114556153037260009689941121,169.3696337724427464682749300795884857180596,crypto_exchange,`;
+            tempFileContent += "Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind\n";
+            tempFileContent += `2025-01-07 11:43:48,EGLD -> USDC,EGLD,-4.15,USDC,150.865358,EUR,143.33016114556153037260009689941121,169.3696337724427464682749300795884857180596,crypto_exchange`;
 
             // Mock Yahoo Finance service to throw error.
             const yahooFinanceServiceMock = new YahooFinanceServiceMock();
@@ -125,8 +125,8 @@ describe("cryptocomConverter", () => {
 
         // Arrange
         let tempFileContent = "";
-        tempFileContent += "Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind,Transaction Hash\n";
-        tempFileContent += `2025-01-07 11:43:48,EGLD -> USDC,EGLD,-4.15,USDC,150.865358,EUR,143.33016114556153037260009689941121,169.3696337724427464682749300795884857180596,crypto_exchange,`;
+        tempFileContent += "Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind\n";
+        tempFileContent += `2025-01-07 11:43:48,EGLD -> USDC,EGLD,-4.15,USDC,150.865358,EUR,143.33016114556153037260009689941121,169.3696337724427464682749300795884857180596,crypto_exchange`;
 
         // Mock Yahoo Finance service to return no quotes.
         const yahooFinanceServiceMock = new YahooFinanceServiceMock();
@@ -148,7 +148,7 @@ describe("cryptocomConverter", () => {
     it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
 
         // Arrange
-        const tempFileContent = "Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind,Transaction Hash\n";
+        const tempFileContent = "Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind\n";
         const sut = new CryptoComConverter(new SecurityService(new YahooFinanceServiceMock()));
 
         const consoleSpy = jest.spyOn(console, "log");

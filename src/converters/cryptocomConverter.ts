@@ -128,7 +128,7 @@ export class CryptoComConverter extends AbstractConverter {
                         unitPrice: unitPrice,
                         currency: record.nativeCurrency,
                         dataSource: "YAHOO",
-                        date: dayjs(record.timestamp).format("YYYY-MM-DDTHH:mm:ssZ"),
+                        date: dayjs(record.timestampUTC).format("YYYY-MM-DDTHH:mm:ssZ"),
                         symbol: security.symbol
                     });
 
@@ -146,28 +146,6 @@ export class CryptoComConverter extends AbstractConverter {
                 errorCallback(error);
             }
         });
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected processHeaders(_: string): string[] {
-
-        // Generic header mapping from the CryptoCom CSV export.
-        const csvHeaders = [
-            "timestamp",
-            "transactionDescription",
-            "currency",
-            "amount",
-            "toCurrency",
-            "toAmount",
-            "nativeCurrency",
-            "nativeAmount",
-            "nativeAmountInUSD",
-            "transactionKind",
-            "transactionHash"];
-
-        return csvHeaders;
     }
 
     /**

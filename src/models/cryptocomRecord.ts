@@ -1,5 +1,5 @@
 export class CryptoComRecord {
-    timestamp: Date;
+    timestampUTC: Date;
     transactionDescription: string;
     currency: string;
     amount: number;
@@ -9,5 +9,4 @@ export class CryptoComRecord {
     nativeAmount: number;
     nativeAmountInUSD: number;
     transactionKind: string;
-    transactionHash: string;
 }
