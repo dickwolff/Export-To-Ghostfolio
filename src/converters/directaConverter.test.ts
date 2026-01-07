@@ -91,7 +91,7 @@ describe("directaConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toBe("An error occurred while parsing!");
+        expect(err.message).toBe("An error occurred while parsing! Details: Invalid Record Length: columns length is 12, got 13 on line 2");
 
         done();
       });
