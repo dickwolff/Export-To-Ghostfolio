@@ -26,22 +26,18 @@ export class SecurityService {
      * 
      * @param yahooFinance Service that sends requests to Yahoo Finance. Creates default instance of YahooFinanceService
      */
-    constructor(private yahooFinance: YahooFinance = new YahooFinanceService()) {
-
-        // Override logging, not interested in yahooFinance2 debug logging..        
-        /* istanbul ignore next */
-        this.yahooFinance.setGlobalConfig({
-            logger: {
-                info: (...args: any[]) => this.sink(),
-                warn: (...args: any[]) => this.sink(),
-                error: (...args: any[]) => this.sink(),
-                debug: (...args: any[]) => this.sink(),
-            },
-            queue: {
-                timeout: 60000
-            },
-            cookieJar: null
-        });
+    constructor(private yahooFinance: YahooFinance = new YahooFinanceService({
+        // v3 API: configuration is passed to the constructor
+        logger: {
+            info: (..._args: any[]) => { },
+            warn: (..._args: any[]) => { },
+            error: (..._args: any[]) => { },
+            debug: (..._args: any[]) => { },
+        },
+        queue: {
+            timeout: 60000
+        }
+    })) {
 
         // Also override console.error, since for some reason yahooFinance2 does not allows to disable this inside their library.
         /* istanbul ignore next */
@@ -377,7 +373,4 @@ export class SecurityService {
             }
         }
     }
-
-    /* istanbul ignore next */
-    private sink() { }
 }
