@@ -5,6 +5,7 @@ import { BitvavoRecord } from "../models/bitvavoRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class BitvavoConverter extends AbstractConverter {
 
@@ -108,7 +109,8 @@ export class BitvavoConverter extends AbstractConverter {
                         currency: "EUR",
                         dataSource: "YAHOO",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: symbol
+                        symbol: symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

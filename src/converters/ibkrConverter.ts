@@ -9,6 +9,7 @@ import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { IbkrDividendRecord } from "../models/ibkrDividendRecord";
 import { GhostfolioActivity } from "../models/ghostfolioActivity";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class IbkrConverter extends AbstractConverter {
 
@@ -200,7 +201,8 @@ export class IbkrConverter extends AbstractConverter {
                         currency: currency,
                         dataSource: "YAHOO",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

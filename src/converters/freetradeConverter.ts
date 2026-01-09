@@ -6,6 +6,7 @@ import { GhostfolioExport } from "../models/ghostfolioExport";
 import { FreetradeRecord } from "../models/freetradeRecord";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class FreetradeConverter extends AbstractConverter {
 
@@ -111,7 +112,8 @@ export class FreetradeConverter extends AbstractConverter {
                             currency: record.accountCurrency,
                             dataSource: "MANUAL",
                             date: dayjs(record.timestamp).format("YYYY-MM-DDTHH:mm:ssZ"),
-                            symbol: record.title
+                            symbol: record.title,
+                            tags: getTags()
                         });
 
                         bar1.increment();
@@ -160,7 +162,8 @@ export class FreetradeConverter extends AbstractConverter {
                             currency: security.currency,
                             dataSource: "YAHOO",
                             date: dayjs(record.dividendPayDate).format("YYYY-MM-DDTHH:mm:ssZ"),
-                            symbol: security.symbol
+                            symbol: security.symbol,
+                            tags: getTags()
                         });
 
                         bar1.increment();
@@ -184,7 +187,8 @@ export class FreetradeConverter extends AbstractConverter {
                         currency: security.currency,
                         dataSource: "YAHOO",
                         date: dayjs(record.timestamp).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();
