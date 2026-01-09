@@ -26,7 +26,7 @@ describe("finpensionConverter", () => {
 
     // Arange
     const sut = new FinpensionConverter(new SecurityService(new YahooFinanceServiceMock()));
-    const inputFile = "samples/finpension-export.csv";
+    const inputFile = "samples/finpension-3a-export.csv";
 
     // Act
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
@@ -197,6 +197,99 @@ describe("finpensionConverter", () => {
       expect(actualExport.activities[1].currency).toBe("CHF");
       expect(actualExport.activities[1].dataSource).toBe("MANUAL");
       expect(actualExport.activities[1].symbol).toBe("interest");
+
+      done();
+    }, () => done.fail("Should not have an error!"));
+  });
+
+  it("should process sample BVG CSV file", (done) => {
+
+    // Arange
+    const sut = new FinpensionConverter(new SecurityService(new YahooFinanceServiceMock()));
+    const inputFile = "samples/finpension-bvg-export.csv";
+
+    // Act
+    sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
+
+      // Assert
+      expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBeGreaterThan(0);
+      expect(actualExport.activities.length).toBe(10);
+
+      done();
+    }, (error) => {
+      console.error("Error processing BVG file:", error);
+      done(error);
+    });
+  });
+
+  it("should process Portfolio Transaction as buy when cash flow is negative", (done) => {
+
+    // Arrange
+    let tempFileContent = "";
+    tempFileContent += `Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Price in CHF";"Cash Flow";Balance\n`;
+    tempFileContent += `2024-10-22;"Portfolio Transaction";"UBS (CH) Index Fund 3 - Equities World ex CH NSL I-X-acc";CH0429081620;0.155000;CHF;1.0000000000;1690.560000;-262.036800;6.653200`;
+
+    const sut = new FinpensionConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+    // Act
+    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+
+      // Assert
+      expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBe(1);
+
+      expect(actualExport.activities[0].type).toBe("BUY");
+      expect(actualExport.activities[0].quantity).toBe(0.155000);
+      expect(actualExport.activities[0].unitPrice).toBe(1690.560000);
+      expect(actualExport.activities[0].currency).toBe("CHF");
+
+      done();
+    }, () => done.fail("Should not have an error!"));
+  });
+
+  it("should process Portfolio Transaction as sell when cash flow is positive", (done) => {
+
+    // Arrange
+    let tempFileContent = "";
+    tempFileContent += `Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Price in CHF";"Cash Flow";Balance\n`;
+    tempFileContent += `2024-10-22;"Portfolio Transaction";"UBS (CH) Index Fund 3 - Equities World ex CH NSL I-X-acc";CH0429081620;0.155000;CHF;1.0000000000;1690.560000;262.036800;6.653200`;
+
+    const sut = new FinpensionConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+    // Act
+    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+
+      // Assert
+      expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBe(1);
+
+      expect(actualExport.activities[0].type).toBe("SELL");
+      expect(actualExport.activities[0].quantity).toBe(0.155000);
+      expect(actualExport.activities[0].unitPrice).toBe(1690.560000);
+      expect(actualExport.activities[0].currency).toBe("CHF");
+
+      done();
+    }, () => done.fail("Should not have an error!"));
+  });
+
+  it("should ignore transfer vested benefits records", (done) => {
+
+    // Arrange
+    let tempFileContent = "";
+    tempFileContent += `Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Price in CHF";"Cash Flow";Balance\n`;
+    tempFileContent += `2024-10-16;"Transfer vested benefits";;;0.000000;CHF;1.0000000000;0.000000;268.690000;268.690000\n`;
+    tempFileContent += `2025-01-07;Interests;;;;CHF;1.0000000000;;0.450000;269.140000`;
+
+    const sut = new FinpensionConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+    // Act
+    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+
+      // Assert
+      expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBe(1); // Only interest, transfer is ignored
+      expect(actualExport.activities[0].type).toBe("INTEREST");
 
       done();
     }, () => done.fail("Should not have an error!"));
