@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
+import { getTags } from "../helpers/tagHelpers";
 import { DisnatRecord } from "../models/disnatRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
@@ -29,8 +30,7 @@ export class DisnatConverter extends AbstractConverter {
                 if (context.column === "typeDeTransaction") {
                     const action = columnValue.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-                    if (action.includes("frais") || action.includes("taxe") || action.includes("tax")) {
-
+                    if (action.includes("frais") || action.includes("taxe") || action.includes("tax") || action.includes("retenue")) {
                         return "fee";
                     }
                     if (action.includes("achat")) {
@@ -77,6 +77,8 @@ export class DisnatConverter extends AbstractConverter {
                 // Normalize currency codes
                 if (record.deviseDuPrix === "CAN") {
                     record.currency = "CAD";
+                } else if (record.deviseDuPrix === "US") {
+                    record.currency = "USD";
                 } else {
                     record.currency = record.deviseDuPrix || record.deviseDuCompte;
                 }
@@ -136,7 +138,8 @@ export class DisnatConverter extends AbstractConverter {
                             currency: record.currency,
                             dataSource: "MANUAL",
                             date: this.parseDate(record.dateDeReglement),
-                            symbol: record.description || `${record.typeDeTransaction}-${record.symbole}`
+                            symbol: record.description || `${record.typeDeTransaction}-${record.symbole}`,
+                            tags: getTags()
                         });
 
                         bar1.increment();
@@ -186,7 +189,8 @@ export class DisnatConverter extends AbstractConverter {
                         currency: record.currency,
                         dataSource: "YAHOO",
                         date: this.parseDate(record.dateDeReglement),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();
