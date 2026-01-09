@@ -1,12 +1,12 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
+import { getTags } from "../helpers/tagHelpers";
 import { DeltaRecord } from "../models/deltaRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
-import { getTags } from "../helpers/tagHelpers";
 
 export class DeltaConverter extends AbstractConverter {
 
