@@ -24,7 +24,7 @@ export class DirectaConverter extends AbstractConverter {
 
         // Skip lines until the actual CSV content starts (at the header).
         const lines = input.split("\n");
-        let headerIndex = lines.findIndex(line => line.startsWith("Data operazione,Data valuta,Tipo operazione"));
+        let headerIndex = lines.findIndex(line => line.toLocaleLowerCase().includes("data operazione,data valuta,tipo operazione"));
         input = lines.slice(headerIndex).join("\n");
 
         // Parse the CSV and convert to Ghostfolio import format.
