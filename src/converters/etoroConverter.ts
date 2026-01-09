@@ -7,6 +7,7 @@ import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class EtoroConverter extends AbstractConverter {
 
@@ -131,7 +132,8 @@ export class EtoroConverter extends AbstractConverter {
                             currency: "USD",
                             dataSource: "MANUAL",
                             date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                            symbol: ""
+                            symbol: "",
+                            tags: getTags()
                         });
 
                         bar1.increment();
@@ -177,7 +179,8 @@ export class EtoroConverter extends AbstractConverter {
                         currency: currency,
                         dataSource: "YAHOO",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

@@ -5,6 +5,7 @@ import { AbstractConverter } from "./abstractconverter";
 import { CoinbaseRecord } from "../models/coinbaseRecord";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class CoinbaseConverter extends AbstractConverter {
 
@@ -112,7 +113,8 @@ export class CoinbaseConverter extends AbstractConverter {
                         currency: "EUR",
                         dataSource: "YAHOO",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: symbol
+                        symbol: symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

@@ -5,6 +5,7 @@ import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import { RelaiRecord } from "../models/relaiRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class RelaiConverter extends AbstractConverter {
 
@@ -128,7 +129,8 @@ export class RelaiConverter extends AbstractConverter {
                         currency: currency,
                         dataSource: "MANUAL",
                         date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: symbol
+                        symbol: symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

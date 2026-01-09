@@ -99,7 +99,9 @@ Login to your eToro account and navigate to "Portfolio". Then select "History" i
 
 ### Finpension
 
-Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select “Transactions”, on the following page to the right notice “transaction report (CSV-file)” and click to email or click to download locally.
+Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select "Transactions", on the following page to the right notice "transaction report (CSV-file)" and click to email or click to download locally.
+
+**Note:** This converter supports both Finpension 3a and BVG (Pillar 2) account formats.
 
 ### Freetrade
 
@@ -209,11 +211,12 @@ docker run --rm -v {local_in-folder}:/var/tmp/e2g-input -v {local_out_folder}:/v
 The following parameters can be given to the Docker run command.
 
 | Command                                           | Optional | Description                                                                                                                                                     |
-| ------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ------------------------------------------------- | -------- |-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `-v {local_in-folder}:/var/tmp/e2g-input`         | N        | The input folder where you put the files to be processed                                                                                                        |
-| `-v {local_out_folder}:/var/tmp/e2g-output`       | N        | The output folder where the Ghostfolio import JSON will be placed. Also, the input file will be moved here when an error occurred while processing the file.     |
+| `-v {local_out_folder}:/var/tmp/e2g-output`       | N        | The output folder where the Ghostfolio import JSON will be placed. Also, the input file will be moved here when an error occurred while processing the file.    |
 | `-v {local_cache_folder}:/var/tmp/e2g-cache`      | Y        | The folder where Yahoo Finance symbols will be cached                                                                                                           |
 | `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx`             | N        | Your Ghostolio account ID [^1]                                                                                                                                  |
+| `--env GHOSTFOLIO_TAG_IDS=xxxxxxx,xxxxxxx`          | Y        | Comma-separated list of tag IDs to be added to all activities [^2]                                                                                              |
 | `--env ISIN_OVERRIDE_FILE=isin-overrides.txt` | Y        | Specify a key-value pair file with ISIN overrides                                                                                                               |
 | `--env USE_POLLING=true`                          | Y        | When set to true, the container will continously look for new files to process and the container will not stop.                                                 |
 | `--env DEBUG_LOGGING=true`                        | Y        | When set to true, the container will show logs in more detail, useful for error tracing.                                                                        |
@@ -227,6 +230,8 @@ The following parameters can be given to the Docker run command.
 [^1]: You can retrieve your Ghostfolio account ID by going to Accounts > Edit for your account and copying the Account ID field
 
 ![image](assets/account_settings.png)
+
+[^2]: You can retrieve tag IDs by going to Admin Control > Settings > Tags > Edit to see its ID in the URL
 
 ### How to use by generating your own image
 

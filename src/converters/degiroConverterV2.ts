@@ -8,6 +8,7 @@ import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { GhostfolioActivity } from "../models/ghostfolioActivity";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class DeGiroConverterV2 extends AbstractConverter {
 
@@ -95,7 +96,8 @@ export class DeGiroConverterV2 extends AbstractConverter {
               currency: record.currency,
               dataSource: "MANUAL",
               date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-              symbol: record.description
+              symbol: record.description,
+              tags: getTags()
             });
 
             bar1.increment(1);
@@ -118,7 +120,8 @@ export class DeGiroConverterV2 extends AbstractConverter {
               currency: record.currency,
               dataSource: "MANUAL",
               date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-              symbol: record.description
+              symbol: record.description,
+              tags: getTags()
             });
 
             bar1.increment(1);
@@ -334,6 +337,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
           dataSource: "YAHOO",
           date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
           symbol: security.symbol,
+          tags: getTags()
         },
         txFeeRecord ? 2 : 1 // Skip 1 record if action record had no TxFee.
       ];
@@ -376,6 +380,7 @@ export class DeGiroConverterV2 extends AbstractConverter {
           dataSource: "YAHOO",
           date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
           symbol: security.symbol,
+          tags: getTags()
         },
         txFeeRecord ? 2 : 1 // Skip 1 record if action record had no TxFee.
       ];
