@@ -289,6 +289,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | DEGIRO        | `run start degiro`                  |
 | Delta         | `run start delta`                   |
 | Directa       | `run start directa`                 |
+| Disnat        | `run start disnat`                  |
 | eToro         | `run start etoro`                   |
 | Finpension    | `run start finpension` (or `fp`)    |
 | Freetrade     | `run start freetrade`  (or `ft`)    |
