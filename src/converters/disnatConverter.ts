@@ -161,7 +161,7 @@ export class DisnatConverter extends AbstractConverter {
                             symbol,
                             record.description,
                             record.currency,
-                            null);
+                            this.progress);
                     }
                     catch (err) {
                         this.logQueryError(record.description, idx + 2);
