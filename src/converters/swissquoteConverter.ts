@@ -7,6 +7,7 @@ import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { SwissquoteRecord } from "../models/swissquoteRecord";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class SwissquoteConverter extends AbstractConverter {
 
@@ -128,7 +129,8 @@ export class SwissquoteConverter extends AbstractConverter {
                             currency: record.currency,
                             dataSource: "MANUAL",
                             date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                            symbol: "Custody Fees"
+                            symbol: "Custody Fees",
+                            tags: getTags()
                         });
 
                         bar1.increment();
@@ -169,7 +171,8 @@ export class SwissquoteConverter extends AbstractConverter {
                         currency: record.netAmountCurrency ?? record.currency,
                         dataSource: "YAHOO",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

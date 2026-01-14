@@ -6,6 +6,7 @@ import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { FinpensionRecord } from "../models/finpensionRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class FinpensionConverter extends AbstractConverter {
 
@@ -49,6 +50,11 @@ export class FinpensionConverter extends AbstractConverter {
                     }
                     else if (action.indexOf("interest") > -1) {
                         return "interest";
+                    }
+                    else if (action.indexOf("portfolio transaction") > -1) {
+                        // For BVG format: Portfolio Transaction type needs to be determined by cash flow sign
+                        // We'll handle this later when we have access to the cashFlow value
+                        return "portfolio transaction";
                     }
                 }
 
@@ -97,10 +103,16 @@ export class FinpensionConverter extends AbstractConverter {
                         continue;
                     }
 
-                    // Fees and interests do not have a security, so add those immediately.
-                    const categoryLower = record.category.toLocaleLowerCase();
-                    if (categoryLower === "fee" || categoryLower === "interest") {
+                    // Handle Portfolio Transaction (BVG format) - determine buy/sell from cash flow
+                    let categoryLower = record.category.toLocaleLowerCase();
+                    if (categoryLower === "portfolio transaction") {
+                        // Negative cash flow = buy (money out), positive = sell (money in)
+                        categoryLower = record.cashFlow < 0 ? "buy" : "sell";
+                        record.category = categoryLower;
+                    }
 
+                    // Fees and interests do not have a security, so add those immediately.
+                    if (categoryLower === "fee" || categoryLower === "interest") {
                         const amount = Math.abs(record.cashFlow);
 
                         // Add fee or interest record to export.
@@ -114,7 +126,8 @@ export class FinpensionConverter extends AbstractConverter {
                             currency: record.assetCurrency,
                             dataSource: "MANUAL",
                             date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                            symbol: record.category
+                            symbol: record.category,
+                            tags: getTags()
                         });
 
                         bar1.increment();
@@ -163,7 +176,8 @@ export class FinpensionConverter extends AbstractConverter {
                         currency: record.assetCurrency,
                         dataSource: "YAHOO",
                         date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

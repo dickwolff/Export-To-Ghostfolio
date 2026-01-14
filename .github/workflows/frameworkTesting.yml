@@ -17,6 +17,10 @@ on:
       - "sonar-project.properties"
   workflow_dispatch: # Also allow manual triggering
 
+concurrency:
+    group: frameworkTesting-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
   run-tests:
     name: Run Tests

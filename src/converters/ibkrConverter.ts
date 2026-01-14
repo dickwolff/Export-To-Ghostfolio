@@ -9,6 +9,7 @@ import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { IbkrDividendRecord } from "../models/ibkrDividendRecord";
 import { GhostfolioActivity } from "../models/ghostfolioActivity";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class IbkrConverter extends AbstractConverter {
 
@@ -130,7 +131,7 @@ export class IbkrConverter extends AbstractConverter {
 
                     let fees = 0, quantity = 0, price = 0;
                     let type = GhostfolioOrderType.buy;
-                    let comment = "";
+                    let comment = null;
 
                     if ((record as IbkrDividendRecord).currency) {
                         const dividendRecord = record as IbkrDividendRecord;
@@ -138,7 +139,8 @@ export class IbkrConverter extends AbstractConverter {
                         // Check for PIL (cash credit or debit made to an account in recognition of a cash dividend paid to stockholders of the issuer).
                         if (dividendRecord.description.toLocaleLowerCase().indexOf("in lieu of") > -1) {
 
-                            quantity = dividendRecord.amount;
+                            price = dividendRecord.amount;
+                            quantity = 1;
                             comment = dividendRecord.description;
                             type = GhostfolioOrderType.dividend;
                         }
@@ -199,7 +201,8 @@ export class IbkrConverter extends AbstractConverter {
                         currency: currency,
                         dataSource: "YAHOO",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();
