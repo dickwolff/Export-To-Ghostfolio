@@ -22,6 +22,10 @@ on:
       - .github/*
   workflow_dispatch: # Also allow manual triggering
 
+concurrency:
+    group: docker-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
   docker:
     env:
