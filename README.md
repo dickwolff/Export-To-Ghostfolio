@@ -15,6 +15,7 @@ This tool allows you to convert CSV transaction exports to an import file that c
 - [BUX](https://bux.com)
 - [Coinbase](https://coinbase.com)
 - [CoinTracking.info](https://cointracking.info)
+- [Crypto.com App](https://crypto.com/app)
 - [DEGIRO](https://degiro.com)
 - [Delta](https://delta.app)
 - [Directa](https://directatrading.com)
@@ -68,6 +69,13 @@ Go to Coinbase.com. Click on your account in the top-right, then click your name
 ### CoinTracking.info
 
 Login to your CoinTracking.info account. Go to the "Transactions" section in the menu. Click the "Export"-button, then choose "CSV (Full Export)" **(this is important!)** to download the transactions.
+
+### Crypto.com App
+
+Open the App. Go to the Accounts page, select the Account (for example, Crypto Wallet). Then select the Transaction History button as shown in the image. Select the Export or Share button as shown in the image. Select a range and then press Export to CSV.
+
+![Export instructions for the Crypto.com App](./assets/export-cryptocom.png)
+
 
 ### DEGIRO
 
@@ -286,6 +294,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | BUX           | `run start bux`                     |
 | Coinbase      | `run start coinbase` (or `cb`)      |
 | CoinTracking  | `run start cointracking` (or `ct`)  |
+| Crypto.com    | `run start cryptocom`               |
 | DEGIRO        | `run start degiro`                  |
 | Delta         | `run start delta`                   |
 | Directa       | `run start directa`                 |
