@@ -34,7 +34,13 @@ chokidar
 
         const fileContents = fs.readFileSync(filePath, "utf-8");
 
-        const closestMatch = matcher.closestMatch(fileContents.split("\n")[0], [...headers.keys()]);
+
+        // Determine file type by checking header. As the header may not be on the first line, we need to find it.
+        const lines = fileContents.split("\n");
+
+        // Find the first line that looks like a header (comma or semicolon separated with multiple values).
+        const headerLine = lines.find(line => (line.match(/[,;]/g) || []).length >= 2) || lines[0];
+        const closestMatch = matcher.closestMatch(headerLine, [...headers.keys()]);
 
         let converterKey = closestMatch as string;
 
