@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
+import { getTags } from "../helpers/tagHelpers";
 import { CryptoComRecord } from "../models/cryptocomRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
@@ -129,7 +130,8 @@ export class CryptoComConverter extends AbstractConverter {
                         currency: record.nativeCurrency,
                         dataSource: "YAHOO",
                         date: dayjs(record.timestampUTC).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();
