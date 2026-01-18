@@ -36,7 +36,7 @@ export class BuxConverter extends AbstractConverter {
                 if (context.column === "transactionType") {
                     const action = columnValue.toLocaleLowerCase();
 
-                    if (action.indexOf("buy") > -1) {
+                    if (action.indexOf("buy") > -1 || action.indexOf("general corporate action") > -1) {
                         return "buy";
                     }
                     else if (action.indexOf("sell") > -1) {
@@ -54,12 +54,15 @@ export class BuxConverter extends AbstractConverter {
                 }
 
                 // Parse numbers to floats (from string).
-                if (context.column === "exchangeRate" ||
-                    context.column === "transactionAmount" ||
-                    context.column === "tradeAmount" ||
-                    context.column === "tradePrice" ||
-                    context.column === "tradeQuantity" ||
-                    context.column === "cashBalanceAmount") {
+                if (context.column === "transactionAmount" ||
+                    context.column === "cashBalanceAmount" ||
+                    context.column === "assetQuantity" ||
+                    context.column === "assetPrice" ||
+                    context.column === "exchangeRate" ||
+                    context.column === "profitAndLossAmount" ||
+                    context.column === "dividendGrossAmount" ||
+                    context.column === "dividendNetAmount" ||
+                    context.column === "dividendTaxAmount") {
                     return parseFloat(columnValue);
                 }
 
@@ -70,6 +73,11 @@ export class BuxConverter extends AbstractConverter {
                 // Default exchange rate to 1 if not provided.
                 if (!record.exchangeRate) {
                     record.exchangeRate = 1;
+                }
+
+                // Fix "General Corporate Action" records that are buys but have a positive amount.
+                if (record.transactionType === "buy" && record.transactionAmount > 0) {
+                    record.transactionType = "sell";
                 }
 
                 return record;
@@ -162,8 +170,8 @@ export class BuxConverter extends AbstractConverter {
                         quantity = 1;
                         unitPrice = Math.abs(record.transactionAmount) / record.exchangeRate;
                     } else {
-                        quantity = record.tradeQuantity;
-                        unitPrice = record.tradePrice / record.exchangeRate;
+                        quantity = record.assetQuantity;
+                        unitPrice = record.assetPrice / record.exchangeRate;
                     }
 
                     // Add record to export.
@@ -200,7 +208,7 @@ export class BuxConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: BuxRecord): boolean {
-        let ignoredRecordTypes = ["deposit", "withdrawal"];
+        let ignoredRecordTypes = ["deposit", "withdrawal", "promotional", "to user corrections"];
 
         return ignoredRecordTypes.some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)
     }
