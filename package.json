@@ -32,7 +32,7 @@
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.3",
     "tsx": "^4.21.0",
-    "yahoo-finance2": "^3.11.2"
+    "yahoo-finance2": "^3.13.0"
   },
   "engines": {
     "node": ">=22.0.0"
