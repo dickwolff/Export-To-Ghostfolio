@@ -1,0 +1,12 @@
+﻿Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Price in CHF";"Cash Flow";Balance
+2025-10-15;"Flat-rate administration fee";;;0.000000;CHF;1.0000000000;0.000000;-0.348712;3.655006
+2025-07-17;Interests;;;0.000000;CHF;1.0000000000;0.000000;0.010000;4.003718
+2025-07-17;"Flat-rate administration fee";;;0.000000;CHF;1.0000000000;0.000000;-0.323645;3.993718
+2025-05-23;"Dividend and Interest Distributions";"UBS (CH) Index Fund 3 - Equities World ex CH NSL I-X-acc";CH0429081620;0.000000;CHF;1.0000000000;0.260000;0.040000;4.317363
+2025-05-22;"Dividend and Interest Distributions";"UBS (CH) Index Fund 3 - Equities World ex CH NSL I-X-acc";CH0429081620;0.000000;CHF;1.0000000000;10.540445;1.650000;4.277363
+2025-04-16;"Flat-rate administration fee";;;0.000000;CHF;1.0000000000;0.000000;-0.347736;2.627363
+2025-01-21;Interests;;;0.000000;CHF;1.0000000000;0.000000;0.050000;2.975099
+2025-01-21;"Flat-rate administration fee";;;0.000000;CHF;1.0000000000;0.000000;-0.338941;2.925099
+2024-10-29;"Portfolio Transaction";"UBS (CH) Index Fund 3 - Equities World ex CH NSL I-X-acc";CH0429081620;0.002000;CHF;1.0000000000;1694.580000;-3.389160;3.264040
+2024-10-22;"Portfolio Transaction";"UBS (CH) Index Fund 3 - Equities World ex CH NSL I-X-acc";CH0429081620;0.155000;CHF;1.0000000000;1690.560000;-262.036800;6.653200
+2024-10-16;"Transfer vested benefits";;;0.000000;CHF;1.0000000000;0.000000;268.690000;268.690000

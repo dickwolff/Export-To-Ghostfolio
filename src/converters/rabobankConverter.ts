@@ -7,6 +7,7 @@ import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class RabobankConverter extends AbstractConverter {
 
@@ -125,7 +126,8 @@ export class RabobankConverter extends AbstractConverter {
                             currency: record.currency,
                             dataSource: "MANUAL",
                             date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                            symbol: description
+                            symbol: description,
+                            tags: getTags()
                         });
 
                         bar1.increment();
@@ -178,7 +180,8 @@ export class RabobankConverter extends AbstractConverter {
                         currency: record.currency,
                         dataSource: "YAHOO",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

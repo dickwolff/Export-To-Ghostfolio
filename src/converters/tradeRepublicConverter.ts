@@ -7,6 +7,7 @@ import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { TradeRepublicRecord } from "../models/tradeRepublicRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class TradeRepublicConverter extends AbstractConverter {
 
@@ -136,7 +137,8 @@ export class TradeRepublicConverter extends AbstractConverter {
                         currency: "EUR",
                         dataSource: "YAHOO",
                         date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

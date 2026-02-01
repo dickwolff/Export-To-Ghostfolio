@@ -16,7 +16,7 @@ interface IYahooFinance {
  */
 class YahooFinanceService implements IYahooFinance {
 
-    private yahooFinance: InstanceType<typeof YahooFinance>;
+    private readonly yahooFinance: InstanceType<typeof YahooFinance>;
 
     constructor(config?: any, private yahooFinanceTestdataWriter?: YahooFinanceTestdata) {
         // v3 API: configuration is passed to the constructor

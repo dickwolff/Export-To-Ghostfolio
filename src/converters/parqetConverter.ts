@@ -6,6 +6,7 @@ import { AbstractConverter } from "./abstractconverter";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
+import { getTags } from "../helpers/tagHelpers";
 
 export class ParqetConverter extends AbstractConverter {
 
@@ -114,7 +115,8 @@ export class ParqetConverter extends AbstractConverter {
                         currency: record.currency ?? record.originalCurrency,
                         dataSource: "YAHOO",
                         date: dayjs(record.dateTime).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

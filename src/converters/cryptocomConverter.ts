@@ -1,20 +1,17 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
-import { InvestEngineRecord } from "../models/investEngineRecord";
+import { getTags } from "../helpers/tagHelpers";
+import { CryptoComRecord } from "../models/cryptocomRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
-import customParseFormat from "dayjs/plugin/customParseFormat";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
-import { getTags } from "../helpers/tagHelpers";
 
-export class InvestEngineConverter extends AbstractConverter {
+export class CryptoComConverter extends AbstractConverter {
 
     constructor(securityService: SecurityService) {
         super(securityService);
-
-        dayjs.extend(customParseFormat);
     }
 
     /**
@@ -31,36 +28,38 @@ export class InvestEngineConverter extends AbstractConverter {
 
                 // Custom mapping below.
 
-                // Convert transaction types to Ghostfolio type.
-                if (context.column === "transactionType") {
-                    const transactionType = columnValue.toLowerCase();
+                // Convert transaction kinds to Ghostfolio types.
+                if (context.column === "transactionKind") {
+                    const type = columnValue.toLowerCase();
 
-                    if (transactionType === "buy") {
+                    if (type.includes("crypto_exchange")) {
                         return "buy";
                     }
-                    else if (transactionType === "sell") {
-                        return "sell";
+                    else if (type.includes("compound_interest") ||
+                        type.includes("referral_card_cashback") ||
+                        type.includes("stake_reward")) {
+                        return "dividend";
                     }
-                    // Add dividend in the future?
                 }
 
-                // Remove the pound sign (£) from any field.
-                columnValue = columnValue.replace(/£/g, "");
-
                 // Parse numbers to floats (from string).
-                if (context.column === "quantity" ||
-                    context.column === "sharePrice" ||
-                    context.column === "totalTradeValue") {
+                if (context.column === "amount" ||
+                    context.column === "toAmount" ||
+                    context.column === "nativeAmount" ||
+                    context.column === "nativeAmountInUSD") {
 
-                    return Number.parseFloat(columnValue || "0");
+                    if (columnValue === "" || columnValue === undefined) {
+                        return 0;
+                    }
+
+                    return Number.parseFloat(columnValue);
                 }
 
                 return columnValue;
-            }
-        }, async (err, records: InvestEngineRecord[]) => {
+            },
+        }, async (err, records: CryptoComRecord[]) => {
 
             try {
-
                 // Check if parsing failed..
                 if (err || records === undefined || records.length === 0) {
                     let errorMsg = "An error occurred while parsing!";
@@ -69,7 +68,6 @@ export class InvestEngineConverter extends AbstractConverter {
                         errorMsg += ` Details: ${err.message}`
                     }
 
-                    this.progress.stop();
                     return errorCallback(new Error(errorMsg))
                 }
 
@@ -88,51 +86,50 @@ export class InvestEngineConverter extends AbstractConverter {
                 for (let idx = 0; idx < records.length; idx++) {
                     const record = records[idx];
 
+                    // Check if the record should be ignored.
                     if (this.isIgnoredRecord(record)) {
                         bar1.increment();
                         continue;
                     }
 
-                    // Extract security name and ISIN from the combined field.
-                    const securityParts = record.securityIsin.split(" / ISIN ");
-                    const securityName = securityParts[0].trim();
-                    const isin = securityParts.length > 1 ? securityParts[1].trim() : null;
-
+                    const cryptoSymbol = `${record.currency}-${record.nativeCurrency}`;
                     let security: YahooFinanceRecord;
+
                     try {
+                        // For crypto, we use the currency symbol directly instead of ISIN
                         security = await this.securityService.getSecurity(
-                            isin,
+                            null,
+                            cryptoSymbol,
                             null,
                             null,
-                            "GBP", // InvestEngine uses GBP.
                             this.progress);
                     }
                     catch (err) {
-                        this.logQueryError(isin || securityName, idx + 2);
-                        this.progress.stop();
+                        this.logQueryError(record.currency, idx + 2);
                         return errorCallback(err);
                     }
 
                     // Log whenever there was no match found.
                     if (!security) {
-                        this.progress.log(`[i] No result found for ${record.transactionType} action for ${securityName} (ISIN: ${isin}) with currency GBP! Please add this manually..\n`);
+                        this.progress.log(`[i] No result found for ${record.transactionKind} action for ${cryptoSymbol}! Please add this manually..\n`);
                         bar1.increment();
                         continue;
                     }
 
-                    const date = dayjs(record.tradeDateTime, "DD/MM/YY HH:mm:ss");
+                    const quantity = Math.abs(record.amount);
+                    const unitPrice = Math.abs(record.nativeAmount) / quantity;
 
                     // Add record to export.
                     result.activities.push({
                         accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                         comment: null,
                         fee: 0,
-                        quantity: record.quantity,
-                        type: GhostfolioOrderType[record.transactionType],
-                        unitPrice: record.sharePrice,
-                        currency: "GBP",
+                        quantity: quantity,
+                        type: GhostfolioOrderType[record.transactionKind],
+                        unitPrice: unitPrice,
+                        currency: record.nativeCurrency,
                         dataSource: "YAHOO",
-                        date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                        date: dayjs(record.timestampUTC).format("YYYY-MM-DDTHH:mm:ssZ"),
                         symbol: security.symbol,
                         tags: getTags()
                     });
@@ -156,10 +153,9 @@ export class InvestEngineConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    public isIgnoredRecord(record: InvestEngineRecord): boolean {
+    public isIgnoredRecord(record: CryptoComRecord): boolean {
+        let ignoredRecordTypes = ["deposit", "top_up", "lock", "transfer", "swap", "withdraw", "unlock"];
 
-        // Currently there are no records to ignore.
-
-        return false;
+        return ignoredRecordTypes.some(t => record.transactionKind.toLowerCase().includes(t))
     }
 }

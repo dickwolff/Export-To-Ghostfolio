@@ -8,6 +8,7 @@ import { DirectaRecord } from "../models/directaRecord";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { GhostfolioActivity } from "../models/ghostfolioActivity";
+import { getTags } from "../helpers/tagHelpers";
 
 export class DirectaConverter extends AbstractConverter {
 
@@ -23,7 +24,7 @@ export class DirectaConverter extends AbstractConverter {
 
         // Skip lines until the actual CSV content starts (at the header).
         const lines = input.split("\n");
-        let headerIndex = lines.findIndex(line => line.startsWith("Data operazione,Data valuta,Tipo operazione"));
+        let headerIndex = lines.findIndex(line => line.toLocaleLowerCase().includes("data operazione,data valuta,tipo operazione"));
         input = lines.slice(headerIndex).join("\n");
 
         // Parse the CSV and convert to Ghostfolio import format.
@@ -207,7 +208,8 @@ export class DirectaConverter extends AbstractConverter {
             currency: security.currency ?? record.divisa,
             dataSource: "YAHOO",
             date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
-            symbol: security.symbol
+            symbol: security.symbol,
+            tags: getTags()
         };
     }
 }

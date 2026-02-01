@@ -4,9 +4,8 @@
 [![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/dickw0lff)
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/dickwolff/export-to-ghostfolio?style=for-the-badge)](https://hub.docker.com/r/dickwolff/export-to-ghostfolio) &nbsp; ![Stars](https://img.shields.io/github/stars/dickwolff/export-to-ghostfolio?style=for-the-badge) &nbsp; [![Quality Gate Status](https://img.shields.io/sonar/quality_gate/dickwolff_Export-To-Ghostfolio.svg?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge)](https://sonarcloud.io/dashboard?id=dickwolff_Export-To-Ghostfolio) &nbsp; ![Code Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/dickwolff/dd5dc24ffa62de59b3d836f856f48a10/raw/cov.json) 
- 
 
-This tool allows you to convert CSV transaction exports to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for 24 brokers:
+This tool allows you to convert CSV transaction exports to an import file that can be read by [Ghostfolio](https://github.com/ghostfolio/ghostfolio/). Currently there is support for 26 brokers:
 
 ![Overview of converters](./assets/social.png)
 
@@ -15,9 +14,11 @@ This tool allows you to convert CSV transaction exports to an import file that c
 - [BUX](https://bux.com)
 - [Coinbase](https://coinbase.com)
 - [CoinTracking.info](https://cointracking.info)
+- [Crypto.com App](https://crypto.com/app)
 - [DEGIRO](https://degiro.com)
 - [Delta](https://delta.app)
 - [Directa](https://directatrading.com)
+- [Disnat](https://www.disnat.com)
 - [eToro](https://www.etoro.com/)
 - [Finpension](https://finpension.ch)
 - [Freetrade](https://freetrade.io)
@@ -68,6 +69,13 @@ Go to Coinbase.com. Click on your account in the top-right, then click your name
 
 Login to your CoinTracking.info account. Go to the "Transactions" section in the menu. Click the "Export"-button, then choose "CSV (Full Export)" **(this is important!)** to download the transactions.
 
+### Crypto.com App
+
+Open the App. Go to the Accounts page, select the Account (for example, Crypto Wallet). Then select the Transaction History button as shown in the image. Select the Export or Share button as shown in the image. Select a range and then press Export to CSV.
+
+![Export instructions for the Crypto.com App](./assets/export-cryptocom.png)
+
+
 ### DEGIRO
 
 Login to your DEGIRO account and create an export file (via Inbox > Account Overview, see image below). Choose the period from which you wish to export your history and click download.
@@ -88,13 +96,19 @@ Choose date range on the right and click on "Excel" icon, in the modal select "F
 
 ![Export instructions for Directa, Export](./assets/directa-export.png)
 
+### Disnat
+
+Login to Disnat and go to the account you want to export. Select "History", then "Account" and select the period you want. Click the export button to generate a `.xslx` file. Open this in your editor of choice (e.g. Libreoffice or Excel) and save it as CSV (**set the separation character to comma (`,`)**).
+
 ### eToro
 
 Login to your eToro account and navigate to "Portfolio". Then select "History" in the top menu. Next, click on the icon on the far right and select "Account statement". Choose the dates of interest and click "Create". On the next page, click on the Excel icon on the top right to download the file. After downloading, open the file in Excel and delete all the tabs except the "Account Activity" tab. Then use Excel to convert the file to CSV (**set the separation character to comma (`,`)**).
 
 ### Finpension
 
-Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select “Transactions”, on the following page to the right notice “transaction report (CSV-file)” and click to email or click to download locally.
+Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select "Transactions", on the following page to the right notice "transaction report (CSV-file)" and click to email or click to download locally.
+
+**Note:** This converter supports both Finpension 3a and BVG (Pillar 2) account formats.
 
 ### Freetrade
 
@@ -204,11 +218,12 @@ docker run --rm -v {local_in-folder}:/var/tmp/e2g-input -v {local_out_folder}:/v
 The following parameters can be given to the Docker run command.
 
 | Command                                           | Optional | Description                                                                                                                                                     |
-| ------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ------------------------------------------------- | -------- |-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `-v {local_in-folder}:/var/tmp/e2g-input`         | N        | The input folder where you put the files to be processed                                                                                                        |
-| `-v {local_out_folder}:/var/tmp/e2g-output`       | N        | The output folder where the Ghostfolio import JSON will be placed. Also, the input file will be moved here when an error occurred while processing the file.     |
+| `-v {local_out_folder}:/var/tmp/e2g-output`       | N        | The output folder where the Ghostfolio import JSON will be placed. Also, the input file will be moved here when an error occurred while processing the file.    |
 | `-v {local_cache_folder}:/var/tmp/e2g-cache`      | Y        | The folder where Yahoo Finance symbols will be cached                                                                                                           |
 | `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx`             | N        | Your Ghostolio account ID [^1]                                                                                                                                  |
+| `--env GHOSTFOLIO_TAG_IDS=xxxxxxx,xxxxxxx`          | Y        | Comma-separated list of tag IDs to be added to all activities [^2]                                                                                              |
 | `--env ISIN_OVERRIDE_FILE=isin-overrides.txt` | Y        | Specify a key-value pair file with ISIN overrides                                                                                                               |
 | `--env USE_POLLING=true`                          | Y        | When set to true, the container will continously look for new files to process and the container will not stop.                                                 |
 | `--env DEBUG_LOGGING=true`                        | Y        | When set to true, the container will show logs in more detail, useful for error tracing.                                                                        |
@@ -222,6 +237,8 @@ The following parameters can be given to the Docker run command.
 [^1]: You can retrieve your Ghostfolio account ID by going to Accounts > Edit for your account and copying the Account ID field
 
 ![image](assets/account_settings.png)
+
+[^2]: You can retrieve tag IDs by going to Admin Control > Settings > Tags > Edit to see its ID in the URL
 
 ### How to use by generating your own image
 
@@ -276,9 +293,11 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | BUX           | `run start bux`                     |
 | Coinbase      | `run start coinbase` (or `cb`)      |
 | CoinTracking  | `run start cointracking` (or `ct`)  |
+| Crypto.com    | `run start cryptocom`               |
 | DEGIRO        | `run start degiro`                  |
 | Delta         | `run start delta`                   |
 | Directa       | `run start directa`                 |
+| Disnat        | `run start disnat`                  |
 | eToro         | `run start etoro`                   |
 | Finpension    | `run start finpension` (or `fp`)    |
 | Freetrade     | `run start freetrade`  (or `ft`)    |

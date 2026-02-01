@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { parse } from "csv-parse";
+import { getTags } from "../helpers/tagHelpers";
 import { DeltaRecord } from "../models/deltaRecord";
 import { AbstractConverter } from "./abstractconverter";
 import { SecurityService } from "../securityService";
@@ -145,7 +146,8 @@ export class DeltaConverter extends AbstractConverter {
                         currency: record.baseCurrencyName,
                         dataSource: "YAHOO",
                         date: dayjs(record.date).format("YYYY-MM-DDTHH:mm:ssZ"),
-                        symbol: security.symbol
+                        symbol: security.symbol,
+                        tags: getTags()
                     });
 
                     bar1.increment();

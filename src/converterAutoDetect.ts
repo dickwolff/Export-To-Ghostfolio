@@ -7,9 +7,11 @@ headers.set(`Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,
 headers.set(`Transaction Time (CET),Transaction Category,Transaction Type,Asset Id,Asset Name,Asset Currency,Transaction Currency,Currency Pair,Exchange Rate,Transaction Amount,Trade Amount,Trade Price,Trade Quantity,Cash Balance Amount,Profit And Loss Amount,Profit And Loss Currency`, "bux");
 headers.set(`ID,Timestamp,Transaction Type,Asset,Quantity Transacted,Price Currency,Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes`, "coinbase");
 headers.set(`"Type","Buy","Cur.","Sell","Cur.","Fee","Cur.","Exchange","Group","Comment","Date","Tx-ID"`, "cointracking");
+headers.set(`Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind,Transaction Hash`, "cryptocom");
 headers.set(`Datum,Tijd,Valutadatum,Product,ISIN,Omschrijving,FX,Mutatie,,Saldo,,Order Id`, "degiro");
 headers.set(`Date,Way,Base amount,Base currency (name),Base type,Quote amount,Quote currency,Exchange,Sent/Received from,Sent to,Fee amount,Fee currency (name),Broker,Notes`, "delta");
 headers.set(`Data operazione,Data valuta,Tipo operazione,Ticker,Isin,Protocollo,Descrizione,Quantità,Importo euro,Importo Divisa,Divisa,Riferimento ordine`, "directa");
+headers.set(`Date de transaction,Date de règlement,Type de transaction,Classe d'actif,Symbole,Description,Marché,Quantité,Prix,Devise du prix,Commission payée,Montant de l'opération,Devise du compte`, "disnat");
 headers.set(`Date,Type,Details,Amount,Units,Realized Equity Change,Realized Equity,Balance,Position ID,Asset type,NWA`, "etoro");
 headers.set(`Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Price in CHF";"Cash Flow";Balance`, "finpension");
 headers.set(`Title,Type,Timestamp,Account Currency,Total Amount,Buy / Sell,Ticker,ISIN,Price per Share in Account Currency,Stamp Duty,Quantity,Venue,Order ID,Order Type,Instrument Currency,Total Shares Amount,Price per Share,FX Rate,Base FX Rate,FX Fee (BPS),FX Fee Amount,Dividend Ex Date,Dividend Pay Date,Dividend Eligible Quantity,Dividend Amount Per Share,Dividend Gross Distribution Amount,Dividend Net Distribution Amount,Dividend Withheld Tax Percentage,Dividend Withheld Tax Amount`, "freetrade");
@@ -38,10 +40,13 @@ headers.set(`ID;Type;Time;Symbol;Comment;Amount`, "xtb");
  * @returns The detected converter type, or null if detection fails
  */
 export function detectConverterType(fileContents: string): string | null {
-    const firstLine = fileContents.split("\n")[0]?.trim();
-    if (!firstLine) return null;
+    const lines = fileContents.split("\n");
 
-    const closestMatch = matcher.closestMatch(firstLine, [...headers.keys()]);
+    // Find the first line that looks like a header (comma or semicolon separated with multiple values).
+    const headerLine = lines.find(line => (line.match(/[,;]/g) || []).length >= 2)?.trim() || lines[0]?.trim();
+    if (!headerLine) return null;
+
+    const closestMatch = matcher.closestMatch(headerLine, [...headers.keys()]);
 
     let converterKey = closestMatch as string;
 
