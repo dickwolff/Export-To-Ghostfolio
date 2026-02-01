@@ -165,6 +165,14 @@
                 required
             >
 
+            <label for="tagIds">Tag IDs (optional)</label>
+            <input
+                type="text"
+                id="tagIds"
+                name="tagIds"
+                placeholder="e.g. uuid1, uuid2 (comma-separated)"
+            >
+
             <label>CSV Export File</label>
             <div class="file-upload" id="dropZone">
                 <input type="file" id="fileInput" accept=".csv" required>
@@ -185,6 +193,8 @@
         The file format is auto-detected from the CSV header.
         <br><br>
         Find your Account ID in Ghostfolio under <strong>Settings → Accounts</strong>.
+        <br>
+        Find your Tag IDs in Ghostfolio under <strong>Settings → Tags</strong> (click on a tag to see its UUID in the URL).
     </div>
 
     <script>
@@ -195,6 +205,7 @@
         const status = document.getElementById('status');
         const submitBtn = document.getElementById('submitBtn');
         const accountIdInput = document.getElementById('accountId');
+        const tagIdsInput = document.getElementById('tagIds');
 
         // Load saved account ID from localStorage
         const savedAccountId = localStorage.getItem('ghostfolio_account_id');
@@ -202,9 +213,20 @@
             accountIdInput.value = savedAccountId;
         }
 
+        // Load saved tag IDs from localStorage
+        const savedTagIds = localStorage.getItem('ghostfolio_tag_ids');
+        if (savedTagIds) {
+            tagIdsInput.value = savedTagIds;
+        }
+
         // Save account ID when changed
         accountIdInput.addEventListener('change', () => {
             localStorage.setItem('ghostfolio_account_id', accountIdInput.value);
+        });
+
+        // Save tag IDs when changed
+        tagIdsInput.addEventListener('change', () => {
+            localStorage.setItem('ghostfolio_tag_ids', tagIdsInput.value);
         });
 
         // File selection
@@ -253,9 +275,10 @@
 
             const file = fileInput.files[0];
             const accountId = accountIdInput.value.trim();
+            const tagIds = tagIdsInput.value.trim();
 
             if (!file || !accountId) {
-                showStatus('Please fill in all fields', 'error');
+                showStatus('Please fill in all required fields', 'error');
                 return;
             }
 
@@ -266,6 +289,17 @@
                 return;
             }
 
+            // Validate tag IDs format (if provided)
+            if (tagIds) {
+                const tagIdArray = tagIds.split(',').map(t => t.trim()).filter(t => t !== '');
+                for (const tagId of tagIdArray) {
+                    if (!uuidRegex.test(tagId)) {
+                        showStatus(`Invalid Tag ID format: '${tagId}'. Expected UUID format.`, 'error');
+                        return;
+                    }
+                }
+            }
+
             submitBtn.disabled = true;
             showStatus('<span class="spinner"></span>Converting... This may take a moment.', 'loading');
 
@@ -273,6 +307,9 @@
                 const formData = new FormData();
                 formData.append('file', file);
                 formData.append('accountId', accountId);
+                if (tagIds) {
+                    formData.append('tagIds', tagIds);
+                }
 
                 const response = await fetch('/convert', {
                     method: 'POST',

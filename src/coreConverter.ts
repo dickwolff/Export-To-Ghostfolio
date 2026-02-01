@@ -36,6 +36,8 @@ import packageInfo from "../package.json";
 export interface ConversionOptions {
     /** Override the GHOSTFOLIO_ACCOUNT_ID environment variable */
     accountId?: string;
+    /** Override the GHOSTFOLIO_TAG_IDS environment variable (comma-separated UUIDs or array) */
+    tagIds?: string | string[];
     /** Enable debug logging (pretty print JSON) */
     debugLogging?: boolean;
     /** Update cash balance in Ghostfolio */
@@ -232,6 +234,15 @@ export async function convertToGhostfolio(
     const originalAccountId = process.env.GHOSTFOLIO_ACCOUNT_ID;
     process.env.GHOSTFOLIO_ACCOUNT_ID = accountId;
 
+    // Handle tag IDs - can be string (comma-separated) or array
+    const originalTagIds = process.env.GHOSTFOLIO_TAG_IDS;
+    if (options?.tagIds) {
+        const tagIdsValue = Array.isArray(options.tagIds)
+            ? options.tagIds.join(",")
+            : options.tagIds;
+        process.env.GHOSTFOLIO_TAG_IDS = tagIdsValue;
+    }
+
     console.log(`[i] Starting Export to Ghostfolio v${packageInfo.version}`);
 
     // Handle DEGIRO V3 flag
@@ -291,6 +302,14 @@ export async function convertToGhostfolio(
         // Restore original account ID
         if (originalAccountId !== undefined) {
             process.env.GHOSTFOLIO_ACCOUNT_ID = originalAccountId;
+        }
+        // Restore original tag IDs
+        if (options?.tagIds) {
+            if (originalTagIds !== undefined) {
+                process.env.GHOSTFOLIO_TAG_IDS = originalTagIds;
+            } else {
+                delete process.env.GHOSTFOLIO_TAG_IDS;
+            }
         }
     }
 }

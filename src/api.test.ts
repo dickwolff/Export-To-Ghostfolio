@@ -210,6 +210,48 @@ describe("API", () => {
             expect(data.error).toBe("Invalid accountId");
         });
 
+        it("should return 400 if tagIds contains invalid UUID", async () => {
+            const { body, boundary } = createMultipartFormData([
+                { name: "file", value: "header1,header2\nvalue1,value2", filename: "test.csv" },
+                { name: "accountId", value: "12345678-1234-1234-1234-123456789012" },
+                { name: "tagIds", value: "not-a-uuid" }
+            ]);
+
+            const response = await makeRequest(server, {
+                method: "POST",
+                path: "/convert",
+                headers: {
+                    "Content-Type": `multipart/form-data; boundary=${boundary}`
+                },
+                body
+            });
+
+            expect(response.statusCode).toBe(400);
+            const data = JSON.parse(response.body);
+            expect(data.error).toBe("Invalid tagIds");
+        });
+
+        it("should return 400 if tagIds contains mix of valid and invalid UUIDs", async () => {
+            const { body, boundary } = createMultipartFormData([
+                { name: "file", value: "header1,header2\nvalue1,value2", filename: "test.csv" },
+                { name: "accountId", value: "12345678-1234-1234-1234-123456789012" },
+                { name: "tagIds", value: "12345678-1234-1234-1234-123456789012, invalid-uuid" }
+            ]);
+
+            const response = await makeRequest(server, {
+                method: "POST",
+                path: "/convert",
+                headers: {
+                    "Content-Type": `multipart/form-data; boundary=${boundary}`
+                },
+                body
+            });
+
+            expect(response.statusCode).toBe(400);
+            const data = JSON.parse(response.body);
+            expect(data.error).toBe("Invalid tagIds");
+        });
+
         it("should return 400 if converter cannot be auto-detected", async () => {
             const { body, boundary } = createMultipartFormData([
                 { name: "file", value: "", filename: "test.csv" },  // Empty file - can't detect
@@ -247,7 +289,8 @@ describe("API", () => {
                                 currency: "USD",
                                 dataSource: "YAHOO",
                                 date: "2024-01-01",
-                                symbol: "AAPL"
+                                symbol: "AAPL",
+                                tags: []
                             }
                         ],
                         updateCashBalance: false
@@ -282,6 +325,105 @@ describe("API", () => {
             const data = JSON.parse(response.body);
             expect(data.activities).toBeDefined();
             expect(data.activities.length).toBe(1);
+        });
+
+        it("should successfully convert with valid tag IDs", async () => {
+            // Mock the conversion function
+            const mockResult = {
+                exports: [
+                    {
+                        meta: { date: new Date(), version: "1.0.0" },
+                        activities: [
+                            {
+                                accountId: "12345678-1234-1234-1234-123456789012",
+                                comment: "",
+                                fee: 0,
+                                quantity: 10,
+                                type: GhostfolioOrderType.buy,
+                                unitPrice: 100,
+                                currency: "USD",
+                                dataSource: "YAHOO",
+                                date: "2024-01-01",
+                                symbol: "AAPL",
+                                tags: ["aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"]
+                            }
+                        ],
+                        updateCashBalance: false
+                    }
+                ],
+                totalActivities: 1
+            };
+
+            const convertSpy = jest.spyOn(coreConverter, "convertToGhostfolio").mockResolvedValueOnce(mockResult);
+
+            const csvContent = "Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee\n" +
+                "Market buy,2024-01-01 10:00:00,US0378331005,AAPL,Apple Inc.,10,100,USD,1,,,1000,USD,,,Test,123,";
+
+            const { body, boundary } = createMultipartFormData([
+                { name: "file", value: csvContent, filename: "trading212-export.csv" },
+                { name: "accountId", value: "12345678-1234-1234-1234-123456789012" },
+                { name: "tagIds", value: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" }
+            ]);
+
+            const response = await makeRequest(server, {
+                method: "POST",
+                path: "/convert",
+                headers: {
+                    "Content-Type": `multipart/form-data; boundary=${boundary}`
+                },
+                body
+            });
+
+            expect(response.statusCode).toBe(200);
+            expect(convertSpy).toHaveBeenCalledWith(
+                "trading212",
+                expect.any(String),
+                expect.objectContaining({
+                    accountId: "12345678-1234-1234-1234-123456789012",
+                    tagIds: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                })
+            );
+        });
+
+        it("should accept multiple comma-separated tag IDs", async () => {
+            const mockResult = {
+                exports: [
+                    {
+                        meta: { date: new Date(), version: "1.0.0" },
+                        activities: [],
+                        updateCashBalance: false
+                    }
+                ],
+                totalActivities: 0
+            };
+
+            const convertSpy = jest.spyOn(coreConverter, "convertToGhostfolio").mockResolvedValueOnce(mockResult);
+
+            const csvContent = "Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee\n";
+
+            const { body, boundary } = createMultipartFormData([
+                { name: "file", value: csvContent, filename: "trading212-export.csv" },
+                { name: "accountId", value: "12345678-1234-1234-1234-123456789012" },
+                { name: "tagIds", value: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee, 11111111-2222-3333-4444-555555555555" }
+            ]);
+
+            const response = await makeRequest(server, {
+                method: "POST",
+                path: "/convert",
+                headers: {
+                    "Content-Type": `multipart/form-data; boundary=${boundary}`
+                },
+                body
+            });
+
+            expect(response.statusCode).toBe(200);
+            expect(convertSpy).toHaveBeenCalledWith(
+                "trading212",
+                expect.any(String),
+                expect.objectContaining({
+                    tagIds: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee, 11111111-2222-3333-4444-555555555555"
+                })
+            );
         });
 
         it("should return 500 if conversion fails", async () => {

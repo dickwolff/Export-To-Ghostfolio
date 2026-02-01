@@ -208,6 +208,27 @@ async function handleConvert(req: http.IncomingMessage, res: http.ServerResponse
             return;
         }
 
+        // Get optional tag IDs
+        const tagIdsField = formData.get("tagIds");
+        let tagIds: string | undefined;
+        if (tagIdsField) {
+            const tagIdsValue = (tagIdsField.content as string).trim();
+            if (tagIdsValue) {
+                // Validate each tag ID is a valid UUID
+                const tagIdArray = tagIdsValue.split(",").map(t => t.trim()).filter(t => t !== "");
+                for (const tagId of tagIdArray) {
+                    if (!isValidUUID(tagId)) {
+                        sendJsonResponse(res, 400, {
+                            error: "Invalid tagIds",
+                            message: `Invalid tag ID format: '${tagId}'. Each tag ID must be a valid UUID.`
+                        });
+                        return;
+                    }
+                }
+                tagIds = tagIdsValue;
+            }
+        }
+
         // Get CSV content
         const csvContent = fileField.content.toString();
 
@@ -222,11 +243,12 @@ async function handleConvert(req: http.IncomingMessage, res: http.ServerResponse
         }
 
         console.log(`[i] Auto-detected converter type: ${converterType}`);
-        console.log(`[i] Converting file using ${converterType} converter for account ${accountId}`);
+        console.log(`[i] Converting file using ${converterType} converter for account ${accountId}${tagIds ? ` with tags: ${tagIds}` : ""}`);
 
         // Perform conversion
         const result = await convertToGhostfolio(converterType, csvContent, {
-            accountId: accountId
+            accountId: accountId,
+            tagIds: tagIds
         });
 
         // For API, we always return a single combined result (not split)
