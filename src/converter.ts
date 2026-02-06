@@ -18,6 +18,7 @@ import { DirectaConverter } from "./converters/directaConverter";
 import { DisnatConverter } from "./converters/disnatConverter";
 import { EtoroConverter } from "./converters/etoroConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
+import { FlatexConverter } from "./converters/flatexConverter";
 import { FreetradeConverter } from "./converters/freetradeConverter";
 import { GhostfolioExport } from "./models/ghostfolioExport";
 import { IbkrConverter } from "./converters/ibkrConverter";
@@ -172,6 +173,10 @@ async function createConverter(converterType: string, securityService?: Security
         case "finpension":
             console.log("[i] Processing file using Finpension converter");
             converter = new FinpensionConverter(securityService);
+            break;
+        case "flatex":
+            console.log("[i] Processing file using Flatex converter");
+            converter = new FlatexConverter(securityService);
             break;
         case "ft":
         case "freetrade":
