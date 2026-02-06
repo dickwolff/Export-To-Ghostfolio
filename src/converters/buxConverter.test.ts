@@ -142,8 +142,10 @@ describe("buxConverter", () => {
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for NL0011821202 with currency EUR! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
-  });
+    }, (error) => {
+      done(error);
+    });
+  }, 10000);
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
   

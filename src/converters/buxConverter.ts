@@ -81,7 +81,7 @@ export class BuxConverter extends AbstractConverter {
                 }
 
                 // Cash debit transactions are internally for Bux, this is not needed.
-                if (record.transactionType === "buy" && record.transferType.toLocaleLowerCase() === "cash_debit") {
+                if (record.transactionType === "buy" && record.transferType?.toLocaleLowerCase() === "cash_debit") {
                     record.transactionType = "cash debit";
                 }
 
