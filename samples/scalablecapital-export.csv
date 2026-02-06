@@ -1,0 +1,28 @@
+date;time;status;reference;description;assetType;type;isin;shares;price;amount;fee;tax;currency
+2025-09-25;02:00:00;Executed;"WWEK 51597383";"iShares Core FTSE 100 (Dist)";Cash;Distribution;IE0005042456;;;56,78;0,00;0,00;EUR
+2025-09-24;02:00:00;Executed;"WWEK 51496442";"iShares European Property Yield (Dist)";Cash;Distribution;IE00B0M63284;;;54,42;0,00;0,00;EUR
+2025-09-08;02:00:00;Executed;"6ZIYZYKQGUNM997DUTGZDU";"Scalable Capital Broker Auszahlung";Cash;Withdrawal;;;;-5.743,51;0,00;;EUR
+2025-08-01;14:11:01;Executed;"SCALT68r1eJqD4Q";"iShares BIC 50 (Dist)";Security;Savings plan;IE00B1W57M07;3,505;21,395;-74,989475;0,00;0,00;EUR
+2025-08-01;14:06:16;Executed;"SCALsyoLeCvmhZY";"iShares Core S&P 500 (Acc)";Security;Savings plan;IE00B5BMR087;0,127;588,66;-74,75982;0,00;0,00;EUR
+2025-08-01;14:00:31;Executed;"SCAL3X897nFcRb1";"iShares Physical Silver ETC (Acc)";Security;Savings plan;IE00B4NCWG09;2,459;30,492;-74,979828;0,00;0,00;EUR
+2025-08-01;13:55:31;Executed;"SCALdr2xqSqkvTg";"Vanguard U.K. Gilt EUR Hedged (Acc)";Security;Savings plan;IE00BMX0B524;3,738;20,062;-74,991756;0,00;0,00;EUR
+2025-08-01;13:48:02;Executed;"SCALLrwijTstUsk";"iShares European Property Yield (Dist)";Security;Savings plan;IE00B0M63284;3,301;30,285;-99,970785;0,00;0,00;EUR
+2025-08-01;13:37:31;Executed;"SCALd4viPY9YjHP";"iShares Physical Gold ETC";Security;Savings plan;IE00B4ND3602;1,334;56,215;-74,99081;0,00;0,00;EUR
+2025-08-01;13:32:02;Executed;"SCAL5Pr2L8GTuh6";"iShares Core FTSE 100 (Dist)";Security;Savings plan;IE0005042456;7,335;10,224;-74,99304;0,00;0,00;EUR
+2025-07-31;02:00:00;Executed;"7BBVUKMMUGHKMHK1SZEZ3E";"Scalable Capital Broker 7x Sparplan";Cash;Deposit;;;;550,00;0,00;;EUR
+2025-07-01;14:49:02;Executed;"SCALRH11T7CRP3d";"iShares European Property Yield (Dist)";Security;Savings plan;IE00B0M63284;3,161;31,63;-99,98243;0,00;0,00;EUR
+2025-07-01;14:46:43;Executed;"SCAL4Nhbtu8Nz97";"iShares Physical Gold ETC";Security;Savings plan;IE00B4ND3602;1,358;55,22;-74,98876;0,00;0,00;EUR
+2024-01-19;01:00:00;Executed;"WWEK 21704483";"iShares Core S&P 500 UCITS ETF";Cash;Taxes;IE00B5BMR087;;;-13,01;0,00;;EUR
+2024-01-17;01:00:00;Executed;"WWEK 21365638";"AMUNDI STOXX EUROPE 600 ENERGY ESG SCREENED UCITS ETF Acc";Cash;Taxes;LU1834988278;;;-0,65;0,00;;EUR
+2024-01-16;01:00:00;Executed;"WWEK 21265133";"Vanguard Funds PLC - Vanguard U.K. Gilt UCITS ETF - EUR Hedged Accumulating";Cash;Taxes;IE00BMX0B524;;;-14,14;0,00;;EUR
+2024-01-02;11:52:51;Executed;"SCALWPVG9cFsACP";"iShares Core S&P 500 UCITS ETF";Security;Savings plan;IE00B5BMR087;0,164;454,57;-74,5494;0,00;0,00;EUR
+2024-01-02;11:51:01;Executed;"SCAL6NQA2z6V6Qy";"iShares Core FTSE 100 UCITS ETF GBP (Dist)";Security;Savings plan;IE0005042456;8,631;8,689;-74,9947;0,00;0,00;EUR
+2024-01-02;11:43:56;Executed;"SCALGfErMRLsVPj";"iShares Physical Gold ETC";Security;Savings plan;IE00B4ND3602;2,043;36,696;-74,9699;0,00;0,00;EUR
+2024-01-02;11:42:33;Executed;"SCALmvVj7pxWVuQ";"iShares European Property Yield UCITS ETF EUR (Dist)";Security;Savings plan;IE00B0M63284;3,358;29,775;-99,9844;0,00;0,00;EUR
+2024-01-02;11:39:31;Executed;"SCALjHaQtFWXig8";"iShares BRIC 50 UCITS ETF USD (Dist)";Security;Savings plan;IE00B1W57M07;4,567;16,42;-74,9901;0,00;0,00;EUR
+2024-01-02;11:39:02;Executed;"SCAL1FxyzRHiJyk";"iShares Physical Silver ETC";Security;Savings plan;IE00B4NCWG09;3,59;20,89;-74,995;0,00;0,00;EUR
+2024-01-02;11:18:01;Executed;"SCALMqCC2gCjoEk";"Vanguard Funds PLC - Vanguard U.K. Gilt UCITS ETF - EUR Hedged Accumulating";Security;Savings plan;IE00BMX0B524;3,573;20,986;-74,9829;0,00;0,00;EUR
+2024-01-02;01:00:00;Executed;"WWEK 20270739";"iShares Core FTSE 100 UCITS ETF GBP (Dist)";Cash;Distribution;IE0005042456;;;29,27;0,00;6,63;EUR
+2023-12-29;01:00:00;Executed;"GZP7PF2IENSYKIAYHYCAQS";"Scalable Capital Broker 7x Sparplan";Cash;Deposit;;;;550,00;0,00;;EUR
+2023-12-29;01:00:00;Executed;"WWEK 20261523";"iShares European Property Yield UCITS ETF EUR (Dist)";Cash;Distribution;IE00B0M63284;;;9,56;0,00;3,41;EUR
+2023-12-01;14:56:21;Executed;"SCALY6GDNTUTTsm";"iShares Core S&P 500 UCITS ETF";Security;Savings plan;IE00B5BMR087;0,17;439,63;-74,7371;0,00;0,00;EUR
