@@ -26,7 +26,7 @@ describe("scalableCapitalConverter", () => {
 
     // Arange
     const sut = new ScalableCapitalConverter(new SecurityService(new YahooFinanceServiceMock()));
-    const inputFile = "samples/scalable-capital-export.csv";
+    const inputFile = "samples/scalablecapital-export.csv";
 
     // Act
     sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
@@ -34,10 +34,10 @@ describe("scalableCapitalConverter", () => {
       // Assert
       expect(actualExport).toBeTruthy();
       expect(actualExport.activities.length).toBeGreaterThan(0);
-      expect(actualExport.activities.length).toBe(18);
+      expect(actualExport.activities.length).toBe(24);
 
       done();
-    }, () => { done.fail("Should not have an error!"); });
+    }, () => { throw new Error("Should not have an error!"); });
   });
 
   describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("scalableCapitalConverter", () => {
       let tempFileName = "tmp/testinput/scalable-capital-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { throw new Error("Should not succeed!"); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -67,7 +67,7 @@ describe("scalableCapitalConverter", () => {
       tempFileContent += `date;time;status;reference;description;assetType;type;isin;shares;price;amount;fee;tax;currency\n`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { throw new Error("Should not succeed!"); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -87,11 +87,11 @@ describe("scalableCapitalConverter", () => {
       tempFileContent += `2025-09-25;02:00:00;Executed;"WWEK 51597383";"iShares Core FTSE 100 (Dist)";Cash;Distribution;IE0005042456;;;56,78;0,00;0,00;EUR;;`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { throw new Error("Should not succeed!"); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toBe("An error occurred while parsing! Details: Invalid Record Length: columns length is 13, got 15 on line 2");
+        expect(err.message).toBe("An error occurred while parsing! Details: Invalid Record Length: columns length is 14, got 16 on line 2");
 
         done();
       });
@@ -110,7 +110,7 @@ describe("scalableCapitalConverter", () => {
       const sut = new ScalableCapitalConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { throw new Error("Should not succeed!"); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -139,10 +139,10 @@ describe("scalableCapitalConverter", () => {
     // Act
     sut.processFileContents(tempFileContent, () => {
 
-      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for Distribution action for IE0005042456 with currency EUR! Please add this manually..\n");
+      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for dividend action for IE0005042456 with currency EUR! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => { throw new Error("Should not have an error!"); });
   });
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -155,7 +155,7 @@ describe("scalableCapitalConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      throw new Error("Should not succeed!");
     }, (err: Error) => {
     
       // Assert
