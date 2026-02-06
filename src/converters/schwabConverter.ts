@@ -61,7 +61,8 @@ export class SchwabConverter extends AbstractConverter {
                     else if (action.indexOf("dividend") > -1 ||
                         action.indexOf("qual") > -1 ||
                         action.endsWith("reinvest") ||
-                        action.indexOf("cash div") > -1) {
+                        action.indexOf("cash div") > -1 ||
+                        action.indexOf("cash in lieu") > -1) {
                         return "dividend";
                     }
                     else if (action.indexOf("advisor fee") > -1 ||
