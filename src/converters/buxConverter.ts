@@ -63,7 +63,7 @@ export class BuxConverter extends AbstractConverter {
                     context.column === "dividendGrossAmount" ||
                     context.column === "dividendNetAmount" ||
                     context.column === "dividendTaxAmount") {
-                    return parseFloat(columnValue);
+                    return parseFloat(columnValue || "0");
                 }
 
                 return columnValue;
@@ -75,14 +75,14 @@ export class BuxConverter extends AbstractConverter {
                     record.exchangeRate = 1;
                 }
 
-                // Fix "General Corporate Action" records that are buys but have a positive amount.
-                if (record.transactionType === "buy" && record.transactionAmount > 0) {
-                    record.transactionType = "sell";
-                }
-
                 // Cash debit transactions are internally for Bux, this is not needed.
                 if (record.transactionType === "buy" && record.transferType?.toLocaleLowerCase() === "cash_debit") {
                     record.transactionType = "cash debit";
+                }
+
+                // Fix "General Corporate Action" records that are buys but have a positive amount.
+                if (record.transactionType === "buy" && record.transactionAmount > 0) {
+                    record.transactionType = "sell";
                 }
 
                 return record;
