@@ -35,6 +35,7 @@ import { Trading212Converter } from "./converters/trading212Converter";
 import { XtbConverter } from "./converters/xtbConverter";
 
 import packageInfo from "../package.json";
+import { ScalableCapitalConverter } from "./converters/scalableCapitalConverter";
 
 async function createAndRunConverter(converterType: string, inputFilePath: string, outputFilePath: string, completionCallback: CallableFunction, errorCallback: CallableFunction, securityService?: SecurityService) {
 
@@ -210,6 +211,11 @@ async function createConverter(converterType: string, securityService?: Security
         case "saxo":
             console.log("[i] Processing file using Saxo converter");
             converter = new SaxoConverter(securityService);
+            break;
+        case "sc":
+        case "scalablecapital":
+            console.log("[i] Processing file using Scalable Capital converter");
+            converter = new ScalableCapitalConverter(securityService);
             break;
         case "schwab":
             console.log("[i] Processing file using Schwab converter");
