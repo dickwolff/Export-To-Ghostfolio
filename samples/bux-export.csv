@@ -23,3 +23,4 @@ Transaction Time (CET),Transaction Category,Transaction Type,Transfer Type,Trans
 2020-07-06 12:41:38.128000,others,To User Corrections,CASH_CREDIT,1.95,EUR,351.96,,,,,,,,,,,,,,
 2020-08-31 11:16:47.570000,corporate_actions,General Corporate Action,ASSET_REDEEM,-1000.08,USD,,US0378331005,Apple,2.0,500.04,USD,EURUSD,1.19388,200.89,EUR,,,,,Stock split Apple
 2020-08-31 11:18:46.264000,corporate_actions,General Corporate Action,ASSET_DEPOSIT,1000.08,USD,,US0378331005,Apple,8.0,125.01,USD,EURUSD,1.194,,,,,,,Stock split Apple
+2025-12-29 16:49:52.643000,trades,Buy Trade,CASH_DEBIT,-20.0,EUR,74.83,IE00B1TXK627,iShares Global Water,0.313873,63.7199999,EUR,EUREUR,1.0,,,,,,,Order Partial Id: 59009fc3-f72c-451f-9007-28e86adfb5fd - 1

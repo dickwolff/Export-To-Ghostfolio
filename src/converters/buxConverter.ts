@@ -80,6 +80,11 @@ export class BuxConverter extends AbstractConverter {
                     record.transactionType = "sell";
                 }
 
+                // Cash debit transactions are internally for Bux, this is not needed.
+                if (record.transactionType === "buy" && record.transferType.toLocaleLowerCase() === "cash_debit") {
+                    record.transactionType = "cash debit";
+                }
+
                 return record;
             }
         }, async (err, records: BuxRecord[]) => {
@@ -208,7 +213,7 @@ export class BuxConverter extends AbstractConverter {
      * @inheritdoc
      */
     public isIgnoredRecord(record: BuxRecord): boolean {
-        let ignoredRecordTypes = ["deposit", "withdrawal", "promotional", "to user corrections"];
+        let ignoredRecordTypes = ["deposit", "withdrawal", "promotional", "to user corrections", "cash debit"];
 
         return ignoredRecordTypes.some(t => record.transactionType.toLocaleLowerCase().indexOf(t) > -1)
     }
