@@ -26,7 +26,7 @@ export class TradeRepublicConverter extends AbstractConverter {
         parse(input, {
             delimiter: ";",
             fromLine: 2,
-            columns: this.processHeaders(input),
+            columns: this.processHeaders(input, ";"),
             cast: (columnValue, context) => {
 
                 // Custom mapping below.
@@ -160,7 +160,9 @@ export class TradeRepublicConverter extends AbstractConverter {
     /**
      * @inheritdoc
      */
-    protected processHeaders(_: string): string[] {
+    protected processHeaders(header: string, splitChar: string): string[] {
+
+        const columnCount = header.split('\n')[0].split(splitChar).length;
 
         // Generic header mapping from the TradeRepublic CSV export.
         const csvHeaders = [
@@ -171,7 +173,15 @@ export class TradeRepublicConverter extends AbstractConverter {
             "isin",
             "amount",
             "costs",
-            "tax"]
+            "tax"];
+
+        // Add empty headers for any extra columns.
+        // These are not needed for processing, but Trade Republic can sometimes add extra columns.
+        if (columnCount > csvHeaders.length) {
+            for (let i = csvHeaders.length; i < columnCount; i++) {
+                csvHeaders.push(`extra${i}`);
+            }
+        }
 
         return csvHeaders;
     }
