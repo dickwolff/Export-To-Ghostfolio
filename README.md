@@ -21,6 +21,7 @@ This tool allows you to convert CSV transaction exports to an import file that c
 - [Disnat](https://www.disnat.com)
 - [eToro](https://www.etoro.com/)
 - [Finpension](https://finpension.ch)
+- [Flatex](https://www.flatex.de)
 - [Freetrade](https://freetrade.io)
 - [Interactive Brokers (IBKR)](https://www.interactivebrokers.com)
 - [InvestEngine](https://investengine.com)
@@ -109,6 +110,10 @@ Login to your eToro account and navigate to "Portfolio". Then select "History" i
 Login to your Finpension account. Select your portfolio from the landing page. Then to the right of the screen select "Transactions", on the following page to the right notice "transaction report (CSV-file)" and click to email or click to download locally.
 
 **Note:** This converter supports both Finpension 3a and BVG (Pillar 2) account formats.
+
+### Flatex
+
+to come
 
 ### Freetrade
 
@@ -300,6 +305,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | Disnat        | `run start disnat`                  |
 | eToro         | `run start etoro`                   |
 | Finpension    | `run start finpension` (or `fp`)    |
+| Flatex        | `run start flatex`                  |
 | Freetrade     | `run start freetrade`  (or `ft`)    |
 | IBKR          | `run start ibkr`                    |
 | Investimental | `run start investimental`           |
