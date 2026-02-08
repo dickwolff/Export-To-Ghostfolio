@@ -50,7 +50,7 @@ export class FlatexConverter extends AbstractConverter {
                         return 0;
                     }
 
-                    return Number.parseFloat(columnValue);
+                    return Number.parseFloat(columnValue.replace(",", "."));
                 }
 
                 return columnValue;
