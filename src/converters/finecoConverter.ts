@@ -30,7 +30,8 @@ export class FinecoConverter extends AbstractConverter {
         });
 
         if (headerIndex === -1) {
-            return errorCallback(new Error("Could not find header row in input file!"));
+            errorCallback(new Error("Could not find header row in input file!"));
+            return;
         }
 
         // Detect delimiter from header line (semicolon for Italian locale, comma otherwise).
@@ -139,6 +140,7 @@ export class FinecoConverter extends AbstractConverter {
                             this.progress);
                     }
                     catch (err) {
+                        this.progress.stop();
                         this.logQueryError(record.isin, idx + 2);
                         return errorCallback(err);
                     }
@@ -179,6 +181,12 @@ export class FinecoConverter extends AbstractConverter {
         return false;
     }
 
+    /**
+     * Map a Fineco transaction description and sign to a Ghostfolio order type.
+     *
+     * @param record The Fineco record to determine the order type for
+     * @returns The Ghostfolio order type string, or null if unknown
+     */
     private getOrderType(record: FinecoRecord): string | null {
         const desc = record.descrizione.toLocaleLowerCase();
 
@@ -200,6 +208,17 @@ export class FinecoConverter extends AbstractConverter {
         return null;
     }
 
+    /**
+     * Create a Ghostfolio activity from a Fineco record.
+     *
+     * Handles bond quantity conversion (nominal / 100) and fee aggregation
+     * across multiple Fineco commission columns.
+     *
+     * @param record The Fineco record to convert
+     * @param security The resolved Yahoo Finance security
+     * @param orderType The Ghostfolio order type (buy, sell, dividend, interest)
+     * @returns A Ghostfolio activity ready for import
+     */
     private createActivity(record: FinecoRecord, security: YahooFinanceRecord, orderType: string): GhostfolioActivity {
         const date = dayjs(record.dataValuta, "DD/MM/YYYY");
 
@@ -235,8 +254,8 @@ export class FinecoConverter extends AbstractConverter {
                     quantity = record.quantita / 100;
                     unitPrice = record.prezzo;
                 } else if (isBond) {
-                    unitPrice = (record.controvalore / record.quantita) * 100;
                     quantity = record.quantita / 100;
+                    unitPrice = record.quantita > 0 ? (record.controvalore / record.quantita) * 100 : 0;
                 } else {
                     quantity = record.quantita;
                     unitPrice = record.prezzo;

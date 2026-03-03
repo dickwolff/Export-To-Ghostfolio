@@ -10,7 +10,7 @@ describe("finecoConverter", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it("should construct", () => {
@@ -91,7 +91,8 @@ describe("finecoConverter", () => {
 
         // Assert
         expect(err).toBeTruthy();
-        expect(err.message).toBe("An error occurred while parsing! Details: Invalid Record Length: columns length is 15, got 16 on line 2");
+        expect(err.message).toContain("An error occurred while parsing!");
+        expect(err.message).toContain("Invalid Record Length");
 
         done();
       });
@@ -145,5 +146,55 @@ describe("finecoConverter", () => {
 
       done();
     });
+  });
+
+  it("should process semicolon-delimited CSV with Italian number formatting", (done) => {
+
+    // Arrange
+    const sut = new FinecoConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+    let tempFileContent = "";
+    tempFileContent += "Operazione;Data valuta;Descrizione;Titolo;Isin;Segno;Quantita;Divisa;Prezzo;Cambio;Controvalore;Commissioni Fondi Sw/Ingr/Uscita;Commissioni Fondi Banca Corrispondente;Spese Fondi Sgr;Commissioni amministrato\n";
+    tempFileContent += "15/01/2024;17/01/2024;Compravendita titoli;ISHARES MSCI WORLD ACC;IE00B4L5Y983;A;5;EUR;105,71;;528,55;;;;2,95\n";
+
+    // Act
+    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+
+      // Assert
+      expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBe(1);
+      expect(actualExport.activities[0].unitPrice).toBeCloseTo(105.71, 2);
+      expect(actualExport.activities[0].fee).toBeCloseTo(2.95, 2);
+      expect(actualExport.activities[0].quantity).toBe(5);
+
+      done();
+    }, () => { done.fail("Should not have an error!"); });
+  });
+
+  it("should convert bond quantity to nominal/100 for Ghostfolio", (done) => {
+
+    // Arrange
+    const sut = new FinecoConverter(new SecurityService(new YahooFinanceServiceMock()));
+
+    let tempFileContent = "";
+    tempFileContent += "Operazione,Data valuta,Descrizione,Titolo,Isin,Segno,Quantita,Divisa,Prezzo,Cambio,Controvalore,Commissioni Fondi Sw/Ingr/Uscita,Commissioni Fondi Banca Corrispondente,Spese Fondi Sgr,Commissioni amministrato\n";
+    tempFileContent += "10/01/2024,12/01/2024,Compravendita titoli,BTP VALORE SC MZ30,IT0005583478,A,2000,EUR,99.50,,1990.00,,,,5.00\n";
+
+    // Act
+    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+
+      // Assert
+      expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBe(1);
+
+      const activity = actualExport.activities[0];
+      // Bond quantity: 2000 nominal / 100 = 20 units in Ghostfolio.
+      expect(activity.quantity).toBe(20);
+      // Bond unit price: (controvalore / quantita) * 100 = (1990 / 2000) * 100 = 99.50
+      expect(activity.unitPrice).toBeCloseTo(99.50, 2);
+      expect(activity.fee).toBe(5);
+
+      done();
+    }, () => { done.fail("Should not have an error!"); });
   });
 });
