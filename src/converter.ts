@@ -15,6 +15,7 @@ import { DeGiroConverterV2 } from "./converters/degiroConverterV2";
 import { DeGiroConverterV3 } from "./converters/degiroConverterV3";
 import { DeltaConverter } from "./converters/deltaConverter";
 import { DirectaConverter } from "./converters/directaConverter";
+import { FinecoConverter } from "./converters/finecoConverter";
 import { DisnatConverter } from "./converters/disnatConverter";
 import { EtoroConverter } from "./converters/etoroConverter";
 import { FinpensionConverter } from "./converters/finpensionConverter";
@@ -159,6 +160,11 @@ async function createConverter(converterType: string, securityService?: Security
         case "directa":
             console.log("[i] Processing file using Directa converter, this is an experimental converter!");
             converter = new DirectaConverter(securityService);
+            break;
+        case "fineco":
+        case "finecobank":
+            console.log("[i] Processing file using FinecoBank converter");
+            converter = new FinecoConverter(securityService);
             break;
         case "disnat":
             console.log("[i] Processing file using Disnat converter");
