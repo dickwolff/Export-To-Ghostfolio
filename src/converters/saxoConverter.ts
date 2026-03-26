@@ -7,6 +7,12 @@ import { SaxoRecord } from "../models/saxoRecord";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 import { getTags } from "../helpers/tagHelpers";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import "dayjs/locale/nl"; 
+import "dayjs/locale/en"; 
+import "dayjs/locale/fr";
+
+dayjs.extend(customParseFormat);
 
 export class SaxoConverter extends AbstractConverter {
 
@@ -18,6 +24,9 @@ export class SaxoConverter extends AbstractConverter {
      * @inheritdoc
      */
     public processFileContents(input: string, successCallback: any, errorCallback: any): void {
+
+        // Use locale for import if specified in the .env file, otherwise use 'en'
+        const sourceLocale = process.env.IMPORT_LOCALE || 'en';
 
         // Parse the CSV and convert to Ghostfolio import format.
         parse(input, {
@@ -37,13 +46,18 @@ export class SaxoConverter extends AbstractConverter {
                 }
 
                 // Parse numbers to floats (from string).
-                if (context.column === "amount" || context.column === "conversionRate") {
-                    if (columnValue === "") {
-                        return 0;
-                    }
-
-                    return parseFloat(columnValue);
+                if (context.column === "amount" || context.column === "conversionRate" || context.column === "bookedAmount") {
+                    return this.parseFloatValue(columnValue, sourceLocale);
                 }
+
+
+                if (context.column === "valueDate" || context.column === "tradeDate") {
+                    const parsedDate = dayjs(columnValue, "DD-MMM-YYYY", sourceLocale);
+                    const englishDate = parsedDate.locale("en").format("DD-MMM-YYYY").toLowerCase();
+
+                    return englishDate;
+                }
+
 
                 return columnValue;
             }
@@ -86,7 +100,7 @@ export class SaxoConverter extends AbstractConverter {
                     // Fees do not have a security, so add those immediately.
                     if (record.event.toLocaleLowerCase().indexOf("fee") > -1) {
 
-                        const feeAmount = Math.abs(record.amount);
+                        const feeAmount = Math.abs(record.bookedAmount);
 
                         // Add fees record to export.
                         result.activities.push({
@@ -122,7 +136,7 @@ export class SaxoConverter extends AbstractConverter {
                     }
 
                     // Detect action type.
-                    const action = record.type === "dividend" ? "dividend" : record.amount < 0 ? "buy" : "sell";
+                    const action = record.type === "dividend" ? "dividend" : record.bookedAmount < 0 ? "buy" : "sell";
 
                     // Log whenever there was no match found.
                     if (!security) {
@@ -136,7 +150,7 @@ export class SaxoConverter extends AbstractConverter {
 
                     if (action === "dividend") {
                         numberOfShares = 1;
-                        assetPrice = record.amount;
+                        assetPrice = record.bookedAmount;
                     }
                     else {
 
@@ -185,5 +199,37 @@ export class SaxoConverter extends AbstractConverter {
         let ignoredRecordTypes = ["deposit", "withdrawal"];
 
         return ignoredRecordTypes.some(t => record.event.toLocaleLowerCase().indexOf(t) > -1)
+    }
+
+    private parseFloatValue(columnValue, sourceLocale) {
+        if (columnValue === "") return 0;
+
+        let valueStr = columnValue.toString().trim();
+
+        // Lijst van locales die een komma als decimaal scheidingsteken gebruiken (bijv. 1.250,50)
+        const commaLocales = ["nl", "nl-be", "fr", "fr-be", "de", "de-be", "it", "es"];
+
+        let normalizedValue: string;
+
+        if (commaLocales.includes(sourceLocale)) {
+            // Europese stijl (1.250,50) -> Engels (1250.50)
+            // 1. Verwijder de duizendtallen (punten)
+            // 2. Vervang de decimale komma door een punt
+            normalizedValue = valueStr.replace(/\./g, "").replace(",", ".");
+        } else {
+            // Engelse stijl (1,250.50) -> Schoon Engels (1250.50)
+            // 1. Verwijder de duizendtallen (komma's)
+            normalizedValue = valueStr.replace(/,/g, "");
+        }
+
+        const result = parseFloat(normalizedValue);
+
+
+        // Log een waarschuwing als het resultaat geen geldig getal is (NaN)
+        if (isNaN(result)) {
+            return 0;
+        }
+
+        return result;
     }
 }
