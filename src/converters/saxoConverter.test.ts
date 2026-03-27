@@ -45,7 +45,7 @@ describe("saxoConverter", () => {
     //Default in English - should fail
     // Arange
     const sut = new SaxoConverter(new SecurityService(new YahooFinanceServiceMock()));
-    const inputFile = "samples/saxo-export-nl.csv";
+    const inputFile = "samples/saxo-nl-export.csv";
 
     process.env.IMPORT_LOCALE = 'en';
 
