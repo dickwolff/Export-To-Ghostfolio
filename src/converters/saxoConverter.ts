@@ -8,8 +8,8 @@ import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
 import { getTags } from "../helpers/tagHelpers";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import "dayjs/locale/nl"; 
-import "dayjs/locale/en"; 
+import "dayjs/locale/nl";
+import "dayjs/locale/en";
 import "dayjs/locale/fr";
 
 dayjs.extend(customParseFormat);
@@ -26,7 +26,13 @@ export class SaxoConverter extends AbstractConverter {
     public processFileContents(input: string, successCallback: any, errorCallback: any): void {
 
         // Use locale for import if specified in the .env file, otherwise use 'en'
-        const sourceLocale = process.env.IMPORT_LOCALE || 'en';
+        const rawLocale = process.env.IMPORT_LOCALE?.trim().toLowerCase() || "en";
+        const sourceLocale = rawLocale.split(/[-_]/)[0];
+        const supportedLocales = new Set(["en", "nl", "fr"]);
+
+        if (!supportedLocales.has(sourceLocale)) {
+            return errorCallback(new Error(`Unsupported IMPORT_LOCALE: ${rawLocale}`));
+        }
 
         // Parse the CSV and convert to Ghostfolio import format.
         parse(input, {
@@ -207,7 +213,7 @@ export class SaxoConverter extends AbstractConverter {
         let valueStr = columnValue.toString().trim();
 
         // Lijst van locales die een komma als decimaal scheidingsteken gebruiken (bijv. 1.250,50)
-        const commaLocales = ["nl", "nl-be", "fr", "fr-be", "de", "de-be", "it", "es"];
+        const commaLocales = ["nl", "nl-be", "fr", "fr-be"];
 
         let normalizedValue: string;
 
@@ -215,7 +221,10 @@ export class SaxoConverter extends AbstractConverter {
             // Europese stijl (1.250,50) -> Engels (1250.50)
             // 1. Verwijder de duizendtallen (punten)
             // 2. Vervang de decimale komma door een punt
-            normalizedValue = valueStr.replace(/\./g, "").replace(",", ".");
+
+            normalizedValue = valueStr
+                .replace(/[.\s\u00A0\u202F]/g, "")
+                .replace(",", ".");
         } else {
             // Engelse stijl (1,250.50) -> Schoon Engels (1250.50)
             // 1. Verwijder de duizendtallen (komma's)

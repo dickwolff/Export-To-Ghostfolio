@@ -40,6 +40,55 @@ describe("saxoConverter", () => {
     }, () => { done(new Error("Should not have an error!")); });
   });
 
+  it("should process sample CSV file in Dutch", (done) => {
+
+    //Default in English - should fail
+    // Arange
+    const sut = new SaxoConverter(new SecurityService(new YahooFinanceServiceMock()));
+    const inputFile = "samples/saxo-export-nl.csv";
+
+    process.env.IMPORT_LOCALE = 'en';
+
+    // Act
+    sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
+
+      expect(actualExport).toBeTruthy();
+
+      for (let idx = 0; idx < actualExport.activities.length; idx++) {
+        expect(actualExport.activities[idx].date).toBe('Invalid Date');
+      }
+
+    }, (err: Error) => {
+
+      // Assert
+      expect(err).toBeTruthy();
+
+      done();
+    });
+
+    // Change locale to Dutch
+    process.env.IMPORT_LOCALE = 'nl';
+
+    // Act
+    sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
+
+      // Assert
+      expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBeGreaterThan(0);
+      expect(actualExport.activities.length).toBe(18);
+
+      done();
+    }, (err: Error) => {
+
+      // Assert
+      expect(err).toBeTruthy();
+
+      done();
+    });
+
+  });
+
+
   describe("should throw an error if", () => {
     it("the input file does not exist", (done) => {
 
