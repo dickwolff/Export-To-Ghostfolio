@@ -4,13 +4,14 @@ export class SaxoRecord {
     valueDate: Date;
     type: string;
     instrument: string;
-    instrumentIsin;
+    instrumentIsin: string;
     instrumentCurrency: string;
-    exchange: string;
-    description: string;
+    exchangeDescription: string;
     instrumentSymbol: string;
     event: string;
-    amount: number;
+    bookedAmount: number;
     orderId: string;
     conversionRate: number;
+    fromDerivative: string;
+    underlyingAssetType: string;
 }
