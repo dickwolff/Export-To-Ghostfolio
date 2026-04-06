@@ -89,6 +89,30 @@ async function createAndRunConverter(converterType: string, inputFilePath: strin
             await tryAutomaticValidationAndImport(outputFileName);
         }
 
+        // Write skipped records report if there are any skipped lines.
+        // This behaviour can be disabled by setting GHOSTFOLIO_SHOW_SKIPPED=false.
+        const showSkipped = `${process.env.GHOSTFOLIO_SHOW_SKIPPED}`.toLocaleLowerCase() !== "false";
+        const skippedRecords = converter.getSkippedRecords();
+
+        if (showSkipped && skippedRecords.length > 0) {
+            const skippedFileName = path.join(outputFilePath, `skipped-records-${converterTypeLc}-${dayjs().format("YYYYMMDDHHmmss")}.csv`);
+
+            // Build CSV content.
+            const csvLines: string[] = ["line_number,reason,raw_line"];
+            for (const skipped of skippedRecords) {
+                // Escape fields that may contain commas or newlines.
+                const escapedRaw = `"${skipped.rawLine.replace(/"/g, '""')}"`;
+                const escapedReason = `"${skipped.reason.replace(/"/g, '""')}"`;
+                csvLines.push(`${skipped.lineNumber},${escapedReason},${escapedRaw}`);
+            }
+
+            fs.writeFileSync(skippedFileName, csvLines.join("\n"), { encoding: "utf-8" });
+            console.log(`[i] ${skippedRecords.length} record(s) were skipped. Report written to '${skippedFileName}'.`);
+            console.log(`[i] To disable this report, set GHOSTFOLIO_SHOW_SKIPPED=false in your environment variables.`);
+        } else if (showSkipped) {
+            console.log(`[i] All records were processed successfully — no skipped records.`);
+        }
+
         completionCallback();
 
     }, (error) => errorCallback(error));

@@ -1,12 +1,16 @@
 import * as fs from "fs";
 import * as cliProgress from "cli-progress";
 import { SecurityService } from "../securityService";
+import { SkippedRecord } from "../models/skippedRecord";
 
 export abstract class AbstractConverter {
 
     protected securityService: SecurityService;
 
     protected progress: cliProgress.MultiBar;
+
+    /** Accumulates records that were skipped during processing. */
+    private skippedRecords: SkippedRecord[] = [];
 
     constructor(securityService: SecurityService) {
 
@@ -98,6 +102,26 @@ export abstract class AbstractConverter {
         }
 
         return csvHeaders;
+    }
+
+    /**
+     * Record a skipped CSV line together with the reason it was not imported.
+     *
+     * @param lineNumber The 1-based line number in the original input file (including header row).
+     * @param rawLine    The raw CSV text of the skipped line.
+     * @param reason     Human-readable explanation of why the line was skipped.
+     */
+    protected addSkippedRecord(lineNumber: number, rawLine: string, reason: string): void {
+        this.skippedRecords.push({ lineNumber, rawLine, reason });
+    }
+
+    /**
+     * Return all records that were skipped during the last conversion run.
+     *
+     * @returns A readonly view of the {@link SkippedRecord} entries (may be empty).
+     */
+    public getSkippedRecords(): ReadonlyArray<SkippedRecord> {
+        return [...this.skippedRecords];
     }
 
     /**

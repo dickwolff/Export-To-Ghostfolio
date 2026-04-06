@@ -23,6 +23,9 @@ export class DeGiroConverterV2 extends AbstractConverter {
    */
   public processFileContents(input: string, successCallback: any, errorCallback: any): void {
 
+    // Split raw input into lines for skipped record reporting (index 0 = header).
+    const rawLines = input.split(/\r?\n/);
+
     // Parse the CSV and convert to Ghostfolio import format.
     parse(input, {
       delimiter: ",",
@@ -70,9 +73,13 @@ export class DeGiroConverterV2 extends AbstractConverter {
 
         for (let idx = 0; idx < records.length; idx++) {
           const record = records[idx];
+          // rawLines[0] is the header, so data record idx corresponds to rawLines[idx + 1].
+          const rawLine = rawLines[idx + 1] ?? "";
+          const lineNumber = idx + 2; // 1-based, header is line 1
 
           // Check if the record should be ignored. 
           if (this.isIgnoredRecord(record)) {
+            this.addSkippedRecord(lineNumber, rawLine, `Record type is intentionally ignored (description: '${record.description}')`);
             bar1.increment();
             continue;
           }
@@ -145,7 +152,9 @@ export class DeGiroConverterV2 extends AbstractConverter {
 
           // Log whenever there was no match found.
           if (!security) {
-            this.progress.log(`[i] No result found for ${record.isin || record.product} with currency ${record.currency}! Please add this manually..\n`);
+            const reason = `No symbol found for ISIN/product '${record.isin || record.product}' with currency '${record.currency}'`;
+            this.progress.log(`[i] ${reason}. Please add this manually..\n`);
+            this.addSkippedRecord(lineNumber, rawLine, reason);
             bar1.increment();
             continue;
           }
@@ -174,12 +183,15 @@ export class DeGiroConverterV2 extends AbstractConverter {
           else if (this.isTransactionFeeRecord(record, false)) {
 
             // If it was a transaction record without any other transaction connected, skip it.
+            this.addSkippedRecord(lineNumber, rawLine, `Standalone transaction fee record with no matching transaction (description: '${record.description}')`);
             bar1.increment();
             continue;
           }
 
+          const unmatchedReason = `Record '${record.isin || record.product}' with currency '${record.currency}' could not be matched to a valid transaction type`;
           bar1.increment();
-          this.progress.log(`[i] Record ${record.isin || record.product} with currency ${record.currency} was skipped because it could not be matches to a valid transaction! Please add this manually..\n`);
+          this.addSkippedRecord(lineNumber, rawLine, unmatchedReason);
+          this.progress.log(`[i] ${unmatchedReason}. Please add this manually..\n`);
         }
 
         this.progress.stop();
