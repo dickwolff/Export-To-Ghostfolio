@@ -69,6 +69,40 @@ export class DeGiroConverterV3 extends AbstractConverter {
           activities: []
         };
 
+        // Warnings collected during the loop; printed after the progress bar stops
+        // so they are not erased by the bar's terminal redraws.
+        const warnings: string[] = [];
+
+        // Pre-scan: detect orders with multiple buy/sell fills (partial-fill orders).
+        // DEGIRO places the fee row before all fill rows for such orders. The main loop's
+        // duplicate-skip guard blocks fills 2-N after the fee is paired with fill 1.
+        // We detect this here so the user knows which quantities to verify manually.
+        const fillsByOrderId = new Map<string, DeGiroRecord[]>();
+        for (const r of records) {
+          if (r.orderId && this.isBuyOrSellRecord(r) && !this.isIgnoredRecord(r)) {
+            if (!fillsByOrderId.has(r.orderId)) fillsByOrderId.set(r.orderId, []);
+            fillsByOrderId.get(r.orderId).push(r);
+          }
+        }
+        for (const [orderId, fills] of fillsByOrderId) {
+          if (fills.length > 1) {
+            const firstFillQty = this.parseQuantityFromDescription(fills[0].description);
+            const totalQty = fills.reduce((sum, r) => {
+              return sum + this.parseQuantityFromDescription(r.description);
+            }, 0);
+            const remainingQty = totalQty - firstFillQty;
+            const missingFillDetails = fills
+              .slice(1)
+              .map((r) => {
+                const qty = this.parseQuantityFromDescription(r.description);
+                return `${qty} (${r.description})`;
+              })
+              .join(" | ");
+
+            warnings.push(`[w] Order ${orderId} (${fills[0].isin}, ${fills[0].date}) has ${fills.length} fills. EXPORTED: ${firstFillQty} shares (with fee). MISSING: ${remainingQty} shares (${fills.length - 1} fill${fills.length > 2 ? 's' : ''}) — add manually in Ghostfolio. DETAILS: ${missingFillDetails}`);
+          }
+        }
+
         // Populate the progress bar.
         const bar1 = this.progress.create(records.length, 0);
 
@@ -172,7 +206,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
             continue;
           }
 
-          // Look ahead in the remaining records if there is one with the samen orderId.
+          // Look ahead in the remaining records if there is one with the same orderId.
           let matchingRecord = this.findMatchByOrderId(record, records.slice(idx + 1));
 
           // If there was no match by orderId, and there was no orderId present on the current record, look ahead in the remaining records to find a match by ISIN + Product.
@@ -206,6 +240,11 @@ export class DeGiroConverterV3 extends AbstractConverter {
         }
 
         this.progress.stop();
+
+        // Print any warnings collected during processing.
+        for (const w of warnings) {
+          console.warn(w);
+        }
 
         successCallback(result);
       }
@@ -264,6 +303,8 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "währungswechsel",
       "trasferisci",
       "deposito",
+      "depozyt",
+      "depósito",
       "credito",
       "credit",
       "prelievo",
@@ -276,21 +317,50 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "versement de fonds",
       "débit",
       "debit",
-      "depósito",
       "ingreso",
       "retirada",
       "levantamento de divisa",
       "dito de divisa",
-      "fonds monétaires"];
+      "fonds monétaires",
+      // Polish terms
+      "przelew",
+      "wpłata",
+      "wypłata",
+      "opłata abonamentu",
+      "zmiana produktu",
+      // Additional German cash-movement terms (complementing "währungswechsel" already above)
+      "überweisung",
+      "überweisungen",
+      "einzahlung",
+      "auszahlung",
+      "gutschrift",
+      // FX records - these are paired with trade records and should be ignored
+      "fx credit",
+      "fx withdrawal",
+      "hong kong stamp duty"
+    ];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
 
   private findMatchByOrderId(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
-    return records.find(r => r.orderId === currentRecord.orderId
-      && dayjs(r.date).isSame(dayjs(currentRecord.date), 'day')
+    const candidates = records.filter(r => r.orderId === currentRecord.orderId
+      && r.date === currentRecord.date
       && !this.isIgnoredRecord(r)
     );
+
+    // When the current record is a buy/sell fill, look for the transaction-fee record only.
+    // Pairing fill+fill would cause the second fill to be misclassified as a dividend.
+    if (this.isBuyOrSellRecord(currentRecord)) {
+      const feeMatch = candidates.find(r => this.isTransactionFeeRecord(r, true));
+
+      return feeMatch;
+    }
+
+    // When the current record is a fee, look for the buy/sell record.
+    // Prefer a buy/sell record over a transaction-fee record so that
+    // fee+buy pairs are not confused with fee+tax pairs (e.g. "Francuski podatek od transakcji").
+    return candidates.find(r => this.isBuyOrSellRecord(r)) ?? candidates[0];
   }
 
   private findMatchByIsin(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
@@ -306,8 +376,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
     if (!isTransactionFeeRecord) {
 
       // Get the amount of shares from the description.
-      const numberSharesFromDescription = record.description.match(/([\d*\.?\,?\d*]+)/)[0];
-      numberShares = parseFloat(numberSharesFromDescription);
+      numberShares = this.parseQuantityFromDescription(record.description);
 
       // For buy/sale records, only the total amount is recorded. So the unit price needs to be calculated.
       const totalAmount = parseFloat(record.amount.replace(",", "."));
@@ -410,6 +479,37 @@ export class DeGiroConverterV3 extends AbstractConverter {
       (this.isTransactionFeeRecord(currentRecord, true) && this.isBuyOrSellRecord(nextRecord))
   }
 
+  /**
+   * Parses the share quantity from a DEGIRO description string.
+   *
+   * DEGIRO descriptions follow the pattern "<action> <qty> <name>@<unitPrice> <currency>".
+   * The quantity is always an integer and may use a locale-specific thousands separator:
+   *   - space  (Polish/French):  "Kupno 1 250 iShares..."
+   *   - dot    (German/Italian): "Kauf 1.250 iShares..."
+   *   - comma  (English):        "Buy 1,250 iShares..."
+   *   - none:                    "Buy 600 iShares..."
+   *
+   * To avoid confusing the unit price (e.g. "at 2,888 EUR") with the quantity, only the
+   * portion of the description before the first "@" is examined.
+   * A thousands separator is recognised only when it is followed by exactly three digits,
+   * which rules out decimal separators such as "2.97" or "2,888".
+   */
+  private parseQuantityFromDescription(description: string): number {
+    const beforeAt = description.split("@")[0];
+
+    // Match: 1-3 leading digits + one or more groups of
+    // (space|dot|comma|NBSP|narrow NBSP + exactly 3 digits)
+    // This handles all locale thousands-separator variants while ignoring decimal separators.
+    const withSeparator = beforeAt.match(/(\d{1,3}(?:[,. \u00A0\u202F]\d{3})+)/);
+    if (withSeparator) {
+      return parseInt(withSeparator[0].replace(/[,. \u00A0\u202F]/g, ""), 10);
+    }
+
+    // Fallback: plain integer (no separator).
+    const plain = beforeAt.match(/(\d+)/);
+    return plain ? parseInt(plain[0], 10) : 0;
+  }
+
   private isBuyOrSellRecord(record: DeGiroRecord): boolean {
 
     if (!record) {
@@ -432,7 +532,26 @@ export class DeGiroConverterV3 extends AbstractConverter {
       return false;
     }
 
-    const transactionFeeRecordType = ["en\/of", "and\/or", "und\/oder", "e\/o", "adr\/gdr", "ritenuta", "belasting", "daň z dividendy", "taxe sur les", "impôts sur", "comissões de transação", "courtage et/ou"];
+    const transactionFeeRecordType = [
+      "en\/of",
+      "and\/or",
+      "und\/oder",
+      "e\/o",
+      "adr\/gdr",
+      "i\/lub",
+      "ritenuta",
+      "belasting",
+      "daň z dividendy",
+      "taxe sur les",
+      "impôts sur",
+      "comissões de transação",
+      "courtage et/ou",
+      "stamp duty",
+      "opłata transakcyjna",
+      "podatek dywidendowy",
+      "francuski podatek od transakcji",
+      "gebühr"
+    ];
 
     return transactionFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }

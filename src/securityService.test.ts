@@ -552,6 +552,10 @@ describe("securityService", () => {
         it("having no initial cache, does not restore", async () => {
 
             // Arrange
+            const oldEnv = process.env.ISIN_OVERRIDE_FILE;
+            process.env.ISIN_OVERRIDE_FILE = "isin-overrides-nonexistent.txt";
+            jest.resetModules();
+            const { SecurityService } = require("./securityService");
             const yahooFinanceMock = new YahooFinanceServiceMock();
             const sut = new SecurityService(yahooFinanceMock);
 
@@ -562,11 +566,17 @@ describe("securityService", () => {
             expect(cache[0]).toBe(0);
             expect(cache[1]).toBe(0);
             expect(cache[2]).toBe(0);
+
+            process.env.ISIN_OVERRIDE_FILE = oldEnv;
         });
 
         it("after retrieving a symbol for the first time, does restore it from cache a second time", async () => {
 
             // Arrange
+            const oldEnv = process.env.ISIN_OVERRIDE_FILE;
+            process.env.ISIN_OVERRIDE_FILE = "isin-overrides-nonexistent.txt";
+            jest.resetModules();
+            const { SecurityService } = require("./securityService");
             const yahooFinanceMock = new YahooFinanceServiceMock();
             jest.spyOn(yahooFinanceMock, "search").mockResolvedValue({
                 quotes: [
@@ -601,6 +611,8 @@ describe("securityService", () => {
             expect(cache[0]).toBe(1);
             expect(cache[1]).toBe(1);
             expect(cache[2]).toBe(0);
+
+            process.env.ISIN_OVERRIDE_FILE = oldEnv;
         });
 
         it("restores ISIN overrides from file, if it was present", async () => {
