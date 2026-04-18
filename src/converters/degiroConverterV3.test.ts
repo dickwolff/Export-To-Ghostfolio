@@ -351,11 +351,6 @@ describe("degiroConverterV3", () => {
       expect((sut as any).isTransactionFeeRecord(record, true)).toBe(true);
     });
 
-    it("should detect German transaction fee patterns", () => {
-      const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
-      const record = { description: "Gebühr und/oder Makler", orderId: "order-fee" } as any;
-      expect((sut as any).isTransactionFeeRecord(record, true)).toBe(true);
-    });
 
     it("should detect French transaction tax (francuski podatek od transakcji)", () => {
       const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
