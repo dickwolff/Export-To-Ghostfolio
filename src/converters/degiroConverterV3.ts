@@ -328,12 +328,6 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "wypłata",
       "opłata abonamentu",
       "zmiana produktu",
-      // Additional German cash-movement terms (complementing "währungswechsel" already above)
-      "überweisung",
-      "überweisungen",
-      "einzahlung",
-      "auszahlung",
-      "gutschrift",
       // FX records - these are paired with trade records and should be ignored
       "fx credit",
       "fx withdrawal",
@@ -549,8 +543,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "stamp duty",
       "opłata transakcyjna",
       "podatek dywidendowy",
-      "francuski podatek od transakcji",
-      "gebühr"
+      "francuski podatek od transakcji"
     ];
 
     return transactionFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
