@@ -1,5 +1,5 @@
 import * as cacache from "cacache";
-import { writeFileSync } from "fs";
+import { rmSync, writeFileSync } from "fs";
 import { SecurityService } from "./securityService";
 import YahooFinanceServiceMock from "./testing/yahooFinanceServiceMock";
 
@@ -544,9 +544,19 @@ describe("securityService", () => {
 
     describe("loadCache()", () => {
 
+        let cacheFolder: string;
+        let oldCacheEnv: string | undefined;
+
         beforeEach(async () => {
-            await cacache.rm("/var/tmp/e2g-cache-unittest", "isinSymbolCache");
-            await cacache.rm("/var/tmp/e2g-cache-unittest", "symbolCache");
+            oldCacheEnv = process.env.E2G_CACHE_FOLDER;
+            cacheFolder = `/var/tmp/e2g-cache-unittest-${process.pid}-${Date.now()}`;
+            process.env.E2G_CACHE_FOLDER = cacheFolder;
+            rmSync(cacheFolder, { recursive: true, force: true });
+        });
+
+        afterEach(() => {
+            process.env.E2G_CACHE_FOLDER = oldCacheEnv;
+            rmSync(cacheFolder, { recursive: true, force: true });
         });
 
         it("having no initial cache, does not restore", async () => {
