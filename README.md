@@ -363,14 +363,7 @@ There is an experimental feature (since 0.12.0) with which you can automatically
 
 ### 1. Partial-fill orders (DEGIRO only)
 
-When DEGIRO splits a single order into multiple partial executions ("fills"), each fill has the same `orderId`. The converter pairs only the first fill with the transaction-fee row; subsequent fills are exported as separate activities with `fee = 0`. A console warning is printed at runtime for each affected order so you can adjust the entries manually in Ghostfolio.
-
-### 2. Exchange rate errors for HKD and JPY (Ghostfolio limitation)
-
-When your portfolio includes transactions in **Hong Kong Dollar (HKD)** or **Japanese Yen (JPY)**, Ghostfolio's 
-exchange rate service may fail to resolve historical rates, causing errors in portfolio valuation. This is not a bug 
-in Export-to-Ghostfolio. To fix it, go to **Market Data** in Ghostfolio's admin panel, click **Add Currency**, and 
-add the missing currencies (e.g. `HKD`, `JPY`).
+When DEGIRO splits a single order into multiple partial executions ("fills"), each fill has the same `orderId`. The converter pairs only the first fill with the transaction-fee row, while later fills of the same order are currently not exported. A warning is printed at runtime with `EXPORTED` and `MISSING` quantities, plus fill details, so you can add the missing entries manually in Ghostfolio.
 
 ---
 
