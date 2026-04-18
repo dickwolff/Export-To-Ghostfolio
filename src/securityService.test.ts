@@ -1,6 +1,5 @@
-import * as cacache from "cacache";
-import { rmSync, writeFileSync } from "fs";
-import { SecurityService } from "./securityService";
+import {rmSync, writeFileSync} from "fs";
+import {SecurityService} from "./securityService";
 import YahooFinanceServiceMock from "./testing/yahooFinanceServiceMock";
 
 describe("securityService", () => {
