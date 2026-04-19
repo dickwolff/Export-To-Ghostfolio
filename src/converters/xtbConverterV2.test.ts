@@ -151,8 +151,8 @@ describe("xtbConverterV2", () => {
 
     describe("detectAccountCurrency", () => {
 
-        it("returns PLN for IKE filename", () => {
-            expect(XtbConverterV2.detectAccountCurrency("IKE_99000002_2006-01-01_2026-04-19.csv")).toBe("PLN");
+        it("returns PLN for plain IKE CSV filename", () => {
+            expect(XtbConverterV2.detectAccountCurrency("IKE_12345_2006-01-01_2026-04-19.csv")).toBe("PLN");
         });
 
         it("returns PLN for IKZE filename", () => {
@@ -181,6 +181,26 @@ describe("xtbConverterV2", () => {
 
         it("returns PLN for PLN_ filename", () => {
             expect(XtbConverterV2.detectAccountCurrency("PLN_99000004_2006-01-01_2026-04-19.csv")).toBe("PLN");
+        });
+
+        it("returns EUR for XTB_EUR_ filename", () => {
+            expect(XtbConverterV2.detectAccountCurrency("XTB_EUR_99000005_2006-01-01_2026-04-19.csv")).toBe("EUR");
+        });
+
+        it("returns PLN for XTB_PLN_ filename", () => {
+            expect(XtbConverterV2.detectAccountCurrency("XTB_PLN_99000006_2006-01-01_2026-04-19.csv")).toBe("PLN");
+        });
+
+        it("returns EUR for lower-case prefixed CSV filename", () => {
+            expect(XtbConverterV2.detectAccountCurrency("xtb_EUR_99000007_2006-01-01_2026-04-19.csv")).toBe("EUR");
+        });
+
+        it("returns EUR for arbitrarily prefixed CSV filename", () => {
+            expect(XtbConverterV2.detectAccountCurrency("processed_EUR_99000008_2006-01-01_2026-04-19.csv")).toBe("EUR");
+        });
+
+        it("returns PLN for XTB_IKE_ filename", () => {
+            expect(XtbConverterV2.detectAccountCurrency("XTB_IKE_99000009_2006-01-01_2026-04-19.csv")).toBe("PLN");
         });
 
         it("falls back to EUR for unrecognised filename", () => {

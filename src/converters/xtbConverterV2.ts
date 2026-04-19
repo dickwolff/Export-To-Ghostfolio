@@ -35,22 +35,30 @@ export class XtbConverterV2 extends AbstractConverter {
     }
 
     /**
-     * Derives the cash-activity currency from an XTB export filename.
+     * Derives the cash-activity currency from a CSV export filename.
      * IKE and IKZE accounts are legally PLN-only for cash; other accounts
-     * use the prefix (EUR, PLN, …) embedded in the filename.
+     * use the currency slot from `<optional prefix>_<currency>_<accountId>_<from>_<to>`.
      * Falls back to the XTB_ACCOUNT_CURRENCY env var, then "EUR".
      *
      * Examples:
-     *   IKE_12345_…csv  → PLN
-     *   IKZE_12345_…csv → PLN
-     *   EUR_12345_…csv  → EUR
-     *   PLN_12345_…csv  → PLN
+     *   xtb_EUR_12345_…csv      → EUR
+     *   XTB_IKE_12345_…csv      → PLN
+     *   XTB_IKZE_12345_…csv     → PLN
+     *   XTB_EUR_12345_…csv      → EUR
+     *   XTB_PLN_12345_…csv      → PLN
+     *   anything_EUR_12345_…csv → EUR
+     *   IKE_12345_…csv          → PLN
+     *   EUR_12345_…csv          → EUR
+     *   PLN_12345_…csv          → PLN
      */
     static detectAccountCurrency(basename: string): string {
-        const upper = basename.toUpperCase();
-        if (upper.includes("IKZE_") || upper.includes("IKE_")) return "PLN";
-        const prefixMatch = upper.match(/^([A-Z]{3})_/);
-        if (prefixMatch) return prefixMatch[1];
+        const filename = basename.replace(/\.[^.]+$/, "").toUpperCase();
+        const patternMatch = filename.match(/(?:^|_)(IKE|IKZE|[A-Z]{3})_\d+_\d{4}-\d{2}-\d{2}_\d{4}-\d{2}-\d{2}$/);
+        const marker = patternMatch?.[1];
+
+        if (marker === "IKE" || marker === "IKZE") return "PLN";
+        if (marker) return marker;
+
         return process.env.XTB_ACCOUNT_CURRENCY || "EUR";
     }
 
