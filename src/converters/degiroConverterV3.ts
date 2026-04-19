@@ -80,8 +80,12 @@ export class DeGiroConverterV3 extends AbstractConverter {
         const fillsByOrderId = new Map<string, DeGiroRecord[]>();
         for (const r of records) {
           if (r.orderId && this.isBuyOrSellRecord(r) && !this.isIgnoredRecord(r)) {
-            if (!fillsByOrderId.has(r.orderId)) fillsByOrderId.set(r.orderId, []);
-            fillsByOrderId.get(r.orderId).push(r);
+            let fills = fillsByOrderId.get(r.orderId);
+            if (!fills) {
+              fills = [];
+              fillsByOrderId.set(r.orderId, fills);
+            }
+            fills.push(r);
           }
         }
         for (const [orderId, fills] of fillsByOrderId) {
