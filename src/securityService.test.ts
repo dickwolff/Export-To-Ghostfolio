@@ -512,7 +512,6 @@ describe("securityService", () => {
                 // Arrange
 
                 // Override the environment variable and force Jest to reload all modules.        
-                const oldEnv = process.env.ISIN_OVERRIDE_FILE;
                 process.env.ISIN_OVERRIDE_FILE = "isin-overrides-sample.txt";
                 jest.resetModules();
                 const { SecurityService } = require("./securityService");
@@ -534,9 +533,6 @@ describe("securityService", () => {
 
                 // Assert
                 expect(searchSpy).toHaveBeenCalledTimes(1);
-
-                // Cleanup
-                process.env.ISIN_OVERRIDE_FILE = oldEnv;
             });
         });
     });
@@ -545,9 +541,11 @@ describe("securityService", () => {
 
         let cacheFolder: string;
         let oldCacheEnv: string | undefined;
+        let oldIsinOverrideEnv: string | undefined;
 
         beforeEach(async () => {
             oldCacheEnv = process.env.E2G_CACHE_FOLDER;
+            oldIsinOverrideEnv = process.env.ISIN_OVERRIDE_FILE;
             cacheFolder = `/var/tmp/e2g-cache-unittest-${process.pid}-${Date.now()}`;
             process.env.E2G_CACHE_FOLDER = cacheFolder;
             rmSync(cacheFolder, { recursive: true, force: true });
@@ -555,13 +553,18 @@ describe("securityService", () => {
 
         afterEach(() => {
             process.env.E2G_CACHE_FOLDER = oldCacheEnv;
+            if (oldIsinOverrideEnv === undefined) {
+                delete process.env.ISIN_OVERRIDE_FILE;
+            } else {
+                process.env.ISIN_OVERRIDE_FILE = oldIsinOverrideEnv;
+            }
+            jest.resetModules();
             rmSync(cacheFolder, { recursive: true, force: true });
         });
 
         it("having no initial cache, does not restore", async () => {
 
             // Arrange
-            const oldEnv = process.env.ISIN_OVERRIDE_FILE;
             process.env.ISIN_OVERRIDE_FILE = "isin-overrides-nonexistent.txt";
             jest.resetModules();
             const { SecurityService } = require("./securityService");
@@ -575,14 +578,11 @@ describe("securityService", () => {
             expect(cache[0]).toBe(0);
             expect(cache[1]).toBe(0);
             expect(cache[2]).toBe(0);
-
-            process.env.ISIN_OVERRIDE_FILE = oldEnv;
         });
 
         it("after retrieving a symbol for the first time, does restore it from cache a second time", async () => {
 
             // Arrange
-            const oldEnv = process.env.ISIN_OVERRIDE_FILE;
             process.env.ISIN_OVERRIDE_FILE = "isin-overrides-nonexistent.txt";
             jest.resetModules();
             const { SecurityService } = require("./securityService");
@@ -620,8 +620,6 @@ describe("securityService", () => {
             expect(cache[0]).toBe(1);
             expect(cache[1]).toBe(1);
             expect(cache[2]).toBe(0);
-
-            process.env.ISIN_OVERRIDE_FILE = oldEnv;
         });
 
         it("restores ISIN overrides from file, if it was present", async () => {
@@ -638,7 +636,6 @@ describe("securityService", () => {
             writeFileSync("isin-overrides-test.txt", file, { encoding: "utf8", flag: "w" });
 
             // Override the environment variable and force Jest to reload all modules.
-            const oldEnv = process.env.ISIN_OVERRIDE_FILE;
             process.env.ISIN_OVERRIDE_FILE = "isin-overrides-test.txt";
             jest.resetModules();
             const { SecurityService } = require("./securityService");
@@ -652,9 +649,6 @@ describe("securityService", () => {
 
             // Assert
             expect(cache[2]).toBe(2);
-
-            // Cleanup
-            process.env.ISIN_OVERRIDE_FILE = oldEnv;
         });
     });
 });
