@@ -211,6 +211,15 @@ export class DeGiroConverterV3 extends AbstractConverter {
           }
 
           // Look ahead in the remaining records if there is one with the same orderId.
+          // Guard against division-by-zero in mapRecordToActivity:
+          // skip with a warning rather than producing an invalid activity (unitPrice: NaN).
+          if (this.isBuyOrSellRecord(record) && this.parseQuantityFromDescription(record.description) === 0) {
+            this.progress.log(`[w] Could not parse share quantity from: "${record.description}". Division by zero. Skipping record — add this activity manually.\n`);
+            bar1.increment();
+            continue;
+          }
+
+          // Look ahead in the remaining records if there is one with the same orderId.
           let matchingRecord = this.findMatchByOrderId(record, records.slice(idx + 1));
 
           // If there was no match by orderId, and there was no orderId present on the current record, look ahead in the remaining records to find a match by ISIN + Product.
@@ -342,6 +351,10 @@ export class DeGiroConverterV3 extends AbstractConverter {
   }
 
   private findMatchByOrderId(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
+    if (!currentRecord.orderId) {
+      return undefined;
+    }
+
     const candidates = records.filter(r => r.orderId === currentRecord.orderId
       && r.date === currentRecord.date
       && !this.isIgnoredRecord(r)
@@ -355,10 +368,13 @@ export class DeGiroConverterV3 extends AbstractConverter {
       return feeMatch;
     }
 
-    // When the current record is a fee, look for the buy/sell record.
-    // Prefer a buy/sell record over a transaction-fee record so that
-    // fee+buy pairs are not confused with fee+tax pairs (e.g. "Francuski podatek od transakcji").
-    return candidates.find(r => this.isBuyOrSellRecord(r)) ?? candidates[0];
+    // When the current record is a fee, prefer the buy/sell record over another fee record
+    // (e.g. to avoid pairing "Francuski podatek od transakcji" with the wrong row).
+    if (this.isTransactionFeeRecord(currentRecord, true)) {
+      return candidates.find(r => this.isBuyOrSellRecord(r)) ?? candidates[0];
+    }
+
+    return candidates[0];
   }
 
   private findMatchByIsin(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
