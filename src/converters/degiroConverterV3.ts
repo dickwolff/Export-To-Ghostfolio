@@ -1,14 +1,14 @@
 import dayjs from "dayjs";
-import { parse } from "csv-parse";
-import { DeGiroRecord } from "../models/degiroRecord";
-import { AbstractConverter } from "./abstractconverter";
-import { SecurityService } from "../securityService";
-import { GhostfolioExport } from "../models/ghostfolioExport";
+import {parse} from "csv-parse";
+import {DeGiroRecord} from "../models/degiroRecord";
+import {AbstractConverter} from "./abstractconverter";
+import {SecurityService} from "../securityService";
+import {GhostfolioExport} from "../models/ghostfolioExport";
 import YahooFinanceRecord from "../models/yahooFinanceRecord";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { GhostfolioActivity } from "../models/ghostfolioActivity";
-import { GhostfolioOrderType } from "../models/ghostfolioOrderType";
-import { getTags } from "../helpers/tagHelpers";
+import {GhostfolioActivity} from "../models/ghostfolioActivity";
+import {GhostfolioOrderType} from "../models/ghostfolioOrderType";
+import {getTags} from "../helpers/tagHelpers";
 
 export class DeGiroConverterV3 extends AbstractConverter {
 
@@ -485,23 +485,27 @@ export class DeGiroConverterV3 extends AbstractConverter {
    *
    * To avoid confusing the unit price (e.g. "at 2,888 EUR") with the quantity, only the
    * portion of the description before the first "@" is examined.
-   * A thousands separator is recognised only when it is followed by exactly three digits,
-   * which rules out decimal separators such as "2.97" or "2,888".
+   *
+   * The regex recognises a thousands separator only when it is followed by exactly three digits,
+   * which rules out decimal separators such as "2.97" or "2,888". Multiple thousands separators
+   * are supported, e.g. "1 234 567" (1,234,567).
+   *
+   * The quantity is anchored to the first word boundary (the action verb), so that
+   * thousands-separated numbers embedded in the product name (e.g. "2 000" in
+   * "Kupno 5 MSCI World 2 000 Index") are not mistaken for the quantity.
    */
   private parseQuantityFromDescription(description: string): number {
     const beforeAt = description.split("@")[0];
 
-    // Match: 1-3 leading digits + one or more groups of
-    // (space|dot|comma|NBSP|narrow NBSP + exactly 3 digits)
-    // This handles all locale thousands-separator variants while ignoring decimal separators.
-    const withSeparator = beforeAt.match(/(\d{1,3}(?:[,. \u00A0\u202F]\d{3})+)/);
+    // Anchor to the first number immediately after the leading verb token (e.g. "Kupno", "Koop", "Buy").
+    const withSeparator = beforeAt.match(/^\S+\s+(\d{1,3}(?:[,. \u00A0\u202F]\d{3})+)/);
     if (withSeparator) {
-      return parseInt(withSeparator[0].replace(/[,. \u00A0\u202F]/g, ""), 10);
+      return parseInt(withSeparator[1].replace(/[,. \u00A0\u202F]/g, ""), 10);
     }
 
-    // Fallback: plain integer (no separator).
-    const plain = beforeAt.match(/(\d+)/);
-    return plain ? parseInt(plain[0], 10) : 0;
+    // Fallback: plain integer (no separator) directly after the verb.
+    const plain = beforeAt.match(/^\S+\s+(\d+)/);
+    return plain ? parseInt(plain[1], 10) : 0;
   }
 
   private isBuyOrSellRecord(record: DeGiroRecord): boolean {

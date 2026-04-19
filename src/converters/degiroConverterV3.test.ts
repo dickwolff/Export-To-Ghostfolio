@@ -17,9 +17,9 @@ jest.mock("cli-progress", () => {
   };
 });
 
-import { DeGiroConverterV3 } from "./degiroConverterV3";
-import { SecurityService } from "../securityService";
-import { GhostfolioExport } from "../models/ghostfolioExport";
+import {DeGiroConverterV3} from "./degiroConverterV3";
+import {SecurityService} from "../securityService";
+import {GhostfolioExport} from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
 
 describe("degiroConverterV3", () => {
@@ -432,20 +432,66 @@ describe("degiroConverterV3", () => {
 
     const cases: { label: string; description: string; expectedQty: number }[] = [
       // No separator
-      { label: "plain integer",             description: "Kupno 150 ACME@5,00 HKD",               expectedQty: 150 },
+      {
+        label: "plain integer",
+        description: "Kupno 150 ACME@5,00 HKD",
+        expectedQty: 150
+      },
       // Space separator (Polish / French)
-      { label: "space thousands (3-digit)", description: "Kupno 1 250 Generic Fund...@3,500 EUR",  expectedQty: 1250 },
-      { label: "space thousands (4-digit)", description: "Sprzedaz 2 500 Generic Fund...@4,200 EUR", expectedQty: 2500 },
-      { label: "space thousands (5-digit)", description: "Sprzedaz 10 000 Generic Fund...@1,500 EUR", expectedQty: 10000 },
-      { label: "NBSP thousands",            description: "Kupno 1\u00A0250 Generic Fund...@3,500 EUR", expectedQty: 1250 },
-      { label: "narrow NBSP thousands",     description: "Kupno 1\u202F250 Generic Fund...@3,500 EUR", expectedQty: 1250 },
+      {
+        label: "space thousands (3-digit)",
+        description: "Kupno 1 250 Generic Fund...@3,500 EUR",
+        expectedQty: 1250
+      },
+      {
+        label: "space thousands (4-digit)",
+        description: "Sprzedaz 2 500 Generic Fund...@4,200 EUR",
+        expectedQty: 2500
+      },
+      {
+        label: "space thousands (5-digit)",
+        description: "Sprzedaz 10 000 Generic Fund...@1,500 EUR",
+        expectedQty: 10000
+      },
+      {
+        label: "NBSP thousands",
+        description: "Kupno 1\u00A0250 Generic Fund...@3,500 EUR",
+        expectedQty: 1250
+      },
+      {
+        label: "narrow NBSP thousands",
+        description: "Kupno 1\u202F250 Generic Fund...@3,500 EUR",
+        expectedQty: 1250
+      },
       // Dot separator (German / Italian)
-      { label: "dot thousands",             description: "Kauf 1.250 Produkt@3,500 EUR",           expectedQty: 1250 },
+      {
+        label: "dot thousands",
+        description: "Kauf 1.250 Produkt@3,500 EUR",
+        expectedQty: 1250
+      },
       // Comma separator (English)
-      { label: "comma thousands",           description: "Buy 1,250 Product@3.500 EUR",            expectedQty: 1250 },
+      {
+        label: "comma thousands",
+        description: "Buy 1,250 Product@3.500 EUR",
+        expectedQty: 1250
+      },
       // Ensure unit price (after @) is NOT matched instead of quantity
-      { label: "small qty, large price",    description: "Kupno 45 Generic Fund...@12,345 EUR",    expectedQty: 45 },
-      { label: "price with comma decimal",  description: "Kupno 100 ACME@1,234 EUR",               expectedQty: 100 },
+      {
+        label: "small qty, large price",
+        description: "Kupno 45 Generic Fund...@12,345 EUR",
+        expectedQty: 45
+      },
+      {
+        label: "price with comma decimal",
+        description: "Kupno 100 ACME@1,234 EUR",
+        expectedQty: 100
+      },
+      // Ensure a thousands-separated number embedded in the product name does not shadow the quantity
+      {
+        label: "qty before name with thousands-sep number",
+        description: "Kupno 5 MSCI World 2 000 Index@1,0 USD",
+        expectedQty: 5
+      },
     ];
 
     cases.forEach(({ label, description, expectedQty }) => {
