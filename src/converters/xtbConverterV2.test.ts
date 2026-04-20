@@ -67,7 +67,12 @@ describe("xtbConverterV2", () => {
 
             expect(actualExport.activities.length).toBe(1);
             expect(actualExport.activities[0].type).toBe("DIVIDEND");
+            // fee is the witholding tax amount from the adjacent WHT row (in account currency)
             expect(actualExport.activities[0].fee).toBeCloseTo(10.00);
+            // quantity=1, unitPrice=gross CSV amount (account currency) — share count is not
+            // derivable because CSV amount and per-share rate are in different currencies
+            expect(actualExport.activities[0].quantity).toBe(1);
+            expect(actualExport.activities[0].unitPrice).toBeCloseTo(100.00);
 
             done();
         }, () => {

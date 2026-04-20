@@ -208,7 +208,7 @@ export class XtbConverterV2 extends AbstractConverter {
                             quantity,
                             type: GhostfolioOrderType[type === "Stock purchase" ? "buy" : "sell"],
                             unitPrice,
-                            currency: this.accountCurrency,
+                            currency: security.currency,
                             dataSource: "YAHOO",
                             date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
                             symbol: security.symbol,
@@ -231,13 +231,15 @@ export class XtbConverterV2 extends AbstractConverter {
                             continue;
                         }
 
-                        const divCurrency = divMatch[1];
-                        const perShare = parseFloat(divMatch[2]);
-                        const quantity = parseFloat((record.amount / perShare).toFixed(2));
-
                         // WHT record has id = dividendId + 1; fold it as the fee field.
                         const taxRecord = this.lookupWithholdingTaxRecord(record.id, records, idx);
                         const feeAmount = taxRecord ? Math.abs(taxRecord.amount) : 0;
+
+                        // The CSV amount is in account currency (e.g. PLN) while the per-share
+                        // rate in the comment is in the security's currency (e.g. EUR). Dividing
+                        // them to derive share count produces nonsense. Store quantity=1 and
+                        // unitPrice=gross amount so Ghostfolio records the correct cash received.
+                        const divCurrency = divMatch[1];
 
                         let security: YahooFinanceRecord;
                         try {
@@ -258,9 +260,9 @@ export class XtbConverterV2 extends AbstractConverter {
                             accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                             comment: `XTB ${record.id} - ${record.comment}`,
                             fee: feeAmount,
-                            quantity,
+                            quantity: 1,
                             type: GhostfolioOrderType["dividend"],
-                            unitPrice: perShare,
+                            unitPrice: Math.abs(record.amount),
                             currency: this.accountCurrency,
                             dataSource: "YAHOO",
                             date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
