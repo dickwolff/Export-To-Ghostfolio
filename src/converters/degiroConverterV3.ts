@@ -211,20 +211,25 @@ export class DeGiroConverterV3 extends AbstractConverter {
           }
 
           // Look ahead in the remaining records if there is one with the same orderId.
-          // Guard against division-by-zero in mapRecordToActivity:
-          // skip with a warning rather than producing an invalid activity (unitPrice: NaN).
-          if (this.isBuyOrSellRecord(record) && this.parseQuantityFromDescription(record.description) === 0) {
-            this.progress.log(`[w] Could not parse share quantity from: "${record.description}". Division by zero. Skipping record — add this activity manually.\n`);
-            bar1.increment();
-            continue;
-          }
-
-          // Look ahead in the remaining records if there is one with the same orderId.
           let matchingRecord = this.findMatchByOrderId(record, records.slice(idx + 1));
 
           // If there was no match by orderId, and there was no orderId present on the current record, look ahead in the remaining records to find a match by ISIN + Product.
           if (!matchingRecord && !record.orderId) {
             matchingRecord = this.findMatchByIsin(record, records.slice(idx + 1));
+          }
+
+          // Guard against division-by-zero in mapRecordToActivity:
+          // skip with a warning rather than producing an invalid activity (unitPrice: NaN).
+          const buySellRecord = this.isBuyOrSellRecord(record)
+              ? record
+              : matchingRecord && this.isBuyOrSellRecord(matchingRecord)
+                  ? matchingRecord
+                  : undefined;
+
+          if (buySellRecord && this.parseQuantityFromDescription(buySellRecord.description) === 0) {
+            this.progress.log(`[w] Could not parse share quantity from: "${buySellRecord.description}". Division by zero. Skipping record — add this activity manually.\n`);
+            bar1.increment();
+            continue;
           }
 
           // If it's a standalone record, add it immediately.
@@ -518,7 +523,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
     const beforeAt = description.split("@")[0];
 
     // Anchor to the first number immediately after the leading verb token (e.g. "Kupno", "Koop", "Buy").
-    const withSeparator = beforeAt.match(/^\S+\s+(\d{1,3}(?:[,. \u00A0\u202F]\d{3})+)/);
+    const withSeparator = beforeAt.match(/^\S+\s+(\d{1,3}(?:[,. \u00A0\u202F]\d{3})+)(?!\d)/);
     if (withSeparator) {
       return parseInt(withSeparator[1].replace(/[,. \u00A0\u202F]/g, ""), 10);
     }
