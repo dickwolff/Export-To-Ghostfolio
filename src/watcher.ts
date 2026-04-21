@@ -147,3 +147,4 @@ headers.set(`Datum;Transactietype;Waarde (netto);Opmerking;ISIN;Aantal;Kosten;Be
 headers.set(`Date;Type;Value;Note;ISIN;Shares;Fees;Taxes`, "tradeRepublic");
 headers.set(`Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee`, "trading212");
 headers.set(`ID;Type;Time;Symbol;Comment;Amount`, "xtb");
+headers.set(`Type;Ticker;Instrument;Time;Amount;ID;Comment;Product`, "xtb-v2");

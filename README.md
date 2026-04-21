@@ -186,7 +186,29 @@ Login to your Trading 212 account and create an export file (via History > Downl
 
 ### XTB
 
-Login to your XTB account and from the top bar click on "Account history", then "Cash operations". Click the "Export button". Choose the period from which you wish to export your history, select report type "Cash Operations" choose file format "csv" then click "Export Report" button.
+XTB supports two export formats, an older format (will be deprecated on 1.07.2026)
+and a newer format introduced in 2025.
+
+#### Newer format (2025+)
+
+From the top bar click on "Account history", then "Cash operations". Click the "Export [New]" button. This will download
+an Excel file (.xlsx) containing multiple sheets.
+
+**Important**: You must export **only** the "Cash operations" sheet to CSV format. Open the Excel file and follow these
+steps:
+
+1. Select the "Cash operations" sheet tab at the bottom.
+2. Select "File" -> "Save As" and save the sheet as a CSV UTF-8 (Comma-delimited) file.
+3. When saving, ensure the file format is set to CSV and the column separator is set to semicolon (`;`).
+4. Use the resulting CSV file with the `xtb-v2` converter.
+
+![XTB account history navigation](./assets/export-xtb-1.jpg)
+
+#### Older format (pre-2025)
+
+From the top bar click on "Account history", then "Cash operations". Click the "Export" button. Choose the period from
+which you wish to export your history, select report type "Cash Operations", choose file format "csv" then click "Export
+Report" button. Use the resulting CSV file with the `xtb` converter.
 
 </details>
 
@@ -217,22 +239,22 @@ docker run --rm -v {local_in-folder}:/var/tmp/e2g-input -v {local_out_folder}:/v
 
 The following parameters can be given to the Docker run command.
 
-| Command                                           | Optional | Description                                                                                                                                                     |
-| ------------------------------------------------- | -------- |-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `-v {local_in-folder}:/var/tmp/e2g-input`         | N        | The input folder where you put the files to be processed                                                                                                        |
-| `-v {local_out_folder}:/var/tmp/e2g-output`       | N        | The output folder where the Ghostfolio import JSON will be placed. Also, the input file will be moved here when an error occurred while processing the file.    |
-| `-v {local_cache_folder}:/var/tmp/e2g-cache`      | Y        | The folder where Yahoo Finance symbols will be cached                                                                                                           |
-| `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx`             | N        | Your Ghostolio account ID [^1]                                                                                                                                  |
-| `--env GHOSTFOLIO_TAG_IDS=xxxxxxx,xxxxxxx`          | Y        | Comma-separated list of tag IDs to be added to all activities [^2]                                                                                              |
+| Command                                       | Optional | Description                                                                                                                                                     |
+|-----------------------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-v {local_in-folder}:/var/tmp/e2g-input`     | N        | The input folder where you put the files to be processed                                                                                                        |
+| `-v {local_out_folder}:/var/tmp/e2g-output`   | N        | The output folder where the Ghostfolio import JSON will be placed. Also, the input file will be moved here when an error occurred while processing the file.    |
+| `-v {local_cache_folder}:/var/tmp/e2g-cache`  | Y        | The folder where Yahoo Finance symbols will be cached                                                                                                           |
+| `--env GHOSTFOLIO_ACCOUNT_ID=xxxxxxx`         | N        | Your Ghostolio account ID [^1]                                                                                                                                  |
+| `--env GHOSTFOLIO_TAG_IDS=xxxxxxx,xxxxxxx`    | Y        | Comma-separated list of tag IDs to be added to all activities [^2]                                                                                              |
 | `--env ISIN_OVERRIDE_FILE=isin-overrides.txt` | Y        | Specify a key-value pair file with ISIN overrides                                                                                                               |
-| `--env USE_POLLING=true`                          | Y        | When set to true, the container will continously look for new files to process and the container will not stop.                                                 |
-| `--env DEBUG_LOGGING=true`                        | Y        | When set to true, the container will show logs in more detail, useful for error tracing.                                                                        |
-| `--env PURGE_CACHE=true`                          | Y        | When set to true, the file cache will be purged on start.                                                                                                       |
-| `--env GHOSTFOLIO_SPLIT_OUTPUT=true`              | Y        | When set to true, the result file will be split into chunks of 25 activities, allowing it to be uploaded to [Ghostfolio's hosted service](https://ghostfol.io). |
-| `--env GHOSTFOLIO_VALIDATE=true`                  | Y        | When set to true, the tool with automatically validate the generated file against Ghostfolio.                                                                   |
-| `--env GHOSTFOLIO_IMPORT=true`                    | Y        | When set to true, the tool will try to automatically import the generated file into Ghostfolio.                                                                 |
-| `--env GHOSTFOLIO_URL=http://xxxxxxx`             | Y        | The endpoint of your **local** Ghostfolio instance. E.g. `http://192.168.1.15:3333`. **Use ONLY with a local Ghostfolio instance!**                             |
-| `--env GHOSTFOLIO_SECRET=xxxxxxx`                 | Y        | The credentials of your Ghostfolio user. Used to authenticate with the `import` API endpoint. **Use ONLY with a local Ghostfolio instance!**                    |
+| `--env USE_POLLING=true`                      | Y        | When set to true, the container will continously look for new files to process and the container will not stop.                                                 |
+| `--env DEBUG_LOGGING=true`                    | Y        | When set to true, the container will show logs in more detail, useful for error tracing.                                                                        |
+| `--env PURGE_CACHE=true`                      | Y        | When set to true, the file cache will be purged on start.                                                                                                       |
+| `--env GHOSTFOLIO_SPLIT_OUTPUT=true`          | Y        | When set to true, the result file will be split into chunks of 25 activities, allowing it to be uploaded to [Ghostfolio's hosted service](https://ghostfol.io). |
+| `--env GHOSTFOLIO_VALIDATE=true`              | Y        | When set to true, the tool with automatically validate the generated file against Ghostfolio.                                                                   |
+| `--env GHOSTFOLIO_IMPORT=true`                | Y        | When set to true, the tool will try to automatically import the generated file into Ghostfolio.                                                                 |
+| `--env GHOSTFOLIO_URL=http://xxxxxxx`         | Y        | The endpoint of your **local** Ghostfolio instance. E.g. `http://192.168.1.15:3333`. **Use ONLY with a local Ghostfolio instance!**                             |
+| `--env GHOSTFOLIO_SECRET=xxxxxxx`             | Y        | The credentials of your Ghostfolio user. Used to authenticate with the `import` API endpoint. **Use ONLY with a local Ghostfolio instance!**                    |
 
 [^1]: You can retrieve your Ghostfolio account ID by going to Accounts > Edit for your account and copying the Account ID field
 
@@ -287,7 +309,7 @@ The repository contains a sample configuration file. Rename this from `.env.samp
 You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the symbols that are supported with YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN).
 
 | Exporter      | Run command                         |
-| ------------- | ----------------------------------- |
+|---------------|-------------------------------------|
 | Avanza        | `run start avanza`                  |
 | Bitvavo       | `run start bitvavo` (or `bv`)       |
 | BUX           | `run start bux`                     |
@@ -351,7 +373,7 @@ The export file can now be imported in Ghostfolio by going to Portfolio > Activi
 There is an experimental feature (since 0.12.0) with which you can automatically validate and import the generated file into Ghostfolio! To use this, set the corresponding environment variables:
 
 | Variable                              | Description                                                                                                                                  |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+|---------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
 | `--env GHOSTFOLIO_VALIDATE=true`      | When set to true, the tool with automatically validate the generated file against Ghostfolio.                                                |
 | `--env GHOSTFOLIO_IMPORT=true`        | When set to true, the tool will try to automatically import the generated file into Ghostfolio.                                              |
 | `--env GHOSTFOLIO_URL=http://xxxxxxx` | The endpoint of your **local** Ghostfolio instance. E.g. `http://192.168.1.15:3333`. **Use ONLY with a local Ghostfolio instance!**          |
