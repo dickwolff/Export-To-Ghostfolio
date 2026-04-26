@@ -359,14 +359,6 @@ There is an experimental feature (since 0.12.0) with which you can automatically
 
 ---
 
-## Known issues
-
-### 1. Partial-fill orders (DEGIRO only)
-
-When DEGIRO splits a single order into multiple partial executions ("fills"), each fill has the same `orderId`. The converter pairs only the first fill with the transaction-fee row, while later fills of the same order are currently not exported. A warning is printed at runtime with `EXPORTED` and `MISSING` quantities, plus fill details, so you can add the missing entries manually in Ghostfolio.
-
----
-
 ## Contributing
 
 We welcome any contribution to the repository. Feel free to create an [issue](https://github.com/dickwolff/Export-To-Ghostfolio/issues/new) or, even better, build it yourself and create a [pull request](https://github.com/dickwolff/Export-To-Ghostfolio/compare)!

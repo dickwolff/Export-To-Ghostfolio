@@ -73,10 +73,79 @@ export class DeGiroConverterV3 extends AbstractConverter {
         // so they are not erased by the bar's terminal redraws.
         const warnings: string[] = [];
 
-        // Pre-scan: detect orders with multiple buy/sell fills (partial-fill orders).
-        // DEGIRO places the fee row before all fill rows for such orders. The main loop's
-        // duplicate-skip guard blocks fills 2-N after the fee is paired with fill 1.
-        // We detect this here so the user knows which quantities to verify manually.
+        // Pre-scan: detect fully-cancelled dividends (original + storno both present).
+        // When DEGIRO reverses a dividend it emits two extra rows with the same ISIN, date and
+        // time but with inverted amounts.  The original pair (positive dividend + negative tax)
+        // must also be suppressed — not only the reversal pair — so the net result is zero
+        // activities for that payout.
+        const cancelledDividendIndices = new Set<number>();
+        {
+          // Collect indices of all dividend-like rows keyed by "isin|date|time|absAmount".
+          // Separate maps for originals (positive dividend) and reversals (negative dividend).
+          const originalDividendIndices = new Map<string, number[]>();
+          const reversalDividendIndices = new Map<string, number[]>();
+          for (let i = 0; i < records.length; i++) {
+            const r = records[i];
+            if (!r.isin || !r.amount) continue;
+            const desc = r.description.toLocaleLowerCase();
+            const dividendKeywords = ["dividend", "dividende", "dywidenda"];
+            if (!dividendKeywords.some(kw => desc === kw)) continue;
+            const absAmount = Math.abs(parseFloat(r.amount.replace(",", ".")));
+            const key = `${r.isin}|${r.date}|${r.time}|${absAmount.toFixed(2)}`;
+            const amount = parseFloat(r.amount.replace(",", "."));
+            if (amount > 0) {
+              if (!originalDividendIndices.has(key)) originalDividendIndices.set(key, []);
+              originalDividendIndices.get(key).push(i);
+            } else {
+              if (!reversalDividendIndices.has(key)) reversalDividendIndices.set(key, []);
+              reversalDividendIndices.get(key).push(i);
+            }
+          }
+          // For every reversal that matches an original, mark both for suppression.
+          for (const [key, reversalIdxs] of reversalDividendIndices) {
+            const originalIdxs = originalDividendIndices.get(key);
+            if (!originalIdxs) continue;
+            const count = Math.min(reversalIdxs.length, originalIdxs.length);
+            for (let c = 0; c < count; c++) {
+              cancelledDividendIndices.add(originalIdxs[c]);
+              cancelledDividendIndices.add(reversalIdxs[c]);
+            }
+          }
+          // Also mark the dividend tax rows paired with cancelled dividends (same isin/date/time).
+          if (cancelledDividendIndices.size > 0) {
+            const cancelledKeys = new Set<string>();
+            for (const idx of cancelledDividendIndices) {
+              const r = records[idx];
+              cancelledKeys.add(`${r.isin}|${r.date}|${r.time}`);
+            }
+            const dividendTaxKeywords = [
+              "dividendbelasting",
+              "impôts sur dividende",
+              "podatek dywidendowy"
+            ];
+            for (let i = 0; i < records.length; i++) {
+              if (cancelledDividendIndices.has(i)) continue;
+              const r = records[i];
+              if (!r.isin) continue;
+              const taxKey = `${r.isin}|${r.date}|${r.time}`;
+              if (!cancelledKeys.has(taxKey)) continue;
+              const desc = r.description.toLocaleLowerCase();
+              if (dividendTaxKeywords.some(kw => desc === kw)) {
+                cancelledDividendIndices.add(i);
+              }
+            }
+          }
+        }
+
+        // Pre-scan: merge partial fills per orderId into a single weighted-average activity.
+        interface AggregatedFill {
+          totalQty: number;
+          weightedUnitPrice: number;
+          currency: string;
+          firstRecord: DeGiroRecord;
+        }
+
+        const aggregatedFillsByOrderId = new Map<string, AggregatedFill>();
         const fillsByOrderId = new Map<string, DeGiroRecord[]>();
         for (const r of records) {
           if (r.orderId && this.isBuyOrSellRecord(r) && !this.isIgnoredRecord(r)) {
@@ -90,20 +159,25 @@ export class DeGiroConverterV3 extends AbstractConverter {
         }
         for (const [orderId, fills] of fillsByOrderId) {
           if (fills.length > 1) {
-            const firstFillQty = this.parseQuantityFromDescription(fills[0].description);
-            const totalQty = fills.reduce((sum, r) => {
-              return sum + this.parseQuantityFromDescription(r.description);
-            }, 0);
-            const remainingQty = totalQty - firstFillQty;
-            const missingFillDetails = fills
-              .slice(1)
-              .map((r) => {
-                const qty = this.parseQuantityFromDescription(r.description);
-                return `${qty} (${r.description})`;
-              })
-              .join(" | ");
-
-            warnings.push(`[w] Order ${orderId} (${fills[0].isin}, ${fills[0].date}) has ${fills.length} fills. EXPORTED: ${firstFillQty} shares (with fee). MISSING: ${remainingQty} shares (${fills.length - 1} fill${fills.length > 2 ? 's' : ''}) — add manually in Ghostfolio. DETAILS: ${missingFillDetails}`);
+            let totalQty = 0;
+            let totalValue = 0;
+            for (const r of fills) {
+              const qty = this.parseQuantityFromDescription(r.description);
+              // Extract unit price from description: text after "@" and before the next space
+              const afterAt = r.description.split("@")[1] ?? "";
+              const unitPriceStr = afterAt.split(" ")[0].replace(",", ".");
+              const unitPrice = Number.parseFloat(unitPriceStr) || 0;
+              totalQty += qty;
+              totalValue += qty * unitPrice;
+            }
+            const weightedUnitPrice = totalQty > 0 ? Number.parseFloat((totalValue / totalQty).toFixed(3)) : 0;
+            aggregatedFillsByOrderId.set(orderId, {
+              totalQty,
+              weightedUnitPrice,
+              currency: fills[0].currency,
+              firstRecord: fills[0]
+            });
+            console.log(`[i] Order ${orderId} (${fills[0].isin}, ${fills[0].date}) has ${fills.length} fills. Merged into one activity: ${totalQty} shares @ ${weightedUnitPrice} ${fills[0].currency}.`);
           }
         }
 
@@ -115,6 +189,19 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
           // Check if the record should be ignored. 
           if (this.isIgnoredRecord(record)) {
+            bar1.increment();
+            continue;
+          }
+
+          // Skip all rows belonging to a fully-cancelled dividend (original + storno).
+          if (cancelledDividendIndices.has(idx)) {
+            bar1.increment();
+            continue;
+          }
+
+          // Detect and skip DEGIRO dividend reversal (storno) records that have no matching
+          // original in the same file (isolated reversal rows).
+          if (this.isDividendReversalRecord(record)) {
             bar1.increment();
             continue;
           }
@@ -220,23 +307,39 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
           // Guard against division-by-zero in mapRecordToActivity:
           // skip with a warning rather than producing an invalid activity (unitPrice: NaN).
+          // When partial fills are aggregated the total qty is always > 0, so bypass the guard.
           const buySellRecord = this.isBuyOrSellRecord(record)
               ? record
               : matchingRecord && this.isBuyOrSellRecord(matchingRecord)
                   ? matchingRecord
                   : undefined;
 
-          if (buySellRecord && this.parseQuantityFromDescription(buySellRecord.description) === 0) {
+          const aggForGuard = buySellRecord?.orderId ? aggregatedFillsByOrderId.get(buySellRecord.orderId) : undefined;
+          if (buySellRecord && !aggForGuard && this.parseQuantityFromDescription(buySellRecord.description) === 0) {
             this.progress.log(`[w] Could not parse share quantity from: "${buySellRecord.description}". Division by zero. Skipping record — add this activity manually.\n`);
             bar1.increment();
             continue;
+          }
+
+          // If this record is a transaction fee for an order already recorded (e.g. "Podatek od transakcji
+          // we Włoszech" appearing after the main fee+buy pair has been consumed), add it to the existing
+          // activity instead of discarding it.
+          if (record.orderId && this.isTransactionFeeRecord(record, true)) {
+            const existingActivity = result.activities.find(a => a.comment === record.orderId);
+            if (existingActivity) {
+              existingActivity.fee += Math.abs(Number.parseFloat(record.amount.replace(",", ".")));
+              bar1.increment();
+              continue;
+            }
           }
 
           // If it's a standalone record, add it immediately.
           if (!matchingRecord) {
 
             if (this.isBuyOrSellRecord(record)) {
-              result.activities.push(this.mapRecordToActivity(record, security));
+              // Use aggregated fill values when this orderId had multiple partial fills.
+              const agg = record.orderId ? aggregatedFillsByOrderId.get(record.orderId) : undefined;
+              result.activities.push(this.mapRecordToActivity(record, security, false, agg?.totalQty, agg?.weightedUnitPrice));
             }
             else {
               result.activities.push(this.mapDividendRecord(record, null, security));
@@ -248,7 +351,9 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
             // Check wether it is a buy/sell record set.
             if (this.isBuyOrSellRecordSet(record, matchingRecord)) {
-              result.activities.push(this.combineRecords(record, matchingRecord, security));
+              // Use aggregated fill values when this orderId had multiple partial fills.
+              const agg = record.orderId ? aggregatedFillsByOrderId.get(record.orderId) : undefined;
+              result.activities.push(this.combineRecords(record, matchingRecord, security, agg?.totalQty, agg?.weightedUnitPrice));
             } else {
               result.activities.push(this.mapDividendRecord(record, matchingRecord, security));
             }
@@ -355,6 +460,46 @@ export class DeGiroConverterV3 extends AbstractConverter {
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
 
+  /**
+   * Detects DEGIRO dividend reversal (storno) rows.
+   *
+   * Normal dividend pair:  dividend amount > 0  +  dividend tax amount < 0.
+   * Reversal (storno) pair: dividend amount < 0  +  dividend tax amount > 0.
+   *
+   * Only the reversed pair is filtered; the original positive dividend row is imported normally,
+   * so no double-counting occurs.
+   *
+   * Exact-match is required to avoid false positives (e.g. "STOCK DIVIDEND: Koop..." is a BUY).
+   */
+  private isDividendReversalRecord(record: DeGiroRecord): boolean {
+    const desc = record.description.toLocaleLowerCase();
+    const amount = record.amount ?? "";
+
+    // Exact dividend description strings used by DEGIRO across locales.
+    const dividendKeywords = [
+      "dividend",               // Dutch / English
+      "dividende",              // French / German
+      "dywidenda"               // Polish
+    ];
+
+    // Exact dividend tax description strings used by DEGIRO across locales.
+    const dividendTaxKeywords = [
+      "dividendbelasting",      // Dutch
+      "impôts sur dividende",   // French
+      "podatek dywidendowy"     // Polish
+    ];
+
+    if (dividendKeywords.some(kw => desc === kw) && amount.startsWith("-")) {
+      return true;
+    }
+
+    if (dividendTaxKeywords.some(kw => desc === kw) && Number.parseFloat(amount.replace(",", ".")) > 0) {
+      return true;
+    }
+
+    return false;
+  }
+
   private findMatchByOrderId(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
     if (!currentRecord.orderId) {
       return undefined;
@@ -386,7 +531,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
     return records.find(r => r.isin === currentRecord.isin && r.product === currentRecord.product);
   }
 
-  private mapRecordToActivity(record: DeGiroRecord, security?: YahooFinanceRecord, isTransactionFeeRecord: boolean = false): GhostfolioActivity {
+  private mapRecordToActivity(record: DeGiroRecord, security?: YahooFinanceRecord, isTransactionFeeRecord: boolean = false, overrideQty?: number, overrideUnitPrice?: number): GhostfolioActivity {
 
     let numberShares, unitPrice, feeAmount = 0;
     let orderType;
@@ -394,12 +539,13 @@ export class DeGiroConverterV3 extends AbstractConverter {
     // If it is not a transaction fee record, get data from the record.
     if (!isTransactionFeeRecord) {
 
-      // Get the amount of shares from the description.
-      numberShares = this.parseQuantityFromDescription(record.description);
+      // Get the amount of shares from the description, unless overridden by aggregated partial fills.
+      numberShares = overrideQty ?? this.parseQuantityFromDescription(record.description);
 
       // For buy/sale records, only the total amount is recorded. So the unit price needs to be calculated.
+      // When partial fills are aggregated, the weighted-average unit price is passed directly.
       const totalAmount = parseFloat(record.amount.replace(",", "."));
-      unitPrice = parseFloat((Math.abs(totalAmount) / numberShares).toFixed(3));
+      unitPrice = overrideUnitPrice ?? parseFloat((Math.abs(totalAmount) / numberShares).toFixed(3));
 
       // If amount is negative (so money has been removed) or it's stock dividend (so free shares), thus it's a buy record.
       if (totalAmount < 0 || record.description.toLocaleLowerCase().indexOf("stock dividend") > -1) {
@@ -432,7 +578,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
     };
   }
 
-  private combineRecords(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord, security: YahooFinanceRecord): GhostfolioActivity {
+  private combineRecords(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord, security: YahooFinanceRecord, overrideQty?: number, overrideUnitPrice?: number): GhostfolioActivity {
 
     // Set the default values for the records.
     let actionRecord = currentRecord;
@@ -446,7 +592,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
     }
 
     // Map both records.
-    const mappedActionRecord = this.mapRecordToActivity(actionRecord, security);
+    const mappedActionRecord = this.mapRecordToActivity(actionRecord, security, false, overrideQty, overrideUnitPrice);
     const mappedTxFeeRecord = this.mapRecordToActivity(txFeeRecord, security, true);
 
     // Extract the fee from the transaction fee record and put it in the action record.
@@ -539,7 +685,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
       return false;
     }
 
-    const buySellRecordType = ["\@", "zu je"]//, "acquisto"];
+    const buySellRecordType = ["\@", "zu je"];
 
     return buySellRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
@@ -555,25 +701,39 @@ export class DeGiroConverterV3 extends AbstractConverter {
       return false;
     }
 
-    const transactionFeeRecordType = [
-      "en\/of",
-      "and\/or",
-      "und\/oder",
-      "e\/o",
-      "adr\/gdr",
-      "i\/lub",
-      "ritenuta",
-      "belasting",
-      "daň z dividendy",
-      "taxe sur les",
-      "impôts sur",
-      "comissões de transação",
-      "courtage et/ou",
-      "stamp duty",
-      "opłata transakcyjna",
-      "podatek dywidendowy",
-      "francuski podatek od transakcji"
+    // Broker transaction cost phrases (various locales).
+    const brokerFeeTerms = [
+      "en\/of",                   // Dutch
+      "and\/or",                  // English
+      "und\/oder",                // German
+      "e\/o",                     // Italian / Portuguese
+      "adr\/gdr",                 // ADR/GDR admin fees
+      "i\/lub",                   // Polish
+      "comissões de transação",   // Portuguese
+      "courtage et/ou",           // French
+      "opłata transakcyjna"       // Polish
     ];
+
+    // Dividend withholding tax phrases (various locales).
+    const dividendTaxTerms = [
+      "belasting",                // Dutch  (e.g. dividendbelasting)
+      "ritenuta",                 // Italian
+      "daň z dividendy",          // Czech
+      "taxe sur les",             // French
+      "impôts sur",               // French
+      "podatek dywidendowy"       // Polish
+    ];
+
+    // Transaction (stamp / financial) tax phrases.
+    // "podatek od transakcji" catches all locale variants:
+    //   "polski podatek od transakcji", "francuski podatek od transakcji",
+    //   "podatek od transakcji we włoszech", etc.
+    const transactionTaxTerms = [
+      "stamp duty",               // UK
+      "podatek od transakcji"     // Polish (all locale variants)
+    ];
+
+    const transactionFeeRecordType = [...brokerFeeTerms, ...dividendTaxTerms, ...transactionTaxTerms];
 
     return transactionFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }

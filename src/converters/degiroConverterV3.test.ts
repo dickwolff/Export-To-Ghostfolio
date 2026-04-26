@@ -198,6 +198,60 @@ describe("degiroConverterV3", () => {
     }, (e) => { console.log(e); done(e || new Error("Should not have an error!")); });
   });
 
+  it("should suppress dividend and all associated rows when original is fully cancelled by a storno", (done) => {
+
+    // Arrange: the file contains both the original dividend pair AND the storno (reversal) pair.
+    // The net result is zero — no activity should be produced.
+    let tempFileContent = "";
+    tempFileContent += "Date,Time,Value date,Product,ISIN,Description,FX,Change,,Balance,,Order Id\n";
+    // Original: positive dividend + negative tax
+    tempFileContent += `24-04-2026,07:34,02-04-2026,APPLE INC,US0378331005,Dywidenda,,USD,"1,39",USD,"1,39",\n`;
+    tempFileContent += `24-04-2026,07:34,02-04-2026,APPLE INC,US0378331005,Podatek Dywidendowy,,USD,"-0,21",USD,"1,18",\n`;
+    // Storno: negative dividend + positive tax
+    tempFileContent += `24-04-2026,07:34,02-04-2026,APPLE INC,US0378331005,Dywidenda,,USD,"-1,39",USD,"-0,21",\n`;
+    tempFileContent += `24-04-2026,07:34,02-04-2026,APPLE INC,US0378331005,Podatek Dywidendowy,,USD,"0,21",USD,"0,00",\n`;
+
+    const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
+
+    // Act
+    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+
+      // Assert: no activities because the dividend was fully reversed
+      expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBe(0);
+
+      done();
+    }, (err) => {
+      done(err || new Error("Should not have an error!"));
+    });
+  });
+
+  it("should import dividend normally when only the original rows are present (no storno)", (done) => {
+
+    // Arrange
+    let tempFileContent = "";
+    tempFileContent += "Date,Time,Value date,Product,ISIN,Description,FX,Change,,Balance,,Order Id\n";
+    tempFileContent += `03-04-2026,07:22,02-04-2026,APPLE INC,US0378331005,Dywidenda,,USD,"1,39",USD,"1,39",\n`;
+    tempFileContent += `03-04-2026,07:22,02-04-2026,APPLE INC,US0378331005,Podatek Dywidendowy,,USD,"-0,21",USD,"1,18",\n`;
+
+    const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
+
+    // Act
+    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+
+      // Assert: one DIVIDEND activity is produced
+      expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBe(1);
+      expect(actualExport.activities[0].type).toBe("DIVIDEND");
+      expect(actualExport.activities[0].unitPrice).toBe(1.39);
+      expect(actualExport.activities[0].fee).toBe(0.21);
+
+      done();
+    }, (err) => {
+      done(err || new Error("Should not have an error!"));
+    });
+  });
+
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
    
     // Arrange
@@ -256,6 +310,30 @@ describe("degiroConverterV3", () => {
         expect(actualExport.activities[0].type).toBe("BUY");
         done();
       }, (err) => { done(err || new Error("Should not have an error!")); });
+    });
+
+    it("should import original dividend and skip storno reversal pair", (done) => {
+      // Normal dividend pair followed by a storno (reversal) pair for the same security.
+      // Expected: only the original dividend activity is imported.
+      let tempFileContent = "";
+      tempFileContent += "Datum,Tijd,Valutadatum,Product,ISIN,Omschrijving,FX,Mutatie,,Saldo,,Order Id\n";
+      // Original dividend (positive Dywidenda + negative tax)
+      tempFileContent += `10-03-2024,08:00,10-03-2024,APPLE INC,US0378331005,Dywidenda,,USD,"50,00",USD,"50,00",\n`;
+      tempFileContent += `10-03-2024,08:00,10-03-2024,APPLE INC,US0378331005,Podatek Dywidendowy,,USD,"-7,50",USD,"-7,50",\n`;
+      // Storno pair (negative Dywidenda + positive tax)
+      tempFileContent += `11-03-2024,08:00,11-03-2024,APPLE INC,US0378331005,Dywidenda,,USD,"-50,00",USD,"0,00",\n`;
+      tempFileContent += `11-03-2024,08:00,11-03-2024,APPLE INC,US0378331005,Podatek Dywidendowy,,USD,"7,50",USD,"7,50",`;
+
+      const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
+
+      sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+        const dividendActivities = actualExport.activities.filter(a => a.type === "DIVIDEND");
+        expect(dividendActivities.length).toBe(1);
+        expect(dividendActivities[0].unitPrice).toBeCloseTo(50);
+        done();
+      }, (err) => {
+        done(err || new Error("Should not have an error!"));
+      });
     });
 
     it("should classify Polish transaction fee text as transaction fee", () => {
@@ -406,23 +484,28 @@ describe("degiroConverterV3", () => {
   });
 
   describe("Partial fill warnings", () => {
-    it("should include missing fill details in warning log", (done) => {
+    it("should merge partial fills into one activity with total quantity and log a merge notice", (done) => {
       let tempFileContent = "";
       tempFileContent += "Datum,Tijd,Valutadatum,Product,ISIN,Omschrijving,FX,Mutatie,,Saldo,,Order Id\n";
-      tempFileContent += `15-06-2024,09:00,15-06-2024,EXAMPLE CORP LTD CLASS H,XX0000000099,DEGIRO Opłata Transakcyjna i/lub opłata stron trzecich,,EUR,-3.00,EUR,-3.00,order-partial-1\n`;
-      tempFileContent += `15-06-2024,09:00,15-06-2024,EXAMPLE CORP LTD CLASS H,XX0000000099,"Kupno 300 Example Corp Ltd Class H@10,0 HKD (XX0000000099)",,HKD,-3000.00,HKD,-3000.00,order-partial-1\n`;
-      tempFileContent += `15-06-2024,09:00,15-06-2024,EXAMPLE CORP LTD CLASS H,XX0000000099,"Kupno 100 Example Corp Ltd Class H@10,0 HKD (XX0000000099)",,HKD,-1000.00,HKD,-1000.00,order-partial-1`;
+      tempFileContent += `15-06-2024,09:00,15-06-2024,APPLE INC,US0378331005,DEGIRO Opłata Transakcyjna i/lub opłata stron trzecich,,EUR,-3.00,EUR,-3.00,order-partial-1\n`;
+      tempFileContent += `15-06-2024,09:00,15-06-2024,APPLE INC,US0378331005,"Kupno 300 Apple Inc@150,0 USD",,USD,-45000.00,USD,-45000.00,order-partial-1\n`;
+      tempFileContent += `15-06-2024,09:00,15-06-2024,APPLE INC,US0378331005,"Kupno 100 Apple Inc@150,0 USD",,USD,-15000.00,USD,-15000.00,order-partial-1`;
 
       const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
-      const warnSpy = console.warn as jest.Mock;
+      const logSpy = console.log as jest.Mock;
 
-      sut.processFileContents(tempFileContent, () => {
-        const warningMessage = warnSpy.mock.calls
+      sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+        // Partial fills must be merged into one BUY activity with total quantity 400.
+        const buyActivities = actualExport.activities.filter(a => a.type === "BUY");
+        expect(buyActivities.length).toBe(1);
+        expect(buyActivities[0].quantity).toBe(400);
+
+        // Log must contain a merge notice for this order.
+        const mergeMessage = logSpy.mock.calls
           .map((c) => c[0])
           .find((msg) => typeof msg === "string" && msg.includes("order-partial-1"));
-
-        expect(warningMessage).toContain("MISSING: 100 shares");
-        expect(warningMessage).toContain("DETAILS: 100 (Kupno 100 Example Corp Ltd Class H@10,0 HKD");
+        expect(mergeMessage).toContain("Merged into one activity");
+        expect(mergeMessage).toContain("400 shares");
         done();
       }, (err) => { done(err || new Error("Should not have an error!")); });
     });
