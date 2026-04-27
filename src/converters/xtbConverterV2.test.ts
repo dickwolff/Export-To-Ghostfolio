@@ -213,13 +213,13 @@ describe("xtbConverterV2", () => {
         });
     });
 
-    it("should use PLN currency for INTEREST when reading IKE file", (done) => {
+    it("should default to EUR currency for INTEREST when filename has no IKE/currency prefix", (done) => {
 
         const sut = new XtbConverterV2(new SecurityService(new YahooFinanceServiceMock()));
 
         sut.readAndProcessFile("samples/xtb-v2-export.csv", (actualExport: GhostfolioExport) => {
 
-            // xtb-v2-export.csv filename has no IKE/EUR prefix → defaults to EUR
+            // xtb-v2-export.csv has no IKE/EUR prefix → detectAccountCurrency falls back to EUR
             const interest = actualExport.activities.find(a => a.type === "INTEREST");
             expect(interest.currency).toBe("EUR");
 
