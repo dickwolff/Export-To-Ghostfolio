@@ -67,12 +67,12 @@ describe("xtbConverterV2", () => {
 
             expect(actualExport.activities.length).toBe(1);
             expect(actualExport.activities[0].type).toBe("DIVIDEND");
-            // fee is the witholding tax amount from the adjacent WHT row (in account currency)
+            // fee is the withholding tax amount from the adjacent WHT row (in account currency)
             expect(actualExport.activities[0].fee).toBeCloseTo(10.00);
-            // quantity=1, unitPrice=gross CSV amount (account currency) — share count is not
-            // derivable because CSV amount and per-share rate are in different currencies
-            expect(actualExport.activities[0].quantity).toBe(1);
-            expect(actualExport.activities[0].unitPrice).toBeCloseTo(100.00);
+            // divCurrency (EUR) === accountCurrency (EUR) → canUsePerShare=true
+            // quantity = 100.00 / 0.0642 ≈ 1557.63, unitPrice = perShare = 0.0642
+            expect(actualExport.activities[0].quantity).toBeCloseTo(100.00 / 0.0642, 2);
+            expect(actualExport.activities[0].unitPrice).toBeCloseTo(0.0642);
 
             done();
         }, () => {
@@ -389,20 +389,10 @@ describe("xtbConverterV2", () => {
         });
     });
 
-    it("should use PLN currency for all activity types in IKE account", (done) => {
-
-        const sut = new XtbConverterV2(new SecurityService(new YahooFinanceServiceMock()));
-        sut.readAndProcessFile("samples/xtb-v2-export.csv", (actualExport: GhostfolioExport) => {
-
-            // Note: xtb-v2-export.csv does NOT have IKE in filename, so this defaults to EUR
-            // We just verify the mechanism works with a mock. For real IKE testing,
-            // we'd need to test via detectAccountCurrency or inject a different filename.
-
-            done();
-        }, () => {
-            done.fail("Should not have an error!");
-        });
-    }, 10000);
+    it("should use PLN currency for all activity types in IKE account", () => {
+        expect(XtbConverterV2.detectAccountCurrency("XTB_IKE_99000009_2006-01-01_2026-04-19.csv")).toBe("PLN");
+        expect(XtbConverterV2.detectAccountCurrency("XTB_IKZE_99000009_2006-01-01_2026-04-19.csv")).toBe("PLN");
+    });
 
     it("should calculate dividend quantity correctly using account currency amount", (done) => {
 

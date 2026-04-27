@@ -198,8 +198,8 @@ an Excel file (.xlsx) containing multiple sheets.
 steps:
 
 1. Select the "Cash operations" sheet tab at the bottom.
-2. Select "File" -> "Save As" and save the sheet as a CSV UTF-8 (Comma-delimited) file.
-3. When saving, ensure the file format is set to CSV and the column separator is set to semicolon (`;`).
+2. Select "File" -> "Save As" and save the sheet as a CSV UTF-8 file.
+3. When saving/exporting, ensure the column separator is set to semicolon (`;`).
 4. Use the resulting CSV file with the `xtb-v2` converter.
 
 ![XTB account history navigation](./assets/export-xtb-1.jpg)

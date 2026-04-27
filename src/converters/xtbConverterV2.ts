@@ -1,5 +1,7 @@
 import path from "path";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import {parse} from "csv-parse";
 import {AbstractConverter} from "./abstractconverter";
 import {SecurityService} from "../securityService";
@@ -26,6 +28,8 @@ export class XtbConverterV2 extends AbstractConverter {
 
     constructor(securityService: SecurityService) {
         super(securityService);
+        dayjs.extend(utc);
+        dayjs.extend(customParseFormat);
     }
 
     /** @inheritdoc — detects account currency from the filename before delegating. */
@@ -53,7 +57,7 @@ export class XtbConverterV2 extends AbstractConverter {
      */
     static detectAccountCurrency(basename: string): string {
         const filename = basename.replace(/\.[^.]+$/, "").toUpperCase();
-        const patternMatch = filename.match(/(?:^|_)(IKE|IKZE|[A-Z]{3})_\d+_\d{4}-\d{2}-\d{2}_\d{4}-\d{2}-\d{2}$/);
+        const patternMatch = filename.match(/(?:^|_)(IKE|IKZE|EUR|PLN|USD|GBP|CHF)_\d+_\d{4}-\d{2}-\d{2}_\d{4}-\d{2}-\d{2}$/);
         const marker = patternMatch?.[1];
 
         if (marker === "IKE" || marker === "IKZE") return "PLN";
@@ -125,7 +129,7 @@ export class XtbConverterV2 extends AbstractConverter {
                     }
 
                     const type = record.type.trim();
-                    const date = dayjs(record.time.trim(), "YYYY-MM-DD HH:mm:ss");
+                    const date = dayjs.utc(record.time.trim(), "YYYY-MM-DD HH:mm:ss");
 
                     // ── INTEREST ─────────────────────────────────────────────────────────
                     if (type === "Free funds interest") {
@@ -239,7 +243,13 @@ export class XtbConverterV2 extends AbstractConverter {
                         // rate in the comment is in the security's currency (e.g. EUR). Dividing
                         // them to derive share count produces nonsense. Store quantity=1 and
                         // unitPrice=gross amount so Ghostfolio records the correct cash received.
-                        const divCurrency = divMatch[1];
+                        const divCurrency = divMatch[1].toUpperCase();
+                        const perShare = parseFloat(divMatch[2]);
+                        const grossAmount = Math.abs(record.amount);
+                        const canUsePerShare =
+                            Number.isFinite(perShare) &&
+                            perShare > 0 &&
+                            divCurrency === this.accountCurrency.toUpperCase();
 
                         let security: YahooFinanceRecord;
                         try {
@@ -260,9 +270,9 @@ export class XtbConverterV2 extends AbstractConverter {
                             accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
                             comment: `XTB ${record.id} - ${record.comment}`,
                             fee: feeAmount,
-                            quantity: 1,
+                            quantity: canUsePerShare ? grossAmount / perShare : 1,
                             type: GhostfolioOrderType["dividend"],
-                            unitPrice: Math.abs(record.amount),
+                            unitPrice: canUsePerShare ? perShare : grossAmount,
                             currency: this.accountCurrency,
                             dataSource: "YAHOO",
                             date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
