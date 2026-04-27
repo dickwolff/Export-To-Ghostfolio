@@ -3,7 +3,7 @@ import * as fs from "fs";
 import chokidar from "chokidar";
 import * as cacache from "cacache";
 import * as matcher from "closest-match";
-import { createAndRunConverter } from "./converter";
+import {createAndRunConverter} from "./converter";
 
 // Check if the cache should be purged.
 if (Boolean(process.env.PURGE_CACHE)) {
@@ -38,18 +38,30 @@ chokidar
         // Determine file type by checking header. As the header may not be on the first line, we need to find it.
         const lines = fileContents.split("\n");
 
-        // Find the first line that looks like a header (comma or semicolon separated with multiple values).
-        const headerLine = lines.find(line => (line.match(/[,;]/g) || []).length >= 2) || lines[0];
-        const closestMatch = matcher.closestMatch(headerLine, [...headers.keys()]);
+        // Special case: XTB V2 export has a 4-line metadata preamble.
+        // Detect it before the generic closest-match step.
+        const xtbV2HeaderLine = lines.slice(0, 10).find(l => l.trim().startsWith("Type;Ticker;Instrument;"));
 
-        let converterKey = closestMatch as string;
+        let converterKey: string;
 
-        // If multiple matches were found (type would not be 'string'), pick the first.
-        if (typeof closestMatch !== "string") {
-            converterKey = closestMatch[0];
+        if (xtbV2HeaderLine) {
+            converterKey = "xtb-v2";
+        } else {
+            // Find the first line that looks like a header (comma or semicolon separated with multiple values).
+            const headerLine = lines.find(line => (line.match(/[,;]/g) || []).length >= 2) || lines[0];
+            const closestMatch = matcher.closestMatch(headerLine, [...headers.keys()]);
+
+            converterKey = closestMatch as string;
+
+            // If multiple matches were found (type would not be 'string'), pick the first.
+            if (typeof closestMatch !== "string") {
+                converterKey = closestMatch[0];
+            }
         }
 
-        let converter = headers.get(converterKey);
+        // Headers map translates header strings to converter keys. For converters detected
+        // via the special-case branches above (e.g. "xtb-v2"), the key is used directly.
+        let converter = headers.get(converterKey) ?? converterKey;
 
         // Temporary flag to force DEGIRO V3.
         if (converter === "degiro" && `${process.env.DEGIRO_FORCE_V3}` === "true") {
@@ -135,3 +147,4 @@ headers.set(`Datum;Transactietype;Waarde (netto);Opmerking;ISIN;Aantal;Kosten;Be
 headers.set(`Date;Type;Value;Note;ISIN;Shares;Fees;Taxes`, "tradeRepublic");
 headers.set(`Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee`, "trading212");
 headers.set(`ID;Type;Time;Symbol;Comment;Amount`, "xtb");
+headers.set(`Type;Ticker;Instrument;Time;Amount;ID;Comment;Product`, "xtb-v2");

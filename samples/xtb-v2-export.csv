@@ -1,0 +1,16 @@
+Account number;12345678;;;;;;
+Cash Operations;;;;;;;
+Date from (UTC);2006-01-01 00:00:00;;;;;;
+Date to (UTC);2026-01-01 00:00:00;;;;;;
+Type;Ticker;Instrument;Time;Amount;ID;Comment;Product
+Free funds interest;;;2025-12-01 10:00:00;0,24;100001;Free-funds Interest 2025-11;IKE
+Free funds interest tax;;;2025-11-02 10:00:00;-0,05;100002;Free-funds Interest Tax 2025-10;IKE
+Stock purchase;IS0M.DE;Italy Govt Bond;2025-10-01 10:00:00;-616,32;100003;OPEN BUY 4 @ 154.0800;IKE
+Stock purchase;LI7U.DE;Lithium and Battery Tech;2025-10-01 09:00:00;-98,95;100004;OPEN BUY 10 @ 9.8950;IKE
+Stock sell;DTLE.UK;Treasury Bond 20+yr;2025-10-01 08:00:00;297,65;100005;CLOSE BUY 100 @ 2.9765;IKE
+Withholding tax;DTLE.UK;Treasury Bond 20+yr;2025-09-01 10:00:00;-0,64;100007;DTLE.UK EUR WHT 10%;IKE
+Dividend;DTLE.UK;Treasury Bond 20+yr;2025-09-01 10:00:00;6,42;100006;DTLE.UK EUR 0.0642/ SHR;IKE
+IKE deposit;;;2025-08-01 10:00:00;500;100008;Transfer in operation;IKE
+IKE cash transfer in;;;2025-07-01 10:00:00;1.000,00;100009;IKE Cash transfer IN;IKE
+Total;;;;9,95;;;
+
