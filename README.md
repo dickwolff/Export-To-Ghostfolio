@@ -308,33 +308,34 @@ The repository contains a sample configuration file. Rename this from `.env.samp
 
 You can now run `npm run start [exporttype]`. See the table with run commands below. The tool will open your export and will convert this. It retrieves the symbols that are supported with YAHOO Finance (e.g. for European stocks like `ASML`, it will retrieve `ASML.AS` by the corresponding ISIN).
 
-| Exporter      | Run command                         |
-|---------------|-------------------------------------|
-| Avanza        | `run start avanza`                  |
-| Bitvavo       | `run start bitvavo` (or `bv`)       |
-| BUX           | `run start bux`                     |
-| Coinbase      | `run start coinbase` (or `cb`)      |
-| CoinTracking  | `run start cointracking` (or `ct`)  |
-| Crypto.com    | `run start cryptocom`               |
-| DEGIRO        | `run start degiro`                  |
-| Delta         | `run start delta`                   |
-| Directa       | `run start directa`                 |
-| Disnat        | `run start disnat`                  |
-| eToro         | `run start etoro`                   |
-| Finpension    | `run start finpension` (or `fp`)    |
-| Freetrade     | `run start freetrade`  (or `ft`)    |
-| IBKR          | `run start ibkr`                    |
-| Investimental | `run start investimental`           |
-| Parqet        | `run start parqet`                  |
-| Rabobank      | `run start rabobank`                |
-| Relai         | `run start relai`                   |
-| Revolut       | `run start revolut`                 |
-| Saxo          | `run start saxo`                    |
-| Schwab        | `run start schwab`                  |
-| Swissquote    | `run start swissquote` (or `sq`)    |
-| TradeRepublic | `run start traderepublic` (or `tr`) |
-| Trading 212   | `run start trading212` (or `t212`)  |
-| XTB           | `run start xtb`                     |
+| Exporter       | Run command                         |
+|----------------|-------------------------------------|
+| Avanza         | `run start avanza`                  |
+| Bitvavo        | `run start bitvavo` (or `bv`)       |
+| BUX            | `run start bux`                     |
+| Coinbase       | `run start coinbase` (or `cb`)      |
+| CoinTracking   | `run start cointracking` (or `ct`)  |
+| Crypto.com     | `run start cryptocom`               |
+| DEGIRO         | `run start degiro`                  |
+| Delta          | `run start delta`                   |
+| Directa        | `run start directa`                 |
+| Disnat         | `run start disnat`                  |
+| eToro          | `run start etoro`                   |
+| Finpension     | `run start finpension` (or `fp`)    |
+| Freetrade      | `run start freetrade`  (or `ft`)    |
+| IBKR           | `run start ibkr`                    |
+| Investimental  | `run start investimental`           |
+| Parqet         | `run start parqet`                  |
+| Rabobank       | `run start rabobank`                |
+| Relai          | `run start relai`                   |
+| Revolut        | `run start revolut`                 |
+| Saxo           | `run start saxo`                    |
+| Schwab         | `run start schwab`                  |
+| Swissquote     | `run start swissquote` (or `sq`)    |
+| TradeRepublic  | `run start traderepublic` (or `tr`) |
+| Trading 212    | `run start trading212` (or `t212`)  |
+| XTB (pre-2025) | `run start xtb`                     |
+| XTB (2025+)    | `run start xtb-v2`                  |
 
 ### Caching
 
