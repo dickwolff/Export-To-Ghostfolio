@@ -281,7 +281,8 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "retirada",
       "levantamento de divisa",
       "dito de divisa",
-      "fonds monétaires"];
+      "fonds monétaires",
+      "fondos del mercado monetario"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
@@ -439,7 +440,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
   private isPlatformFees(record: DeGiroRecord): boolean {
 
-    const platformFeeRecordType = ["aansluitingskosten", "connection fee", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion", "juros", "corporate action"];
+    const platformFeeRecordType = ["aansluitingskosten", "connection fee", "costi di connessione", "verbindungskosten", "custo de conectividade", "frais de connexion", "comisión de conectividad", "juros", "corporate action"];
 
     return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
