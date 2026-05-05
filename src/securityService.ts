@@ -1,8 +1,8 @@
 import * as cacache from "cacache";
-import { existsSync, readFileSync } from "fs";
+import {existsSync, readFileSync} from "fs";
 import YahooFinanceRecord from "./models/yahooFinanceRecord";
-import { YahooFinance, YahooFinanceService } from "./yahooFinanceService";
-import { mapReplacer, mapReviver } from "./helpers/dictionaryHelpers";
+import {YahooFinance, YahooFinanceService} from "./yahooFinanceService";
+import {mapReplacer, mapReviver} from "./helpers/dictionaryHelpers";
 
 /* istanbul ignore next */
 const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";
@@ -82,6 +82,21 @@ export class SecurityService {
         if (symbol && this.symbolCache.has(symbol)) {
             this.logDebug(`Retrieved symbol ${symbol} from cache!`, progress);
             return this.symbolCache.get(symbol);
+        }
+
+        // When the symbol was pinned by an ISIN override, return a synthetic record immediately
+        // instead of querying Yahoo Finance (which may resolve to a different exchange listing).
+        if (isinOverridden && symbol) {
+            this.logDebug(`ISIN override pinned to ${symbol}; skipping Yahoo Finance lookup.`, progress);
+            const synthetic: YahooFinanceRecord = {
+                symbol,
+                exchange: "",
+                price: 0,
+                currency: expectedCurrency ?? "",
+                name: name ?? symbol
+            };
+            await this.saveInCache(null, symbol, synthetic);
+            return synthetic;
         }
 
         // The security is not known. Try to find it
