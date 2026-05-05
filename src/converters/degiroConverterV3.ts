@@ -10,7 +10,19 @@ import {GhostfolioActivity} from "../models/ghostfolioActivity";
 import {GhostfolioOrderType} from "../models/ghostfolioOrderType";
 import {getTags} from "../helpers/tagHelpers";
 
+interface AggregatedFill {
+  totalQty: number;
+  weightedUnitPrice: number;
+  currency: string;
+  totalFeeInAccountCurrency: number;
+  /** FX rate to convert the account-currency fee to the activity currency when they differ. */
+  fxRateToActivity: number;
+  firstRecord: DeGiroRecord;
+}
+
 export class DeGiroConverterV3 extends AbstractConverter {
+  // Account currency inferred from CSV balance-currency column; fallback is EUR.
+  private accountCurrency: string = "EUR";
 
   constructor(securityService: SecurityService) {
     super(securityService);
@@ -49,8 +61,8 @@ export class DeGiroConverterV3 extends AbstractConverter {
           if (err) {
             errorMsg += ` Details: ${err.message}`
 
-            // Temporary error check for Transactions.csv
-            if (err.message.indexOf("length is 12, got 19")) {
+            // Detect common mistake: user exported Transactions.csv instead of Account.csv.
+            if (err.message.indexOf("length is 12, got 19") > -1) {
               console.warn("[i] Detecting wrong input format. Have you exported the correct CSV file?");
               console.warn("[i] Export to Ghostfolio only supports Account.csv, not Transactions.csv!");
               console.warn("[i] See the export instructions in the README at https://git.new/JjA86vv");
@@ -69,84 +81,154 @@ export class DeGiroConverterV3 extends AbstractConverter {
           activities: []
         };
 
-        // Warnings collected during the loop; printed after the progress bar stops
-        // so they are not erased by the bar's terminal redraws.
-        const warnings: string[] = [];
+        // Infer account currency from the balance-currency column; fallback stays EUR.
+        this.accountCurrency = this.detectAccountCurrency(records);
 
-        // Pre-scan: detect fully-cancelled dividends (original + storno both present).
-        // When DEGIRO reverses a dividend it emits two extra rows with the same ISIN, date and
-        // time but with inverted amounts.  The original pair (positive dividend + negative tax)
-        // must also be suppressed — not only the reversal pair — so the net result is zero
-        // activities for that payout.
+        // Pre-scan: detect and suppress fully-cancelled dividend batches.
+        //
+        // DEGIRO sometimes reverses and re-issues a dividend payout on a later booking date
+        // while keeping the original value date.  The re-booking batch contains four rows:
+        //   −div (reversal), +tax (reversal), −tax (correction), +div (correction).
+        // The reversal and correction rows always share the same booking date (B); the original
+        // pair sits on an earlier booking date (A).
+        //
+        // Key used for matching: "isin|valueDate|absAmount|bookingDate" — unique per batch.
+        // Pairing negative and positive rows that share all four fields cancels only the
+        // re-booking batch, leaving the original batch on date A untouched.
+        // A same-date storno (A == B) is also handled by the same logic.
         const cancelledDividendIndices = new Set<number>();
-        {
-          // Collect indices of all dividend-like rows keyed by "isin|date|time|absAmount".
-          // Separate maps for originals (positive dividend) and reversals (negative dividend).
-          const originalDividendIndices = new Map<string, number[]>();
-          const reversalDividendIndices = new Map<string, number[]>();
-          for (let i = 0; i < records.length; i++) {
-            const r = records[i];
-            if (!r.isin || !r.amount) continue;
-            const desc = r.description.toLocaleLowerCase();
-            const dividendKeywords = ["dividend", "dividende", "dywidenda"];
-            if (!dividendKeywords.some(kw => desc === kw)) continue;
-            const absAmount = Math.abs(parseFloat(r.amount.replace(",", ".")));
-            const key = `${r.isin}|${r.date}|${r.time}|${absAmount.toFixed(2)}`;
-            const amount = parseFloat(r.amount.replace(",", "."));
-            if (amount > 0) {
-              if (!originalDividendIndices.has(key)) originalDividendIndices.set(key, []);
-              originalDividendIndices.get(key).push(i);
-            } else {
-              if (!reversalDividendIndices.has(key)) reversalDividendIndices.set(key, []);
-              reversalDividendIndices.get(key).push(i);
-            }
+
+        const posDividendByBatchKey = new Map<string, number[]>();
+        const negDividendByBatchKey = new Map<string, number[]>();
+        const dividendKeywords = ["dividend", "dividende", "dywidenda"];
+
+        for (let i = 0; i < records.length; i++) {
+          const r = records[i];
+          if (!r.isin || !r.amount) continue;
+          const desc = r.description.toLocaleLowerCase();
+          if (!dividendKeywords.some(kw => desc === kw)) continue;
+          const absAmount = Math.abs(parseFloat(r.amount.replace(",", ".")));
+          const key = `${r.isin}|${r.currencyDate}|${absAmount.toFixed(2)}|${r.date}`;
+          const amount = parseFloat(r.amount.replace(",", "."));
+          if (amount > 0) {
+            if (!posDividendByBatchKey.has(key)) posDividendByBatchKey.set(key, []);
+            posDividendByBatchKey.get(key).push(i);
+          } else {
+            if (!negDividendByBatchKey.has(key)) negDividendByBatchKey.set(key, []);
+            negDividendByBatchKey.get(key).push(i);
           }
-          // For every reversal that matches an original, mark both for suppression.
-          for (const [key, reversalIdxs] of reversalDividendIndices) {
-            const originalIdxs = originalDividendIndices.get(key);
-            if (!originalIdxs) continue;
-            const count = Math.min(reversalIdxs.length, originalIdxs.length);
-            for (let c = 0; c < count; c++) {
-              cancelledDividendIndices.add(originalIdxs[c]);
-              cancelledDividendIndices.add(reversalIdxs[c]);
-            }
+        }
+
+        // For every negative (reversal) row, cancel it together with the matching positive
+        // (correction) row on the same booking date.
+        for (const [key, negIdxs] of negDividendByBatchKey) {
+          const posIdxs = posDividendByBatchKey.get(key);
+          if (!posIdxs) continue;
+          const count = Math.min(negIdxs.length, posIdxs.length);
+          for (let c = 0; c < count; c++) {
+            cancelledDividendIndices.add(posIdxs[c]);
+            cancelledDividendIndices.add(negIdxs[c]);
           }
-          // Also mark the dividend tax rows paired with cancelled dividends (same isin/date/time).
-          if (cancelledDividendIndices.size > 0) {
-            const cancelledKeys = new Set<string>();
-            for (const idx of cancelledDividendIndices) {
+        }
+
+        // Also cancel the dividend tax rows that belong to a cancelled batch
+        // (same isin / value date / booking date).
+        if (cancelledDividendIndices.size > 0) {
+          const cancelledBatchKeys = new Set<string>(
+              [...cancelledDividendIndices].map(idx => {
               const r = records[idx];
-              cancelledKeys.add(`${r.isin}|${r.date}|${r.time}`);
-            }
-            const dividendTaxKeywords = [
-              "dividendbelasting",
-              "impôts sur dividende",
-              "podatek dywidendowy"
-            ];
-            for (let i = 0; i < records.length; i++) {
-              if (cancelledDividendIndices.has(i)) continue;
-              const r = records[i];
-              if (!r.isin) continue;
-              const taxKey = `${r.isin}|${r.date}|${r.time}`;
-              if (!cancelledKeys.has(taxKey)) continue;
-              const desc = r.description.toLocaleLowerCase();
-              if (dividendTaxKeywords.some(kw => desc === kw)) {
-                cancelledDividendIndices.add(i);
-              }
+                return `${r.isin}|${r.currencyDate}|${r.date}`;
+              })
+          );
+          const dividendTaxKeywords = [
+            "dividendbelasting",
+            "impôts sur dividende",
+            "podatek dywidendowy"
+          ];
+          for (let i = 0; i < records.length; i++) {
+            if (cancelledDividendIndices.has(i)) continue;
+            const r = records[i];
+            if (!r.isin) continue;
+            if (!cancelledBatchKeys.has(`${r.isin}|${r.currencyDate}|${r.date}`)) continue;
+            const desc = r.description.toLocaleLowerCase();
+            if (dividendTaxKeywords.some(kw => desc === kw)) {
+              cancelledDividendIndices.add(i);
             }
           }
         }
 
         // Pre-scan: merge partial fills per orderId into a single weighted-average activity.
-        interface AggregatedFill {
-          totalQty: number;
-          weightedUnitPrice: number;
-          currency: string;
-          firstRecord: DeGiroRecord;
-        }
-
         const aggregatedFillsByOrderId = new Map<string, AggregatedFill>();
         const fillsByOrderId = new Map<string, DeGiroRecord[]>();
+        const feesByOrderId = new Map<string, number>();     // Total fee/tax amount in account currency per order
+        const fxRatesByOrderId = new Map<string, number>();  // FX rate for each order
+
+        // Step 1: collect FX rates by Order ID for currency conversion.
+        //
+        // Priority:
+        //   1. Explicit fx column on any FX Credit or FX Withdrawal row (most reliable).
+        //   2. Derived rate: sum all account-currency FX Credit amounts and all foreign-currency
+        //      trade amounts for the order, then compute foreignTotal / accountTotal.
+        //      This is necessary for SELL orders whose FX Credit rows lack an explicit fx value.
+        //      Summing across all fills avoids the multi-fill distortion where a per-fill FX
+        //      Credit row (e.g. EUR 14.90 for 2 shares) would be paired with the full trade
+        //      row (USD 374.96 for 43 shares), producing a wildly wrong rate.
+
+        // Pass 1: explicit fx values (FX Credit or FX Withdrawal with a non-empty fx column).
+        for (const r of records) {
+          if (!r.orderId || !r.fx) continue;
+          const desc = r.description.toLocaleLowerCase();
+          if (desc.indexOf("fx credit") === -1 && desc.indexOf("fx withdrawal") === -1) continue;
+          const fxRate = parseFloat(r.fx.replace(",", "."));
+          if (!isNaN(fxRate) && fxRate > 0) {
+            fxRatesByOrderId.set(r.orderId, fxRate);
+          }
+        }
+
+        // Pass 2: derived rate for orders still missing an FX rate (typically SELL orders where
+        // FX Credit rows have no explicit fx column).
+        // Aggregate all FX Credit account-currency amounts and all trade foreign-currency amounts.
+        for (const r of records) {
+          if (!r.orderId || fxRatesByOrderId.has(r.orderId)) continue;
+          if (r.description.toLocaleLowerCase().indexOf("fx credit") === -1) continue;
+          if (r.currency !== this.accountCurrency || !r.amount) continue;
+
+          // Collect all FX Credit account-currency rows for this order.
+          const fxCreditRows = records.filter(t =>
+              t.orderId === r.orderId &&
+              t.description.toLocaleLowerCase().indexOf("fx credit") !== -1 &&
+              t.currency === this.accountCurrency &&
+              t.amount
+          );
+          // Collect all trade rows for this order in foreign currency.
+          const tradeRows = records.filter(t =>
+              t.orderId === r.orderId &&
+              t.currency !== this.accountCurrency &&
+              this.isBuyOrSellRecord(t) &&
+              t.amount
+          );
+          if (fxCreditRows.length === 0 || tradeRows.length === 0) continue;
+
+          const accountTotal = fxCreditRows.reduce((sum, t) => sum + Math.abs(parseFloat(t.amount.replace(",", "."))), 0);
+          const foreignTotal = tradeRows.reduce((sum, t) => sum + Math.abs(parseFloat(t.amount.replace(",", "."))), 0);
+          if (accountTotal > 0 && foreignTotal > 0) {
+            const derived = foreignTotal / accountTotal;
+            if (isFinite(derived) && derived > 0) {
+              fxRatesByOrderId.set(r.orderId, parseFloat(derived.toFixed(4)));
+            }
+          }
+        }
+
+        // Step 2: collect all fees/taxes by Order ID
+        for (const r of records) {
+          if (r.orderId && (this.isTransactionFeeRecord(r, true) || this.isTransactionFeeRecord(r, false))) {
+            const amount = Math.abs(parseFloat(r.amount.replace(",", ".")));
+            const current = feesByOrderId.get(r.orderId) || 0;
+            feesByOrderId.set(r.orderId, current + amount);
+          }
+        }
+
+        // Step 3: merge partial fills
         for (const r of records) {
           if (r.orderId && this.isBuyOrSellRecord(r) && !this.isIgnoredRecord(r)) {
             let fills = fillsByOrderId.get(r.orderId);
@@ -158,25 +240,31 @@ export class DeGiroConverterV3 extends AbstractConverter {
           }
         }
         for (const [orderId, fills] of fillsByOrderId) {
+          let totalQty = 0;
+          let totalValue = 0;
+          for (const r of fills) {
+            const qty = this.parseQuantityFromDescription(r.description);
+            // Extract unit price from description: text after "@" and before the next space
+            const afterAt = r.description.split("@")[1] ?? "";
+            const unitPriceStr = afterAt.split(" ")[0].replace(",", ".");
+            const unitPrice = Number.parseFloat(unitPriceStr) || 0;
+            totalQty += qty;
+            totalValue += qty * unitPrice;
+          }
+          const weightedUnitPrice = totalQty > 0 ? Number.parseFloat((totalValue / totalQty).toFixed(3)) : 0;
+          const totalFeeInAccountCurrency = feesByOrderId.get(orderId) || 0;
+          const fxRate = fxRatesByOrderId.get(orderId) || 1;
+
+          aggregatedFillsByOrderId.set(orderId, {
+            totalQty,
+            weightedUnitPrice,
+            currency: fills[0].currency,
+            totalFeeInAccountCurrency,
+            fxRateToActivity: fxRate,
+            firstRecord: fills[0]
+          });
+
           if (fills.length > 1) {
-            let totalQty = 0;
-            let totalValue = 0;
-            for (const r of fills) {
-              const qty = this.parseQuantityFromDescription(r.description);
-              // Extract unit price from description: text after "@" and before the next space
-              const afterAt = r.description.split("@")[1] ?? "";
-              const unitPriceStr = afterAt.split(" ")[0].replace(",", ".");
-              const unitPrice = Number.parseFloat(unitPriceStr) || 0;
-              totalQty += qty;
-              totalValue += qty * unitPrice;
-            }
-            const weightedUnitPrice = totalQty > 0 ? Number.parseFloat((totalValue / totalQty).toFixed(3)) : 0;
-            aggregatedFillsByOrderId.set(orderId, {
-              totalQty,
-              weightedUnitPrice,
-              currency: fills[0].currency,
-              firstRecord: fills[0]
-            });
             console.log(`[i] Order ${orderId} (${fills[0].isin}, ${fills[0].date}) has ${fills.length} fills. Merged into one activity: ${totalQty} shares @ ${weightedUnitPrice} ${fills[0].currency}.`);
           }
         }
@@ -349,11 +437,11 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
             // This is a pair of records. Check which type of record it is and then combine the records into a Ghostfolio activity.
 
-            // Check wether it is a buy/sell record set.
+            // Check whether it is a buy/sell record set.
             if (this.isBuyOrSellRecordSet(record, matchingRecord)) {
               // Use aggregated fill values when this orderId had multiple partial fills.
               const agg = record.orderId ? aggregatedFillsByOrderId.get(record.orderId) : undefined;
-              result.activities.push(this.combineRecords(record, matchingRecord, security, agg?.totalQty, agg?.weightedUnitPrice));
+              result.activities.push(this.combineRecords(record, matchingRecord, security, agg?.totalQty, agg?.weightedUnitPrice, agg?.totalFeeInAccountCurrency, agg?.fxRateToActivity));
             } else {
               result.activities.push(this.mapDividendRecord(record, matchingRecord, security));
             }
@@ -363,11 +451,6 @@ export class DeGiroConverterV3 extends AbstractConverter {
         }
 
         this.progress.stop();
-
-        // Print any warnings collected during processing.
-        for (const w of warnings) {
-          console.warn(w);
-        }
 
         successCallback(result);
       }
@@ -453,23 +536,21 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "zmiana produktu",
       // FX records - these are paired with trade records and should be ignored
       "fx credit",
-      "fx withdrawal",
-      "hong kong stamp duty"
+      "fx withdrawal"
     ];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
 
   /**
-   * Detects DEGIRO dividend reversal (storno) rows.
+   * Detects DEGIRO dividend reversal (storno) rows that were NOT already suppressed
+   * by the pre-scan (i.e. isolated reversal rows with no matching correction in the file).
    *
    * Normal dividend pair:  dividend amount > 0  +  dividend tax amount < 0.
-   * Reversal (storno) pair: dividend amount < 0  +  dividend tax amount > 0.
+   * Reversal (storno) row: dividend amount < 0  OR dividend tax amount > 0.
    *
-   * Only the reversed pair is filtered; the original positive dividend row is imported normally,
-   * so no double-counting occurs.
-   *
-   * Exact-match is required to avoid false positives (e.g. "STOCK DIVIDEND: Koop..." is a BUY).
+   * Exact-match on the description is required to avoid false positives
+   * (e.g. "STOCK DIVIDEND: Koop..." is a BUY, not a dividend reversal).
    */
   private isDividendReversalRecord(record: DeGiroRecord): boolean {
     const desc = record.description.toLocaleLowerCase();
@@ -528,7 +609,18 @@ export class DeGiroConverterV3 extends AbstractConverter {
   }
 
   private findMatchByIsin(currentRecord: DeGiroRecord, records: DeGiroRecord[]): DeGiroRecord | undefined {
-    return records.find(r => r.isin === currentRecord.isin && r.product === currentRecord.product);
+    // For dividend rows, only pair with a dividend-tax row (same ISIN+product).
+    // An unbounded search would accidentally pick up broker-fee rows from later trades.
+    const isDividend = (() => {
+      const desc = currentRecord.description.toLocaleLowerCase();
+      return ["dividend", "dividende", "dywidenda"].some(kw => desc === kw);
+    })();
+
+    return records.find(r => {
+      if (r.isin !== currentRecord.isin || r.product !== currentRecord.product) return false;
+      if (isDividend) return this.isTransactionFeeRecord(r, false);
+      return true;
+    });
   }
 
   private mapRecordToActivity(record: DeGiroRecord, security?: YahooFinanceRecord, isTransactionFeeRecord: boolean = false, overrideQty?: number, overrideUnitPrice?: number): GhostfolioActivity {
@@ -578,7 +670,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
     };
   }
 
-  private combineRecords(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord, security: YahooFinanceRecord, overrideQty?: number, overrideUnitPrice?: number): GhostfolioActivity {
+  private combineRecords(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord, security: YahooFinanceRecord, overrideQty?: number, overrideUnitPrice?: number, totalFeeInAccountCurrency?: number, fxRateToActivity?: number): GhostfolioActivity {
 
     // Set the default values for the records.
     let actionRecord = currentRecord;
@@ -596,9 +688,50 @@ export class DeGiroConverterV3 extends AbstractConverter {
     const mappedTxFeeRecord = this.mapRecordToActivity(txFeeRecord, security, true);
 
     // Extract the fee from the transaction fee record and put it in the action record.
-    mappedActionRecord.fee = mappedTxFeeRecord.fee;
+    // If we have aggregated order fees, use those and convert only when activity currency differs.
+    if (totalFeeInAccountCurrency !== undefined && totalFeeInAccountCurrency > 0) {
+      const activityCurrency = mappedActionRecord.currency;
+
+      if (activityCurrency === this.accountCurrency) {
+        mappedActionRecord.fee = Number.parseFloat(totalFeeInAccountCurrency.toFixed(2));
+      } else {
+        const rate = fxRateToActivity || 1;
+        mappedActionRecord.fee = Number.parseFloat((totalFeeInAccountCurrency * rate).toFixed(2));
+      }
+    } else {
+      // Fallback to the single transaction fee record if no aggregated fee
+      mappedActionRecord.fee = mappedTxFeeRecord.fee;
+    }
 
     return mappedActionRecord;
+  }
+
+  private detectAccountCurrency(records: DeGiroRecord[]): string {
+    const counts = new Map<string, number>();
+
+    for (const record of records) {
+      const balanceCurrency = (record.col2 || "").trim().toUpperCase();
+      if (!/^[A-Z]{3}$/.test(balanceCurrency)) {
+        continue;
+      }
+
+      counts.set(balanceCurrency, (counts.get(balanceCurrency) || 0) + 1);
+    }
+
+    if (counts.size === 0) {
+      return "EUR";
+    }
+
+    let detected = "EUR";
+    let maxCount = -1;
+    for (const [currency, count] of counts) {
+      if (count > maxCount) {
+        detected = currency;
+        maxCount = count;
+      }
+    }
+
+    return detected;
   }
 
   private mapDividendRecord(currentRecord: DeGiroRecord, nextRecord: DeGiroRecord | null = null, security: YahooFinanceRecord): GhostfolioActivity {
@@ -729,7 +862,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
     //   "polski podatek od transakcji", "francuski podatek od transakcji",
     //   "podatek od transakcji we włoszech", etc.
     const transactionTaxTerms = [
-      "stamp duty",               // UK
+      "stamp duty",               // UK / Hong Kong
       "podatek od transakcji"     // Polish (all locale variants)
     ];
 
@@ -747,8 +880,8 @@ export class DeGiroConverterV3 extends AbstractConverter {
 
   private isInterest(record: DeGiroRecord): boolean {
 
-    const platformFeeRecordType = ["degiro courtesy"];
+    const interestRecordType = ["degiro courtesy"];
 
-    return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
+    return interestRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
 }

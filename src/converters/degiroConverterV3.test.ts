@@ -595,4 +595,61 @@ describe("degiroConverterV3", () => {
       });
     });
   });
+
+  describe("dividend reversal / storno", () => {
+
+    it("should not create a duplicate dividend when DEGIRO re-books a storno+correction on a later booking date", (done) => {
+      // DEGIRO re-booking pattern: the original dividend is posted on booking date A (value date V).
+      // Later, on booking date B > A (same value date V), DEGIRO posts a four-row correction batch:
+      //   −div (reversal), +tax (reversal), −tax (correction), +div (correction).
+      // Net economic result: exactly ONE dividend activity from the original batch on date A.
+      // Uses US0378331005 (AAPL) which is present in the Yahoo Finance mock.
+      const csv = [
+        "Date,Time,Value date,Product,ISIN,Description,FX,Change,,Balance,,Order Id",
+        "06-01-2026,07:00,05-01-2026,APPLE INC,US0378331005,Podatek Dywidendowy,,USD,-0.21,USD,-0.21,",
+        "06-01-2026,07:00,05-01-2026,APPLE INC,US0378331005,Dywidenda,,USD,1.39,USD,1.39,",
+        "26-01-2026,14:06,05-01-2026,APPLE INC,US0378331005,Dywidenda,,USD,-1.39,USD,-1.39,",
+        "26-01-2026,14:05,05-01-2026,APPLE INC,US0378331005,Podatek Dywidendowy,,USD,0.21,USD,0.21,",
+        "26-01-2026,14:04,05-01-2026,APPLE INC,US0378331005,Podatek Dywidendowy,,USD,-0.21,USD,-0.21,",
+        "26-01-2026,14:04,05-01-2026,APPLE INC,US0378331005,Dywidenda,,USD,1.39,USD,1.39,",
+      ].join("\n");
+
+      const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
+
+      sut.processFileContents(csv, (actualExport: GhostfolioExport) => {
+        const dividends = actualExport.activities.filter(a => a.type === "DIVIDEND");
+        expect(dividends.length).toBe(1);
+        expect(dividends[0].unitPrice).toBeCloseTo(1.39, 2);
+        expect(dividends[0].fee).toBeCloseTo(0.21, 2);
+        done();
+      }, (err) => {
+        done(err || new Error("Should not have an error!"));
+      });
+    });
+
+    it("should export fee = 0 for a dividend with no accompanying tax row", (done) => {
+      // Some ETF dividends have no withholding tax row in the CSV.
+      // A later trade-fee row for the same ISIN must not be picked up as dividend tax.
+      // Uses US0378331005 (AAPL) which is present in the Yahoo Finance mock.
+      const csv = [
+        "Date,Time,Value date,Product,ISIN,Description,FX,Change,,Balance,,Order Id",
+        // Standalone dividend — no tax row
+        "26-12-2025,07:39,24-12-2025,APPLE INC,US0378331005,Dywidenda,,USD,1.39,USD,1.39,",
+        // Later trade for the same ISIN — must NOT bleed its fee into the dividend above
+        "02-01-2026,10:00,02-01-2026,APPLE INC,US0378331005,DEGIRO Transactiekosten en/of kosten van derden,,USD,-3.00,USD,-3.00,order-later",
+        "02-01-2026,10:00,02-01-2026,APPLE INC,US0378331005,\"Koop 1 @ 150,0 USD\",,USD,-150.00,USD,-150.00,order-later",
+      ].join("\n");
+
+      const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
+
+      sut.processFileContents(csv, (actualExport: GhostfolioExport) => {
+        const dividends = actualExport.activities.filter(a => a.type === "DIVIDEND");
+        expect(dividends.length).toBe(1);
+        expect(dividends[0].fee).toBe(0);
+        done();
+      }, (err) => {
+        done(err || new Error("Should not have an error!"));
+      });
+    });
+  });
 });

@@ -528,11 +528,12 @@ describe("securityService", () => {
                 const sut = new SecurityService(yahooFinanceMock);
                 await sut.loadCache();
 
-                // Act                
-                await sut.getSecurity("IE00B3RBWM25", null, null, "EUR");
+                // Act
+                const result = await sut.getSecurity("IE00B3RBWM25", null, null, "EUR");
 
-                // Assert
-                expect(searchSpy).toHaveBeenCalledTimes(1);
+                // Assert: override pins the symbol directly; Yahoo Finance must NOT be queried.
+                expect(searchSpy).toHaveBeenCalledTimes(0);
+                expect(result.symbol).toBe("VWRL.AS");
             });
         });
     });
