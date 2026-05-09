@@ -433,7 +433,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
       return false;
     }
 
-    const transactionFeeRecordType = ["en\/of", "and\/or", "und\/oder", "e\/o", "adr\/gdr", "ritenuta", "belasting", "daň z dividendy", "taxe sur les", "impôts sur", "comissões de transação", "courtage et/ou"];
+    const transactionFeeRecordType = ["en\/of", "and\/or", "und\/oder", "e\/o", "y\/o", "adr\/gdr", "ritenuta", "belasting", "daň z dividendy", "taxe sur les", "impôts sur", "comissões de transação", "courtage et/ou", "retención del dividendo"];
 
     return transactionFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
