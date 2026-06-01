@@ -179,6 +179,52 @@ describe("degiroConverterV3", () => {
     }, (e) => { console.log(e); done.fail("Should not have an error!"); });
   });
 
+  describe("Spanish keyword classification", () => {
+
+    const record = (description: string, orderId = "") => ({
+      date: "01-01-2024",
+      time: "12:00",
+      currencyDate: "01-01-2024",
+      product: "TEST",
+      isin: "TEST",
+      description,
+      fx: "",
+      currency: "EUR",
+      amount: "1,00",
+      col1: "",
+      col2: "",
+      orderId
+    }) as any;
+
+    const newSut = () =>
+      new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock())) as any;
+
+    // Each row: [classifier method name, description, args after the record, expected].
+    // Lowercase + uppercase variants per keyword to lock in lowercase normalization.
+    it.each([
+      // isIgnoredRecord — "fondos del mercado monetario"
+      ["isIgnoredRecord", "Conversión fondos del mercado monetario: Compra 0,002521 @ 9.915,9121 EUR", [], true],
+      ["isIgnoredRecord", "CONVERSIÓN FONDOS DEL MERCADO MONETARIO: Venta 0,001063 @ 9.912,2063 EUR", [], true],
+
+      // isPlatformFees — "comisión de conectividad"
+      ["isPlatformFees", "Comisión de conectividad con el mercado 2024 (New York Stock Exchange - NSY)", [], true],
+      ["isPlatformFees", "COMISIÓN DE CONECTIVIDAD con el mercado 2025 (Xetra - XET)", [], true],
+
+      // isTransactionFeeRecord (buy/sell context) — "y/o"
+      ["isTransactionFeeRecord", "Costes de transacción y/o externos de DEGIRO", [true], true],
+      ["isTransactionFeeRecord", "COSTES DE TRANSACCIÓN Y/O EXTERNOS DE DEGIRO", [true], true],
+
+      // isTransactionFeeRecord (dividend context) — "retención del dividendo"
+      ["isTransactionFeeRecord", "Retención del dividendo", [false], true],
+      ["isTransactionFeeRecord", "RETENCIÓN DEL DIVIDENDO", [false], true],
+    ] as const)("%s(%s) === %s", (method, description, extraArgs, expected) => {
+
+      const sut = newSut();
+      const result = sut[method](record(description), ...extraArgs);
+      expect(result).toBe(expected);
+    });
+  });
+
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
    
     // Arrange
