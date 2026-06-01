@@ -200,28 +200,38 @@ describe("degiroConverterV3", () => {
       new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock())) as any;
 
     // Each row: [classifier method name, description, args after the record, expected].
-    // Lowercase + uppercase variants per keyword to lock in lowercase normalization.
+    // Lowercase + uppercase variants per keyword lock in lowercase normalization.
     it.each([
-      // isIgnoredRecord — "fondos del mercado monetario"
       ["isIgnoredRecord", "Conversión fondos del mercado monetario: Compra 0,002521 @ 9.915,9121 EUR", [], true],
       ["isIgnoredRecord", "CONVERSIÓN FONDOS DEL MERCADO MONETARIO: Venta 0,001063 @ 9.912,2063 EUR", [], true],
-
-      // isPlatformFees — "comisión de conectividad"
       ["isPlatformFees", "Comisión de conectividad con el mercado 2024 (New York Stock Exchange - NSY)", [], true],
       ["isPlatformFees", "COMISIÓN DE CONECTIVIDAD con el mercado 2025 (Xetra - XET)", [], true],
-
-      // isTransactionFeeRecord (buy/sell context) — "y/o"
       ["isTransactionFeeRecord", "Costes de transacción y/o externos de DEGIRO", [true], true],
       ["isTransactionFeeRecord", "COSTES DE TRANSACCIÓN Y/O EXTERNOS DE DEGIRO", [true], true],
-
-      // isTransactionFeeRecord (dividend context) — "retención del dividendo"
       ["isTransactionFeeRecord", "Retención del dividendo", [false], true],
       ["isTransactionFeeRecord", "RETENCIÓN DEL DIVIDENDO", [false], true],
+
+      // Negative cases: real-trade and unrelated phrases must not be misclassified.
+      ["isIgnoredRecord", "Compra 1 Telefonica SA@3,937 EUR (ES0178430E18)", [], false],
+      ["isIgnoredRecord", "Dividendo", [], false],
+      ["isPlatformFees", "Costes de transacción y/o externos de DEGIRO", [], false],
+      ["isPlatformFees", "compra 1 alphabet inc class a@164,16 usd", [], false],
+      ["isTransactionFeeRecord", "Dividendo", [false], false],
+      ["isTransactionFeeRecord", "Compra 1 Telefonica SA@3,937 EUR", [true], false],
     ] as const)("%s(%s) === %s", (method, description, extraArgs, expected) => {
 
       const sut = newSut();
       const result = sut[method](record(description), ...extraArgs);
       expect(result).toBe(expected);
+    });
+
+    // Dividend-context orderId guard: a real fee phrase still returns false when
+    // paired with a non-empty orderId (V3 line 432 early-return).
+    it("isTransactionFeeRecord returns false for a dividend fee with non-empty orderId", () => {
+
+      const sut = newSut();
+      const result = sut.isTransactionFeeRecord(record("Retención del dividendo", "abc-123"), false);
+      expect(result).toBe(false);
     });
   });
 
