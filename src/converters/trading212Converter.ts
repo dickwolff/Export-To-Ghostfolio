@@ -128,6 +128,14 @@ export class Trading212Converter extends AbstractConverter {
 
                         const feeAmount = Math.abs(record.total);
 
+                        // Ghostfolio v3 requires MANUAL dataSource symbols to be a UUID
+                        // or start with the "GF_" prefix. The raw notes value (e.g.
+                        // "Interest on cash") violates this constraint, so we sanitize it:
+                        // replace any character that is not alphanumeric, underscore, or
+                        // hyphen with "_", then prepend "GF_".
+                        // Example: "Interest on cash" → "GF_Interest_on_cash"
+                        const interestSymbol = `GF_${record.notes.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+
                         // Add fees record to export.
                         result.activities.push({
                             accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
@@ -139,7 +147,7 @@ export class Trading212Converter extends AbstractConverter {
                             currency: record.currencyTotal,
                             dataSource: "MANUAL",
                             date: dayjs(record.time).format("YYYY-MM-DDTHH:mm:ssZ"),
-                            symbol: record.notes,
+                            symbol: interestSymbol,
                             tags: getTags()
                         });
 

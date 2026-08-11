@@ -84,6 +84,8 @@ export abstract class AbstractConverter {
             // Manual polishing..
             if (col === "iSIN") {
                 col = col.toLocaleLowerCase();
+            } else if (col === "timeUTC") {
+                col = "time";
             } else if (col.endsWith("EUR")) {
                 col = col.slice(0, -3) + "Eur";
             } else if (col.endsWith("CHF")) {

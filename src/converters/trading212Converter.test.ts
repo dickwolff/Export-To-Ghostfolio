@@ -40,6 +40,37 @@ describe("trading212Converter", () => {
     }, () => { done.fail("Should not have an error!"); });
   });
 
+  it("should produce a GF_-prefixed symbol for interest activities (Ghostfolio v3 MANUAL schema)", (done) => {
+
+    // Arrange — minimal CSV with a single "Interest on cash" row.
+    // Ghostfolio v3 requires MANUAL dataSource symbols to be a UUID or start with
+    // the "GF_" prefix. Bare strings like "Interest on cash" are rejected.
+    const sut = new Trading212Converter(new SecurityService(new YahooFinanceServiceMock()));
+    let tempFileContent = "";
+    tempFileContent += "Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)\n";
+    tempFileContent += `Interest on cash,2023-11-06 22:06:41.36,,,,,,,,,,0.01,"EUR",,,"Interest on cash",8ffba791-cfc3-4002-b65d-bd63cf483d9d,,`;
+
+    // Act
+    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+
+      // Assert
+      expect(actualExport).toBeTruthy();
+      expect(actualExport.activities.length).toBe(1);
+
+      const activity = actualExport.activities[0];
+      expect(activity.dataSource).toBe("MANUAL");
+
+      // Symbol must start with "GF_" to pass Ghostfolio v3 schema validation.
+      expect(activity.symbol).toMatch(/^GF_/);
+
+      // Spaces in notes must be replaced with underscores.
+      // "Interest on cash" → "GF_Interest_on_cash"
+      expect(activity.symbol).toBe("GF_Interest_on_cash");
+
+      done();
+    }, () => { done.fail("Should not have an error!"); });
+  });
+
   describe("should throw an error if", () => {
     it("the input file does not exist", (done) => {
 

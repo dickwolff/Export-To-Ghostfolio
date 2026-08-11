@@ -65,7 +65,7 @@ chokidar
 
                 // After conversion was succesful, remove input file.
                 console.log(`[i] Finished converting ${path.basename(filePath)}, removing file..`);
-                fs.rmSync(filePath);
+                fs.rmSync(filePath, { force: true });
 
                 isProcessing = false;
 
@@ -83,7 +83,7 @@ chokidar
                 console.log("[e] Moving file to output..");
                 const errorFilePath = path.join(outputFolder, path.basename(filePath));
                 fs.copyFileSync(filePath, errorFilePath);
-                fs.rmSync(filePath);
+                fs.rmSync(filePath, { force: true });
 
                 isProcessing = false;
 

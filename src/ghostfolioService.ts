@@ -52,7 +52,7 @@ export default class GhostfolioService {
         if (validationResult.status === 401) {
 
             await this.authenticate(true);
-            return await this.validate(path, retryCount++);
+            return await this.validate(path, retryCount + 1);
         }
 
         // If status is 400, then import failed. 
@@ -107,7 +107,7 @@ export default class GhostfolioService {
         if (importResult.status === 401) {
 
             await this.authenticate(true);
-            return await this.import(path, retryCount++);
+            return await this.import(path, retryCount + 1);
         }
 
         var response = await importResult.json();
@@ -134,9 +134,41 @@ export default class GhostfolioService {
         // Only get bearer when it isn't set or has to be refreshed.
         if (!this.cachedBearerToken || refresh) {
 
-            // Retrieve bearer token for authentication.
-            const bearerResponse = await fetch(`${process.env.GHOSTFOLIO_URL}/api/v1/auth/anonymous/${process.env.GHOSTFOLIO_SECRET}`);
-            const bearer = await bearerResponse.json();
+            // Try Ghostfolio v3+ authentication first (POST with accessToken body).
+            const v3Response = await fetch(`${process.env.GHOSTFOLIO_URL}/api/v1/auth/anonymous`, {
+                method: "POST",
+                headers: [["Content-Type", "application/json"]],
+                body: JSON.stringify({ accessToken: process.env.GHOSTFOLIO_SECRET })
+            });
+
+            if (v3Response.ok) {
+                const bearer = await v3Response.json();
+
+                if (!bearer.authToken) {
+                    throw new Error("Authentication succeeded but no authToken was returned");
+                }
+
+                console.log("[i] Authenticated using Ghostfolio v3+ (POST) method.");
+                this.cachedBearerToken = bearer.authToken;
+                return;
+            }
+
+            // v3 POST failed — fall back to pre-v3 authentication (GET with secret in URL).
+            console.log(`[i] Ghostfolio v3+ auth returned ${v3Response.status}, falling back to pre-v3 (GET) method...`);
+
+            const legacyResponse = await fetch(`${process.env.GHOSTFOLIO_URL}/api/v1/auth/anonymous/${process.env.GHOSTFOLIO_SECRET}`);
+
+            if (!legacyResponse.ok) {
+                throw new Error(`Authentication failed on both v3+ (POST) and pre-v3 (GET): ${legacyResponse.status} ${legacyResponse.statusText}`);
+            }
+
+            const bearer = await legacyResponse.json();
+
+            if (!bearer.authToken) {
+                throw new Error("Authentication succeeded but no authToken was returned");
+            }
+
+            console.log("[i] Authenticated using pre-v3 (GET) method.");
             this.cachedBearerToken = bearer.authToken;
             return;
         }
