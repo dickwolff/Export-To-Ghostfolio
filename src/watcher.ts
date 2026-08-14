@@ -134,4 +134,5 @@ headers.set(`Date;Order #;Transaction;Symbol;Name;ISIN;Quantity;Unit price;Costs
 headers.set(`Datum;Transactietype;Waarde (netto);Opmerking;ISIN;Aantal;Kosten;Belasting`, "tradeRepublic");
 headers.set(`Date;Type;Value;Note;ISIN;Shares;Fees;Taxes`, "tradeRepublic");
 headers.set(`Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee`, "trading212");
+headers.set(`Bewertungsdatum;Bankbeziehung;Portfolio;Produkt;Abschluss;Abschlusszeit;Buchung;Valuta;Beschreibung 1;Beschreibung 2;Beschreibung 3;Valor;ISIN;Whrg.;Anzahl/Betrag;Whrg.;Trans.-Preis;Devisenkurs;Bewertungswährung;Trans.-Wert;Marchzinsen;Real. Erfolg in %;Real. Erfolg;Auftrags-Nr.;Externe Referenz;Anlageklasse;Sub-Anlageklasse;Instrumentenkategorie`, "ubs");
 headers.set(`ID;Type;Time;Symbol;Comment;Amount`, "xtb");

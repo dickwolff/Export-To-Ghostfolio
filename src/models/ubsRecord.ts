@@ -1,0 +1,30 @@
+export class UbsRecord {
+    valuationDate: string;
+    bankRelation: string;
+    portfolio: string;
+    product: string;
+    tradeDate: string;
+    tradeTime: string;
+    bookingDate: string;
+    valueDate: string;
+    description1: string;
+    description2: string;
+    description3: string;
+    valor: string;
+    isin: string;
+    nominalCurrency: string;
+    quantity: number;
+    currency: string;
+    transactionPrice: number;
+    exchangeRate: number;
+    valuationCurrency: string;
+    transactionValue: number;
+    accruedInterest: string;
+    realizedProfitPercentage: string;
+    realizedProfit: string;
+    orderNumber: string;
+    externalReference: string;
+    assetClass: string;
+    subAssetClass: string;
+    instrumentCategory: string;
+}

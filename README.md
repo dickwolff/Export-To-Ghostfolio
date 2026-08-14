@@ -34,6 +34,7 @@ This tool allows you to convert CSV transaction exports to an import file that c
 - [Swissquote](https://en.swissquote.com/)
 - [TradeRepublic](https://traderepublic.com)
 - [Trading 212](https://trading212.com)
+- [UBS (Switzerland)](https://www.ubs.com/ch)
 - [XTB](https://www.xtb.com/int)
 
 Is your broker not in the list? Feel free to create an [issue](https://github.com/dickwolff/Export-To-Ghostfolio/issues/new) or, even better, build it yourself and create a [pull request](https://github.com/dickwolff/Export-To-Ghostfolio/compare)! For more info, see [contributing](#contributing).
@@ -174,6 +175,12 @@ Login to your Swissquote account. From the bar menu click on "Transactions". Sel
 
 **NOTE:** For Swissquote it's important you have set your display language as English. You can do this by logging into your Swissquote account and then select "My Account" (Mein Konto). Click the "Settings"-button (Einstellungen), then change your display language (displaysprache) to English. After this change, your Swissquote export will be in English.
 
+### UBS (Switzerland)
+
+Login to your UBS e-banking. Go to "Investments", then open the transaction list ("Transaktionsliste") of your custody account. Select the desired time period and export the list as CSV. The export is in German and contains a "Transaktionsliste"-footer line, both of which the converter handles automatically.
+
+**NOTE:** The converter currently supports fund/security purchases ("Kauf aus Emission", "Kauf", "Zeichnung") and sells ("Verkauf", "Rücknahme"), including cancelled and re-booked orders ("Storno"). Cash movements are skipped. Distribution/dividend records are not yet supported — if your export contains those, feel free to open an issue with an (anonymized!) sample.
+
 ### TradeRepublic (experimental)
 
 > **As TradeRepublic itself does not offer CSV exports, this can be achieved using a community tool called [`pytr`](https://github.com/pytr-org/pytr/). The instructions below are based on that tool!**
@@ -312,6 +319,7 @@ You can now run `npm run start [exporttype]`. See the table with run commands be
 | Swissquote    | `run start swissquote` (or `sq`)    |
 | TradeRepublic | `run start traderepublic` (or `tr`) |
 | Trading 212   | `run start trading212` (or `t212`)  |
+| UBS           | `run start ubs`                     |
 | XTB           | `run start xtb`                     |
 
 ### Caching
