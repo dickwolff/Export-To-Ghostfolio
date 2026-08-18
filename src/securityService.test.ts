@@ -545,8 +545,8 @@ describe("securityService", () => {
     describe("loadCache()", () => {
 
         beforeEach(async () => {
-            await cacache.rm("/var/tmp/e2g-cache-unittest", "isinSymbolCache");
-            await cacache.rm("/var/tmp/e2g-cache-unittest", "symbolCache");
+            await cacache.rm(process.env.E2G_CACHE_FOLDER, "isinSymbolCache");
+            await cacache.rm(process.env.E2G_CACHE_FOLDER, "symbolCache");
         });
 
         it("having no initial cache, does not restore", async () => {

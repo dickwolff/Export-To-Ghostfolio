@@ -1,4 +1,4 @@
-import { SwissquoteConverter } from "./swissquoteConverter";
+﻿import { SwissquoteConverter } from "./swissquoteConverter";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import { SecurityService } from "../securityService";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("swissquoteConverter", () => {
       expect(actualExport.activities.length).toBe(14);
 
       done();
-    }, () => { fail("Should not have an error!"); });
+    }, () => { done(new Error("Should not have an error!")); });
   });
 
   describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("swissquoteConverter", () => {
       let tempFileName = "tmp/testinput/swissquote-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -68,7 +68,7 @@ describe("swissquoteConverter", () => {
       tempFileContent += "Date;Order #;Transaction;Symbol;Name;ISIN;Quantity;Unit price;Costs;Accrued Interest;Net Amount;Balance;Currency\n";
 
       // Act
-      sut.processFileContents(tempFileContent, () => { fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -89,7 +89,7 @@ describe("swissquoteConverter", () => {
       tempFileContent += "16-06-2022 13:14:35;110152600;Sell;VEUD;VANGUARD FTSE EUROPE UCITS ETF;IE00B945VV12;709.0;32.37;115.28;0.00;22835.05;111207.71;USD;;";
 
       // Act
-      sut.processFileContents(tempFileContent, () => { fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -112,7 +112,7 @@ describe("swissquoteConverter", () => {
       const sut = new SwissquoteConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
-      sut.processFileContents(tempFileContent, (e) => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, (e) => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -131,11 +131,11 @@ describe("swissquoteConverter", () => {
       let tempFileContent = "";
       tempFileContent += "Date;Order #;Transaction;Symbol;Name;ISIN;Quantity;Unit price;Costs;Accrued Interest;Net Amount;Balance;Currency\n";
       tempFileContent += "16-06-2022 13:14:35;110152600;Sell;VEUD;VANGUARD FTSE EUROPE UCITS ETF;IE00B945VV12;709.0;32.37;115.28;0.00;22835.05;111207.71;USD\n";
-      tempFileContent += "31-12-2024 11:40:56;00000000;Depotgebühren;;;;1.0;37.50;3.04;0.00;-40.54;CHF;\n";
+      tempFileContent += "31-12-2024 11:40:56;00000000;DepotgebÃ¼hren;;;;1.0;37.50;3.04;0.00;-40.54;CHF;\n";
       tempFileContent += "30-12-2024 00:35:49;00000000;Zahlung;;;;1.0;1000.00;0.00;0.00;1000.00;CHF;\n";
 
       // Act
-      sut.processFileContents(tempFileContent, () => { fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -167,7 +167,7 @@ describe("swissquoteConverter", () => {
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for sell action for IE00B945VV12 with currency USD! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done(new Error("Should not have an error!")));
   });
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -180,7 +180,7 @@ describe("swissquoteConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      done(new Error("Should not succeed!"));
     }, (err: Error) => {
    
       // Assert
@@ -192,3 +192,4 @@ describe("swissquoteConverter", () => {
     });
   });
 });
+

@@ -1,4 +1,4 @@
-import { FreetradeConverter } from "./freetradeConverter";
+﻿import { FreetradeConverter } from "./freetradeConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -156,7 +156,7 @@ describe("freetradeConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      done(new Error("Should not succeed!"));
     }, (err: Error) => {
    
       // Assert
@@ -168,3 +168,4 @@ describe("freetradeConverter", () => {
     });
   });
 });
+

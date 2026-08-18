@@ -1,4 +1,4 @@
-import { CryptoComConverter } from "./cryptocomConverter";
+﻿import { CryptoComConverter } from "./cryptocomConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("cryptocomConverter", () => {
             expect(actualExport.activities.length).toBe(53);
 
             done();
-        }, () => { done.fail("Should not have an error!"); });
+        }, () => { done(new Error("Should not have an error!")); });
     });
 
     describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("cryptocomConverter", () => {
             let tempFileName = "tmp/testinput/cryptocom-filedoesnotexist.csv";
 
             // Act
-            sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+            sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
                 // Assert
                 expect(err).toBeTruthy();
@@ -67,7 +67,7 @@ describe("cryptocomConverter", () => {
             tempFileContent += "Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind\n";
 
             // Act
-            sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+            sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
                 // Assert
                 expect(err).toBeTruthy();
@@ -87,7 +87,7 @@ describe("cryptocomConverter", () => {
             tempFileContent += `2025-01-07 11:43:48,EGLD -> USDC,EGLD,-4.15,USDC,150.865358,EUR,143.33016114556153037260009689941121,169.3696337724427464682749300795884857180596,crypto_exchange,,`;
 
             // Act
-            sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+            sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
                 // Assert
                 expect(err).toBeTruthy();
@@ -110,7 +110,7 @@ describe("cryptocomConverter", () => {
             const sut = new CryptoComConverter(new SecurityService(yahooFinanceServiceMock));
 
             // Act
-            sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+            sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
                 // Assert
                 expect(err).toBeTruthy();
@@ -142,7 +142,7 @@ describe("cryptocomConverter", () => {
             expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for EGLD-EUR! Please add this manually..\n");
 
             done();
-        }, () => done.fail("Should not have an error!"));
+        }, () => done(new Error("Should not have an error!")));
     });
 
     it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -155,7 +155,7 @@ describe("cryptocomConverter", () => {
 
         // Act
         sut.processFileContents(tempFileContent, () => {
-            done.fail("Should not succeed!");
+            done(new Error("Should not succeed!"));
         }, (err: Error) => {
 
             // Assert
@@ -167,3 +167,4 @@ describe("cryptocomConverter", () => {
         });
     });
 });
+

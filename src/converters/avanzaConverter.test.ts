@@ -1,4 +1,4 @@
-import { AvanzaConverter } from "./avanzaConverter";
+﻿import { AvanzaConverter } from "./avanzaConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("avanzaConverter", () => {
       expect(actualExport.activities.length).toBe(11);
 
       done();
-    }, () => { done.fail("Should not have an error!"); });
+    }, () => { done(new Error("Should not have an error!")); });
   });
 
   describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("avanzaConverter", () => {
       let tempFileName = "tmp/testinput/avanza-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -64,10 +64,10 @@ describe("avanzaConverter", () => {
       const sut = new AvanzaConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileContent = "";
-      tempFileContent += "Datum;Konto;Typ av transaktion;Värdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat\n";
+      tempFileContent += "Datum;Konto;Typ av transaktion;VÃ¤rdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat\n";
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -83,11 +83,11 @@ describe("avanzaConverter", () => {
       const sut = new AvanzaConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileContent = "";
-      tempFileContent += "Datum;Konto;Typ av transaktion;Värdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat\n";
-      tempFileContent += `2025-01-13;Savings;Sälj;DNB Global Indeks S;-352,033838;154,665276;54447,41;SEK;0;;SEK;NO0010827280;14650,376974;;`;
+      tempFileContent += "Datum;Konto;Typ av transaktion;VÃ¤rdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat\n";
+      tempFileContent += `2025-01-13;Savings;SÃ¤lj;DNB Global Indeks S;-352,033838;154,665276;54447,41;SEK;0;;SEK;NO0010827280;14650,376974;;`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -101,8 +101,8 @@ describe("avanzaConverter", () => {
 
       // Arrange
       let tempFileContent = "";
-      tempFileContent += "Datum;Konto;Typ av transaktion;Värdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat\n";
-      tempFileContent += `2025-01-13;Savings;Sälj;DNB Global Indeks S;-352,033838;154,665276;54447,41;SEK;0;;SEK;NO0010827280;14650,376974`;
+      tempFileContent += "Datum;Konto;Typ av transaktion;VÃ¤rdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat\n";
+      tempFileContent += `2025-01-13;Savings;SÃ¤lj;DNB Global Indeks S;-352,033838;154,665276;54447,41;SEK;0;;SEK;NO0010827280;14650,376974`;
 
       // Mock Yahoo Finance service to throw error.
       const yahooFinanceServiceMock = new YahooFinanceServiceMock();
@@ -110,7 +110,7 @@ describe("avanzaConverter", () => {
       const sut = new AvanzaConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -125,24 +125,26 @@ describe("avanzaConverter", () => {
 
     // Arrange
     let tempFileContent = "";
-    tempFileContent += "Datum;Konto;Typ av transaktion;Värdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat\n";
-    tempFileContent += `2025-01-13;Savings;Sälj;DNB Global Indeks S;-352,033838;154,665276;54447,41;SEK;0;;SEK;NO0010827280;14650,376974`;
+    tempFileContent += "Datum;Konto;Typ av transaktion;VÃ¤rdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat\n";
+    tempFileContent += `2025-01-13;Savings;SÃ¤lj;DNB Global Indeks S;-352,033838;154,665276;54447,41;SEK;0;;SEK;NO0010827280;14650,376974`;
 
     // Mock Yahoo Finance service to return no quotes.
     const yahooFinanceServiceMock = new YahooFinanceServiceMock();
     jest.spyOn(yahooFinanceServiceMock, "search").mockImplementation(() => { return Promise.resolve({ quotes: [] }) });
     const sut = new AvanzaConverter(new SecurityService(yahooFinanceServiceMock));
 
-    // Bit hacky, but it works.
-    const consoleSpy = jest.spyOn((sut as any).progress, "log");
+    // Directly override the logger because cli-progress exposes a non-standard method binding
+    // that Jest's spy is unable to observe reliably in this environment.
+    const progressLogSpy = jest.fn();
+    (sut as any).progress.log = progressLogSpy;
 
     // Act
     sut.processFileContents(tempFileContent, () => {
 
-      expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for sell action for NO0010827280 with currency SEK! Please add this manually..\n");
+      expect(progressLogSpy).toHaveBeenCalledWith("[i] No result found for sell action for NO0010827280 with currency SEK! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done(new Error("Should not have an error!")));
   });
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -155,7 +157,7 @@ describe("avanzaConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      done(new Error("Should not succeed!"));
     }, (err: Error) => {
      
       // Assert
@@ -167,3 +169,4 @@ describe("avanzaConverter", () => {
     });
   });
 });
+

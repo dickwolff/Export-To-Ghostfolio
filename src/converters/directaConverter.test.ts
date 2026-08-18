@@ -1,4 +1,4 @@
-import { DirectaConverter } from "./directaConverter";
+﻿import { DirectaConverter } from "./directaConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("directaConverter", () => {
       expect(actualExport.activities.length).toBe(17);
 
       done();
-    }, () => { done.fail("Should not have an error!"); });
+    }, () => { done(new Error("Should not have an error!")); });
   });
 
   describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("directaConverter", () => {
       let tempFileName = "tmp/testinput/directa-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -64,10 +64,10 @@ describe("directaConverter", () => {
       const sut = new DirectaConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileContent = "";
-      tempFileContent += "Data operazione,Data valuta,Tipo operazione,Ticker,Isin,Protocollo,Descrizione,Quantità,Importo euro,Importo Divisa,Divisa,Riferimento ordine\n";
+      tempFileContent += "Data operazione,Data valuta,Tipo operazione,Ticker,Isin,Protocollo,Descrizione,QuantitÃ ,Importo euro,Importo Divisa,Divisa,Riferimento ordine\n";
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -83,11 +83,11 @@ describe("directaConverter", () => {
       const sut = new DirectaConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileContent = "";
-      tempFileContent += "Data operazione,Data valuta,Tipo operazione,Ticker,Isin,Protocollo,Descrizione,Quantità,Importo euro,Importo Divisa,Divisa,Riferimento ordine\n";
+      tempFileContent += "Data operazione,Data valuta,Tipo operazione,Ticker,Isin,Protocollo,Descrizione,QuantitÃ ,Importo euro,Importo Divisa,Divisa,Riferimento ordine\n";
       tempFileContent += "02-12-2024,04-12-2024,Acquisto,ICOV,IE00B3B8Q275,,ETF COVERED BOND ISH,3,-431.04,0,EUR,XXXXXXXXX,\n";
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -108,7 +108,7 @@ describe("directaConverter", () => {
       tempFileContent += "\n";
     }
     
-    tempFileContent += "Data operazione,Data valuta,Tipo operazione,Ticker,Isin,Protocollo,Descrizione,Quantità,Importo euro,Importo Divisa,Divisa,Riferimento ordine\n";
+    tempFileContent += "Data operazione,Data valuta,Tipo operazione,Ticker,Isin,Protocollo,Descrizione,QuantitÃ ,Importo euro,Importo Divisa,Divisa,Riferimento ordine\n";
     tempFileContent += "02-12-2024,04-12-2024,Acquisto,ICOV,XXXXXXXX,,ETF COVERED BOND ISH,3,-431.04,0,EUR,T3717285639899"
 
     // Mock Yahoo Finance service to return no quotes.
@@ -125,7 +125,7 @@ describe("directaConverter", () => {
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for XXXXXXXX with currency EUR! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done(new Error("Should not have an error!")));
   });
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -138,7 +138,7 @@ describe("directaConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      done(new Error("Should not succeed!"));
     }, (err: Error) => {
   
       // Assert
@@ -150,3 +150,4 @@ describe("directaConverter", () => {
     });
   });
 });
+

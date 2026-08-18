@@ -1,4 +1,4 @@
-import { SecurityService } from "../securityService";
+﻿import { SecurityService } from "../securityService";
 import { CoinbaseConverter } from "./coinbaseConverter";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("coinbaseConverter", () => {
       expect(actualExport.activities.length).toBe(4);
 
       done();
-    }, () => { done.fail("Should not have an error!"); });
+    }, () => { done(new Error("Should not have an error!")); });
   });
 
   describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("coinbaseConverter", () => {
       let tempFileName = "tmp/testinput/coinbase-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -67,7 +67,7 @@ describe("coinbaseConverter", () => {
       tempFileContent += "ID,Timestamp,Transaction Type,Asset,Quantity Transacted,Price Currency,Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes\n";
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -84,10 +84,10 @@ describe("coinbaseConverter", () => {
 
       let tempFileContent = "";
       tempFileContent += "ID,Timestamp,Transaction Type,Asset,Quantity Transacted,Price Currency,Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes\n";
-      tempFileContent += "678a8bdefcb176007bfdbXXX,2025-01-17 16:57:02 UTC,Staking Income,ETH,0.000037835729,EUR,€3343.11229989,€0.12649,€0.12649,€0.00,,,"
+      tempFileContent += "678a8bdefcb176007bfdbXXX,2025-01-17 16:57:02 UTC,Staking Income,ETH,0.000037835729,EUR,â‚¬3343.11229989,â‚¬0.12649,â‚¬0.12649,â‚¬0.00,,,"
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -107,7 +107,7 @@ describe("coinbaseConverter", () => {
 
       // Act
       sut.processFileContents(tempFileContent, () => {
-        done.fail("Should not succeed!");
+        done(new Error("Should not succeed!"));
       }, (err: Error) => {
   
         // Assert
@@ -120,3 +120,4 @@ describe("coinbaseConverter", () => {
     });
   });
 });
+
