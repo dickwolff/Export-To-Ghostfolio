@@ -3,21 +3,24 @@ import * as fs from "fs";
 import chokidar from "chokidar";
 import * as cacache from "cacache";
 import * as matcher from "closest-match";
+import { tmpdir } from "os";
 import { createAndRunConverter } from "./converter";
+
+const cacheFolder = process.env.E2G_CACHE_FOLDER || path.join(tmpdir(), "e2g-cache");
 
 // Check if the cache should be purged.
 if (Boolean(process.env.PURGE_CACHE)) {
 
     console.log("[i] Purging cache (PURGE_CACHE set to true)..");
     Promise.all([
-        cacache.rm("/var/tmp/e2g-cache", "isinSymbolCache"),
-        cacache.rm("/var/tmp/e2g-cache", "symbolCache")
+        cacache.rm(cacheFolder, "isinSymbolCache"),
+        cacache.rm(cacheFolder, "symbolCache")
     ]).then(() => console.log("[i] Cache purged!"));
 }
 
 // Define input and output.
-const inputFolder = process.env.E2G_INPUT_FOLDER || "/var/tmp/e2g-input";
-const outputFolder = process.env.E2G_OUTPUT_FOLDER || "/var/tmp/e2g-output";
+const inputFolder = process.env.E2G_INPUT_FOLDER || path.join(tmpdir(), "e2g-input");
+const outputFolder = process.env.E2G_OUTPUT_FOLDER || path.join(tmpdir(), "e2g-output");
 const usePolling = Boolean(process.env.USE_POLLING) || false;
 
 console.log(`[i] Watching ${inputFolder}${usePolling ? " (using polling)" : ""}..`);

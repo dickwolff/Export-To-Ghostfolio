@@ -1,4 +1,4 @@
-import { BitvavoConverter } from "./bitvavoConverter";
+﻿import { BitvavoConverter } from "./bitvavoConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("bitvavoConverter", () => {
       expect(actualExport.activities.length).toBe(21);
 
       done();
-    }, () => { done.fail("Should not have an error!"); });
+    }, () => { done(new Error("Should not have an error!")); });
   });
 
   describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("bitvavoConverter", () => {
       let tempFileName = "tmp/testinput/bitvavo-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -67,7 +67,7 @@ describe("bitvavoConverter", () => {
       tempFileContent += "Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,Received / Paid Currency,Received / Paid Amount,Fee currency,Fee amount,Status,Transaction ID,Address\n";
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -87,7 +87,7 @@ describe("bitvavoConverter", () => {
       tempFileContent += "Europe/Amsterdam,2023-01-09,17:19:11,withdrawal,USDT,-32.156874000000003,,,,,USDT,5.4,Completed,1d0165bb-065f-4f0d-ba44-fb137534e010,0xaeC107aC155cA21A896888fe486de410c422424a,,"
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -107,7 +107,7 @@ describe("bitvavoConverter", () => {
 
       // Act
       sut.processFileContents(tempFileContent, () => {
-        done.fail("Should not succeed!");
+        done(new Error("Should not succeed!"));
       }, (err: Error) => {
    
         // Assert
@@ -120,3 +120,4 @@ describe("bitvavoConverter", () => {
     });
   });
 });
+

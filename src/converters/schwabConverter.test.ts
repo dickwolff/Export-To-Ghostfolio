@@ -1,4 +1,4 @@
-import { SchwabConverter } from "./schwabConverter";
+﻿import { SchwabConverter } from "./schwabConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("schwabConverter", () => {
       expect(actualExport.activities.length).toBe(107);
 
       done();
-    }, () => { done.fail("Should not have an error!"); });
+    }, () => { done(new Error("Should not have an error!")); });
   });
 
   describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("schwabConverter", () => {
       let tempFileName = "tmp/testinput/schwab-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -67,7 +67,7 @@ describe("schwabConverter", () => {
       tempFileContent += `Date,Action,Symbol,Description,Quantity,Price,Fees & Comm,Amount\n`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -87,7 +87,7 @@ describe("schwabConverter", () => {
       tempFileContent += `Transactions Total,,,,,,,"-$26,582.91",,`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -111,7 +111,7 @@ describe("schwabConverter", () => {
       const sut = new SchwabConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
-      sut.processFileContents(tempFileContent, (e) => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, (e) => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -144,7 +144,7 @@ describe("schwabConverter", () => {
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for sell action for FIHBX with currency USD! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done(new Error("Should not have an error!")));
   });
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -157,7 +157,7 @@ describe("schwabConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      done(new Error("Should not succeed!"));
     }, (err: Error) => {
    
       // Assert
@@ -169,3 +169,4 @@ describe("schwabConverter", () => {
     });
   });
 });
+

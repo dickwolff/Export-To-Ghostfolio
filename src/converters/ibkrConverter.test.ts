@@ -1,4 +1,4 @@
-import { IbkrConverter } from "./ibkrConverter";
+﻿import { IbkrConverter } from "./ibkrConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("IbkrConverter", () => {
         expect(actualExport.activities.length).toBe(8); // currently sells are broken. todo: fix
 
         done();
-      }, () => { done.fail("Should not have an error!"); });
+      }, () => { done(new Error("Should not have an error!")); });
     });
 
     it("with dividends", (done) => {
@@ -54,7 +54,7 @@ describe("IbkrConverter", () => {
         expect(actualExport.activities.length).toBe(7);
 
         done();
-      }, () => { done.fail("Should not have an error!"); });
+      }, () => { done(new Error("Should not have an error!")); });
     });
   });
 
@@ -67,7 +67,7 @@ describe("IbkrConverter", () => {
       let tempFileName = "tmp/testinput/ibkr-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -85,7 +85,7 @@ describe("IbkrConverter", () => {
       tempFileContent += `"Buy/Sell","TradeDate","ISIN","Quantity","TradePrice","TradeMoney","CurrencyPrimary","IBCommission","IBCommissionCurrency"\n`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -105,7 +105,7 @@ describe("IbkrConverter", () => {
       tempFileContent += `"BUY","20230522","CH0111762537","7","282.7","1978.9","CHF","-5","CHF",,`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -128,7 +128,7 @@ describe("IbkrConverter", () => {
       const sut = new IbkrConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -160,7 +160,7 @@ describe("IbkrConverter", () => {
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for CH0111762537! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done(new Error("Should not have an error!")));
   });
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -173,7 +173,7 @@ describe("IbkrConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      done(new Error("Should not succeed!"));
     }, (err: Error) => {
     
       // Assert
@@ -185,3 +185,4 @@ describe("IbkrConverter", () => {
     });
   });
 });
+

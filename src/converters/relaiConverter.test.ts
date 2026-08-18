@@ -1,4 +1,4 @@
-import { RelaiConverter } from "./relaiConverter";
+﻿import { RelaiConverter } from "./relaiConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("relaiConverter", () => {
       expect(actualExport.activities.length).toBe(3);
 
       done();
-    }, () => { done.fail("Should not have an error!"); });
+    }, () => { done(new Error("Should not have an error!")); });
   });
 
   describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("relaiConverter", () => {
       let tempFileName = "tmp/testinput/relai-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -67,7 +67,7 @@ describe("relaiConverter", () => {
       tempFileContent += `Date,Transaction Type,BTC Amount,BTC Price,Currency Pair,Fiat Amount (excl. fees),Fiat Currency,Fee,Fee Currency,Destination,Operation ID,Counterparty\n`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -87,7 +87,7 @@ describe("relaiConverter", () => {
       tempFileContent += `2025-08-04T08:02:44Z,Buy,0.00319120,93144.47,BTC/CHF,297.30,CHF,2.70,CHF,bc1cfe38ee57e,operation123`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -130,7 +130,7 @@ describe("relaiConverter", () => {
       expect(actualExport.activities[1].currency).toBe("CHF");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done(new Error("Should not have an error!")));
   });
 
   it("should apply symbol override when configured", (done) => {
@@ -158,7 +158,7 @@ describe("relaiConverter", () => {
       expect(actualExport.activities[0].unitPrice).toBe(95287.63);
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done(new Error("Should not have an error!")));
   });
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -170,7 +170,7 @@ describe("relaiConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      done(new Error("Should not succeed!"));
     }, (err: Error) => {
       // Assert
       expect(consoleSpy).toHaveBeenCalledWith("[e] An error occurred while processing the file contents. Stack trace:");
@@ -181,4 +181,5 @@ describe("relaiConverter", () => {
     });
   });
 });
+
 

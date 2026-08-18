@@ -26,15 +26,17 @@ export class AvanzaConverter extends AbstractConverter {
             columns: this.processHeaders(input),
             cast: (columnValue, context) => {
 
+                const sanitizedValue = typeof columnValue === "string" ? this.normalizeUtf8Corruption(columnValue) : columnValue;
+
                 // Custom mapping below.
 
-                if (context.column === "instrumentCurrency" && columnValue === "GBX") {
+                if (context.column === "instrumentCurrency" && sanitizedValue === "GBX") {
                     return "GBp";
                 }
 
                 // Convert actions to Ghostfolio type.
                 if (context.column === "type") {
-                    const action = columnValue.toLocaleLowerCase();
+                    const action = sanitizedValue.toLocaleLowerCase();
 
                     if (action.indexOf("köp") > -1) {
                         return "buy";
@@ -61,14 +63,14 @@ export class AvanzaConverter extends AbstractConverter {
                     context.column === "exchangeRate" ||
                     context.column === "result") {
 
-                    if (columnValue === "") {
+                    if (sanitizedValue === "") {
                         return 0;
                     }
 
-                    return parseFloat(columnValue.replace(",", "."));
+                    return parseFloat(sanitizedValue.replace(",", "."));
                 }
 
-                return columnValue;
+                return sanitizedValue;
             },
             on_record: (record: AvanzaRecord) => {
 
@@ -220,6 +222,33 @@ export class AvanzaConverter extends AbstractConverter {
             "result"];
 
         return csvHeaders;
+    }
+
+    private normalizeUtf8Corruption(value: string): string {
+        if (!value) {
+            return value;
+        }
+
+        return value
+            .replace(/Ã¤/g, "ä")
+            .replace(/Ã¶/g, "ö")
+            .replace(/Ã¥/g, "å")
+            .replace(/Ã¼/g, "ü")
+            .replace(/Ã©/g, "é")
+            .replace(/Ã±/g, "ñ")
+            .replace(/Ã–/g, "Ö")
+            .replace(/Ã…/g, "Å")
+            .replace(/Ãœ/g, "Ü")
+            .replace(/Ã/g, "Å")
+            .replace(/Ã¤/g, "ä")
+            .replace(/Ã¤/g, "ä")
+            .replace(/Ã/g, "Ä")
+            .replace(/Ã/g, "Ö")
+            .replace(/Ã/g, "ß")
+            .replace(/Ã¼/g, "ü")
+            .replace(/Ã/g, "Á")
+            .replace(/Ã©/g, "é")
+            .replace(/Ã©/g, "é");
     }
 
     /**

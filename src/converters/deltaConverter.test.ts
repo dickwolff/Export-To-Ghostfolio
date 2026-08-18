@@ -1,4 +1,4 @@
-import { DeltaConverter } from "./deltaConverter";
+﻿import { DeltaConverter } from "./deltaConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("deltaConverter", () => {
       expect(actualExport.activities.length).toBe(2);
 
       done();
-    }, () => { done.fail("Should not have an error!"); });
+    }, () => { done(new Error("Should not have an error!")); });
   });
 
   describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("deltaConverter", () => {
       let tempFileName = "tmp/testinput/delta-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -67,7 +67,7 @@ describe("deltaConverter", () => {
       tempFileContent += `Date,Way,Base amount,Base currency (name),Base type,Quote amount,Quote currency,Exchange,Sent/Received from,Sent to,Fee amount,Fee currency (name),Broker,Notes\n`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -87,7 +87,7 @@ describe("deltaConverter", () => {
       tempFileContent += `2023-05-08 15:00:00-04:00,BUY,5,TSLA,STOCK,1250,USD,Nasdaq,,,,,eToro,Example of a stock purchase,,`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -110,7 +110,7 @@ describe("deltaConverter", () => {
       const sut = new DeltaConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -142,7 +142,7 @@ describe("deltaConverter", () => {
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for TSLA with currency USD! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done(new Error("Should not have an error!")));
   });
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -155,7 +155,7 @@ describe("deltaConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      done(new Error("Should not succeed!"));
     }, (err: Error) => {
    
       // Assert
@@ -167,3 +167,4 @@ describe("deltaConverter", () => {
     });
   });
 });
+

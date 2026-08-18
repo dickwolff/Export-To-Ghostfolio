@@ -202,8 +202,17 @@ export class SwissquoteConverter extends AbstractConverter {
 
     private isGermanLanguageRecord(record: SwissquoteRecord): boolean {
 
-        const germanRecordTypes = ["kauf", "verkauf", "dividende", "gebühren"];
+        const transaction = (record.transaction ?? "")
+            .toLocaleLowerCase()
+            .replace(/Ã¼/g, "u")
+            .replace(/Ã¤/g, "a")
+            .replace(/Ã¶/g, "o")
+            .replace(/Ã©/g, "e")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
 
-        return germanRecordTypes.some(t => record.transaction.toLocaleLowerCase().indexOf(t) > -1)
+        const germanRecordTypes = ["kauf", "verkauf", "dividende", "gebuhr", "gebuhren", "zahlung", "zahlungen"];
+
+        return germanRecordTypes.some(t => transaction.indexOf(t) > -1);
     }
 }

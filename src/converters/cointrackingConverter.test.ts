@@ -1,4 +1,4 @@
-import { SecurityService } from "../securityService";
+﻿import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import { CointrackingConverter } from "./cointrackingConverter";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("cointrackingConverter", () => {
       expect(actualExport.activities.length).toBe(4);
 
       done();
-    }, () => { done.fail("Should not have an error!"); });
+    }, () => { done(new Error("Should not have an error!")); });
   });
 
   describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("cointrackingConverter", () => {
       let tempFileName = "tmp/testinput/cointracking-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -67,7 +67,7 @@ describe("cointrackingConverter", () => {
       tempFileContent += `"Type","Buy","Cur.","Sell","Cur.","Fee","Cur.","Exchange","Group","Comment","Date","Tx-ID"\n`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -87,7 +87,7 @@ describe("cointrackingConverter", () => {
       tempFileContent += `"Trade","0.00550000","BTC","500.00000000","EUR","19.00000000","EUR","Kraken","","","2025-01-01 10:12:27","",,`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -110,7 +110,7 @@ describe("cointrackingConverter", () => {
       const sut = new CointrackingConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -142,7 +142,7 @@ describe("cointrackingConverter", () => {
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found trade with currency BTC-EUR! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done(new Error("Should not have an error!")));
   });
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -155,7 +155,7 @@ describe("cointrackingConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      done(new Error("Should not succeed!"));
     }, (err: Error) => {
    
       // Assert
@@ -167,3 +167,4 @@ describe("cointrackingConverter", () => {
     });
   });
 });
+

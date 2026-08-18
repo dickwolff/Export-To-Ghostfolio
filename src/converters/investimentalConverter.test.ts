@@ -1,4 +1,4 @@
-import { InvestimentalConverter } from "./investimentalConverter";
+﻿import { InvestimentalConverter } from "./investimentalConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -39,7 +39,7 @@ describe("investimentalConverter", () => {
       expect(actualExport.activities.length).toBe(7);
 
       done();
-    }, () => { done.fail("Should not have an error!"); });
+    }, () => { done(new Error("Should not have an error!")); });
   });
 
   describe("should throw an error if", () => {
@@ -51,7 +51,7 @@ describe("investimentalConverter", () => {
       let tempFileName = "tmp/testinput/investimental-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -68,7 +68,7 @@ describe("investimentalConverter", () => {
       let tempFileContent = "Order ID,Order Number,Side,Exchange,Symbol,Market,Price,Volume,Disclosed,Value,Fee,Term,Validity,Trigger Type,Trigger Price,Settlement Term,Settlement Date,Settlement Type,Short Sell,Account ID,Account Name,Last Trade ID,Last Trade Ticket,Status,Initiated By,Updated By,Update Type,Update Time,Request ID,Request Type,Request Status\n";
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -90,7 +90,7 @@ describe("investimentalConverter", () => {
       const sut = new InvestimentalConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -121,7 +121,7 @@ describe("investimentalConverter", () => {
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for action buy, symbol TVBETETF, currency RON! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done(new Error("Should not have an error!")));
   });
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -134,7 +134,7 @@ describe("investimentalConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      done(new Error("Should not succeed!"));
     }, (err: Error) => {
      
       // Assert
@@ -700,3 +700,4 @@ describe("investimentalConverter", () => {
     });
   });
 });
+

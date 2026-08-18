@@ -1,4 +1,4 @@
-import { RevolutConverter } from "./revolutConverter";
+﻿import { RevolutConverter } from "./revolutConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -42,7 +42,7 @@ describe("revolutConverter", () => {
         })
 
         done();
-      }, () => { done.fail("Should not have an error!"); });
+      }, () => { done(new Error("Should not have an error!")); });
     });
 
     it("Revolut Crypto CSV file", (done) => {
@@ -60,7 +60,7 @@ describe("revolutConverter", () => {
         expect(actualExport.activities.length).toBe(6); // Currently only 5 because of BTC-SEK not existing.
 
         done();
-      }, () => { done.fail("Should not have an error!"); });
+      }, () => { done(new Error("Should not have an error!")); });
     });
   });
 
@@ -73,7 +73,7 @@ describe("revolutConverter", () => {
       let tempFileName = "tmp/testinput/revolut-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -91,7 +91,7 @@ describe("revolutConverter", () => {
       tempFileContent += `Date,Ticker,Type,Quantity,Price per share,Total Amount,Currency,FX Rate\n`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -111,7 +111,7 @@ describe("revolutConverter", () => {
       tempFileContent += `2023-09-22T13:30:10.514Z,O,BUY - MARKET,1.63453043,$52.07,$85.11,USD,1.0665,,`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -134,7 +134,7 @@ describe("revolutConverter", () => {
       const sut = new RevolutConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -166,7 +166,7 @@ describe("revolutConverter", () => {
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for O with currency USD! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done(new Error("Should not have an error!")));
   });
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -179,7 +179,7 @@ describe("revolutConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      done(new Error("Should not succeed!"));
     }, (err: Error) => {
    
       // Assert
@@ -191,3 +191,4 @@ describe("revolutConverter", () => {
     });
   });
 });
+

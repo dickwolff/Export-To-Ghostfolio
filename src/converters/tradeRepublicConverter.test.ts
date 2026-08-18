@@ -1,4 +1,4 @@
-import { TradeRepublicConverter } from "./tradeRepublicConverter";
+﻿import { TradeRepublicConverter } from "./tradeRepublicConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("tradeRepublicConverter", () => {
       expect(actualExport.activities.length).toBe(6);
 
       done();
-    }, () => { done.fail("Should not have an error!"); });
+    }, () => { done(new Error("Should not have an error!")); });
   });
 
   describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("tradeRepublicConverter", () => {
       let tempFileName = "tmp/testinput/traderepublic-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -67,7 +67,7 @@ describe("tradeRepublicConverter", () => {
       tempFileContent += "Datum;Transactietype;Waarde (netto);Opmerking;ISIN;Aantal;Kosten;Belasting\n";
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -87,7 +87,7 @@ describe("tradeRepublicConverter", () => {
       tempFileContent += `2024-07-23;Aankoop;-5;FTSE Developed World USD (Dist);IE00BKX55T58;0,052361;;;;`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -110,7 +110,7 @@ describe("tradeRepublicConverter", () => {
       const sut = new TradeRepublicConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -142,7 +142,7 @@ describe("tradeRepublicConverter", () => {
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for IE00BKX55T58! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done(new Error("Should not have an error!")));
   });
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -155,7 +155,7 @@ describe("tradeRepublicConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      done(new Error("Should not succeed!"));
     }, (err: Error) => {
   
       // Assert
@@ -167,3 +167,4 @@ describe("tradeRepublicConverter", () => {
     });
   });
 });
+

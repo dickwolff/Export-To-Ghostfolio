@@ -1,4 +1,4 @@
-import { RabobankConverter } from "./rabobankConverter";
+﻿import { RabobankConverter } from "./rabobankConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("rabobankConverter", () => {
       expect(actualExport.activities.length).toBe(10);
 
       done();
-    }, () => { done.fail("Should not have an error!"); });
+    }, () => { done(new Error("Should not have an error!")); });
   });
 
   describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("rabobankConverter", () => {
       let tempFileName = "tmp/testinput/rabobank-filedoesnotexist.csv";
 
       // Act
-      sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -64,10 +64,10 @@ describe("rabobankConverter", () => {
       const sut = new RabobankConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileContent = "";
-      tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
+      tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten â‚¬;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -83,11 +83,11 @@ describe("rabobankConverter", () => {
       const sut = new RabobankConverter(new SecurityService(new YahooFinanceServiceMock()));
 
       let tempFileContent = "";
-      tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
+      tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten â‚¬;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
       tempFileContent += `12345678;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima;;`;
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -101,7 +101,7 @@ describe("rabobankConverter", () => {
 
       // Arrange
       let tempFileContent = "";
-      tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
+      tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten â‚¬;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
       tempFileContent += `12345678;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima`;
 
       // Mock Yahoo Finance service to throw error.
@@ -110,7 +110,7 @@ describe("rabobankConverter", () => {
       const sut = new RabobankConverter(new SecurityService(yahooFinanceServiceMock));
 
       // Act
-      sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+      sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
         // Assert
         expect(err).toBeTruthy();
@@ -125,7 +125,7 @@ describe("rabobankConverter", () => {
 
     // Arrange
     let tempFileContent = "";
-    tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten €;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
+    tempFileContent += "Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Valuta koers;Valuta kosten â‚¬;Waarde;Bedrag;Isin code;Tijd;Beurs\n";
     tempFileContent += `12345678;1895 Euro Obligaties Indexfonds;08-02-2024;Koop Fondsen;EUR;1,8726;84,2637 ;EUR;0;157,79;-157,79;NL0014857104;11:46:03.004;Clearstream - Vestima`;
 
     // Mock Yahoo Finance service to return no quotes.
@@ -142,7 +142,7 @@ describe("rabobankConverter", () => {
       expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for 1895 Euro Obligaties Indexfonds! Please add this manually..\n");
 
       done();
-    }, () => done.fail("Should not have an error!"));
+    }, () => done(new Error("Should not have an error!")));
   });
 
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -155,7 +155,7 @@ describe("rabobankConverter", () => {
 
     // Act
     sut.processFileContents(tempFileContent, () => {
-      done.fail("Should not succeed!");
+      done(new Error("Should not succeed!"));
     }, (err: Error) => {
    
       // Assert
@@ -167,3 +167,4 @@ describe("rabobankConverter", () => {
     });
   });
 });
+

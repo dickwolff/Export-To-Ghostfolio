@@ -1,7 +1,11 @@
+﻿import path from "path";
 import { createAndRunConverter } from "./converter";
 import { SecurityService } from "./securityService";
 import YahooFinanceServiceMock from "./testing/yahooFinanceServiceMock";
 import { mkdirSync, rmSync, readdirSync, readFileSync, writeFileSync } from "fs";
+import { tmpdir } from "os";
+
+const tempRoot = path.join(tmpdir(), "converter-test");
 
 // Create sample file contents.
 let input = "";
@@ -26,36 +30,41 @@ describe("converter", () => {
     beforeEach(() => {
         process.env.GHOSTFOLIO_SPLIT_OUTPUT = "";
 
-        mkdirSync("/var/tmp/converter-test/in", { recursive: true });
-        writeFileSync("/var/tmp/converter-test/in/delta-export.csv", input);
+        const inputDir = path.join(tempRoot, "in");
+        const outputDir1 = path.join(tempRoot, "out", "1");
+        const outputDir2 = path.join(tempRoot, "out", "2");
 
-        mkdirSync("/var/tmp/converter-test/out/1", { recursive: true });
-        mkdirSync("/var/tmp/converter-test/out/2", { recursive: true });
+        mkdirSync(inputDir, { recursive: true });
+        writeFileSync(path.join(inputDir, "delta-export.csv"), input);
+
+        mkdirSync(outputDir1, { recursive: true });
+        mkdirSync(outputDir2, { recursive: true });
     });
 
     afterEach(() => {
-        rmSync("/var/tmp/converter-test", { recursive: true, force: true });
+        rmSync(tempRoot, { recursive: true, force: true });
     });
 
     it("should process a file and create a result", (done) => {
 
         // Arrange
         const securityService = new SecurityService(new YahooFinanceServiceMock());
+        const inputFile = path.join(tempRoot, "in", "delta-export.csv");
+        const outputDir = path.join(tempRoot, "out", "1");
 
         // Act
         createAndRunConverter(
             "delta",
-            "/var/tmp/converter-test/in/delta-export.csv",
-            "/var/tmp/converter-test/out/1",
+            inputFile,
+            outputDir,
             () => {
 
                 // Assert: there should be one file with 43 activities.
-
-                const files = readdirSync("/var/tmp/converter-test/out/1");
+                const files = readdirSync(outputDir);
                 expect(files.length).toBe(1);
 
                 const file = files[0];
-                const content = readFileSync(`/var/tmp/converter-test/out/1/${file}`, "utf8");
+                const content = readFileSync(path.join(outputDir, file), "utf8");
                 const result = JSON.parse(content);
                 expect(result).toBeTruthy();
                 expect(result.activities.length).toBe(43);
@@ -64,7 +73,7 @@ describe("converter", () => {
             },
             (e) => {
                 console.log("error", e)
-                done.fail("Should not fail");
+                done(new Error("Should not fail"));
             },
             securityService);
     });
@@ -74,27 +83,28 @@ describe("converter", () => {
         // Arrange
         process.env.GHOSTFOLIO_SPLIT_OUTPUT = "true";
         const securityService = new SecurityService(new YahooFinanceServiceMock());
+        const inputFile = path.join(tempRoot, "in", "delta-export.csv");
+        const outputDir = path.join(tempRoot, "out", "2");
 
         // Act
         createAndRunConverter(
             "delta",
-            "/var/tmp/converter-test/in/delta-export.csv",
-            "/var/tmp/converter-test/out/2",
+            inputFile,
+            outputDir,
             () => {
 
                 // Assert: there should be two files with the first having 25 activities and the second 18 activities.
-
-                const files = readdirSync("/var/tmp/converter-test/out/2");
+                const files = readdirSync(outputDir);
                 expect(files.length).toBe(2);
 
                 const file1 = files[0];
-                const content1 = readFileSync(`/var/tmp/converter-test/out/2/${file1}`, "utf8");
+                const content1 = readFileSync(path.join(outputDir, file1), "utf8");
                 const result1 = JSON.parse(content1);
                 expect(result1).toBeTruthy();
                 expect(result1.activities.length).toBe(25);
 
                 const file2 = files[1];
-                const content2 = readFileSync(`/var/tmp/converter-test/out/2/${file2}`, "utf8");
+                const content2 = readFileSync(path.join(outputDir, file2), "utf8");
                 const result2 = JSON.parse(content2);
                 expect(result2).toBeTruthy();
                 expect(result2.activities.length).toBe(18);
@@ -103,7 +113,7 @@ describe("converter", () => {
             },
             (e) => {
                 console.log("error", e)
-                done.fail("Should not fail");
+                done(new Error("Should not fail"));
             },
             securityService);
     });

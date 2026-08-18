@@ -1,4 +1,4 @@
-import { InvestEngineConverter } from "./investEngineConverter";
+﻿import { InvestEngineConverter } from "./investEngineConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("investEngineConverter", () => {
             expect(actualExport.activities.length).toBe(5);
 
             done();
-        }, () => { done.fail("Should not have an error!"); });
+        }, () => { done(new Error("Should not have an error!")); });
     });
 
     describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("investEngineConverter", () => {
             let tempFileName = "tmp/testinput/investengine-filedoesnotexist.csv";
 
             // Act
-            sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+            sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
                 // Assert
                 expect(err).toBeTruthy();
@@ -64,7 +64,7 @@ describe("investEngineConverter", () => {
             const sut = new InvestEngineConverter(new SecurityService(new YahooFinanceServiceMock()));
 
             // Act
-            sut.processFileContents("", () => { done.fail("Should not succeed!"); }, (err: Error) => {
+            sut.processFileContents("", () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
                 // Assert
                 expect(err).toBeTruthy();
@@ -81,10 +81,10 @@ describe("investEngineConverter", () => {
 
             let tempFileContent = "";
             tempFileContent += `Security / ISIN,Transaction Type,Quantity,Share Price,Total Trade Value,Trade Date/Time,Settlement Date,Broker\n`;
-            tempFileContent += `Vanguard FTSE All-World / ISIN IE00BK5BQT80,Buy,2.699055,£110.79,£299.04,23/12/24 15:18:12,27/12/24,None,,`;
+            tempFileContent += `Vanguard FTSE All-World / ISIN IE00BK5BQT80,Buy,2.699055,Â£110.79,Â£299.04,23/12/24 15:18:12,27/12/24,None,,`;
 
             // Act
-            sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+            sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
                 // Assert
                 expect(err).toBeTruthy();
@@ -99,7 +99,7 @@ describe("investEngineConverter", () => {
             // Arrange
             let tempFileContent = "";
             tempFileContent += `Security / ISIN,Transaction Type,Quantity,Share Price,Total Trade Value,Trade Date/Time,Settlement Date,Broker\n`;
-            tempFileContent += `Vanguard FTSE All-World / ISIN IE00BK5BQT80,Buy,2.699055,£110.79,£299.04,23/12/24 15:18:12,27/12/24,None`;
+            tempFileContent += `Vanguard FTSE All-World / ISIN IE00BK5BQT80,Buy,2.699055,Â£110.79,Â£299.04,23/12/24 15:18:12,27/12/24,None`;
 
             // Mock Yahoo Finance service to throw error.
             const yahooFinanceServiceMock = new YahooFinanceServiceMock();
@@ -107,7 +107,7 @@ describe("investEngineConverter", () => {
             const sut = new InvestEngineConverter(new SecurityService(yahooFinanceServiceMock));
 
             // Act
-            sut.processFileContents(tempFileContent, (e) => { done.fail("Should not succeed!"); }, (err: Error) => {
+            sut.processFileContents(tempFileContent, (e) => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
                 // Assert
                 expect(err).toBeTruthy();
@@ -123,7 +123,7 @@ describe("investEngineConverter", () => {
         // Arrange
         let tempFileContent = "";
         tempFileContent += `Security / ISIN,Transaction Type,Quantity,Share Price,Total Trade Value,Trade Date/Time,Settlement Date,Broker\n`;
-        tempFileContent += `Vanguard FTSE All-World / ISIN IE00BK5BQT81,Buy,2.699055,£110.79,£299.04,23/12/24 15:18:12,27/12/24,None`;
+        tempFileContent += `Vanguard FTSE All-World / ISIN IE00BK5BQT81,Buy,2.699055,Â£110.79,Â£299.04,23/12/24 15:18:12,27/12/24,None`;
 
         // Mock Yahoo Finance service to return no quotes.
         const yahooFinanceServiceMock = new YahooFinanceServiceMock();
@@ -139,7 +139,7 @@ describe("investEngineConverter", () => {
             expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for buy action for Vanguard FTSE All-World (ISIN: IE00BK5BQT81) with currency GBP! Please add this manually..\n");
 
             done();
-        }, () => done.fail("Should not have an error!"));
+        }, () => done(new Error("Should not have an error!")));
     });
 
     it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
@@ -152,7 +152,7 @@ describe("investEngineConverter", () => {
 
         // Act
         sut.processFileContents(tempFileContent, () => {
-            done.fail("Should not succeed!");
+            done(new Error("Should not succeed!"));
         }, (err: Error) => {
 
             // Assert
@@ -164,3 +164,4 @@ describe("investEngineConverter", () => {
         });
     });
 });
+

@@ -1,14 +1,16 @@
 import * as cacache from "cacache";
 import { existsSync, readFileSync } from "fs";
+import { tmpdir } from "os";
+import { join, resolve } from "path";
 import YahooFinanceRecord from "./models/yahooFinanceRecord";
 import { YahooFinance, YahooFinanceService } from "./yahooFinanceService";
 import { mapReplacer, mapReviver } from "./helpers/dictionaryHelpers";
 
 /* istanbul ignore next */
-const cachePath = process.env.E2G_CACHE_FOLDER || "/var/tmp/e2g-cache";
+const getCachePath = () => process.env.E2G_CACHE_FOLDER || join(tmpdir(), "e2g-cache");
 
 /* istanbul ignore next */
-const symbolOverrideFile = process.env.ISIN_OVERRIDE_FILE || "isin-overrides.txt";
+const getSymbolOverrideFile = () => process.env.ISIN_OVERRIDE_FILE || resolve("isin-overrides.txt");
 
 export class SecurityService {
 
@@ -195,6 +197,8 @@ export class SecurityService {
     public async loadCache(): Promise<[number, number, number]> {
 
         // Verify if there is data in the ISIN-Symbol cache. If so, restore to the local variable.
+        const cachePath = getCachePath();
+
         const isinSymbolCacheExist = await cacache.get.info(cachePath, "isinSymbolCache");
         if (isinSymbolCacheExist) {
             const cache = await cacache.get(cachePath, "isinSymbolCache");
@@ -211,6 +215,7 @@ export class SecurityService {
         }
 
         // If a symbol override file exists, load it into cache.
+        const symbolOverrideFile = getSymbolOverrideFile();
         if (await existsSync(symbolOverrideFile)) {
             console.log("[i] Found symbol override file. Loading..");
             const overrides = readFileSync(symbolOverrideFile, "utf8").split("\n");
@@ -345,6 +350,7 @@ export class SecurityService {
     }
 
     private async saveInCache(isin?: string, symbol?: string, value?: any) {
+        const cachePath = getCachePath();
 
         // Save ISIN-value combination to cache if given.
         if (isin && value) {

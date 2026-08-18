@@ -1,4 +1,4 @@
-import { DisnatConverter } from "./disnatConverter";
+﻿import { DisnatConverter } from "./disnatConverter";
 import { SecurityService } from "../securityService";
 import { GhostfolioExport } from "../models/ghostfolioExport";
 import YahooFinanceServiceMock from "../testing/yahooFinanceServiceMock";
@@ -37,7 +37,7 @@ describe("disnatConverter", () => {
             expect(actualExport.activities.length).toBe(15);
 
             done();
-        }, () => { done.fail("Should not have an error!"); });
+        }, () => { done(new Error("Should not have an error!")); });
     });
 
     describe("should throw an error if", () => {
@@ -49,7 +49,7 @@ describe("disnatConverter", () => {
             let tempFileName = "tmp/testinput/disnat-filedoesnotexist.csv";
 
             // Act
-            sut.readAndProcessFile(tempFileName, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+            sut.readAndProcessFile(tempFileName, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
                 // Assert
                 expect(err).toBeTruthy();
@@ -64,10 +64,10 @@ describe("disnatConverter", () => {
             const sut = new DisnatConverter(new SecurityService(new YahooFinanceServiceMock()));
 
             let tempFileContent = "";
-            tempFileContent += "Date de transaction,Date de règlement,Type de transaction,Classe d'actif,Symbole,Description,Marché,Quantité,Prix,Devise du prix,Commission payée,Montant de l'opération,Devise du compte\n";
+            tempFileContent += "Date de transaction,Date de rÃ¨glement,Type de transaction,Classe d'actif,Symbole,Description,MarchÃ©,QuantitÃ©,Prix,Devise du prix,Commission payÃ©e,Montant de l'opÃ©ration,Devise du compte\n";
 
             // Act
-            sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+            sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
                 // Assert
                 expect(err).toBeTruthy();
@@ -83,11 +83,11 @@ describe("disnatConverter", () => {
             const sut = new DisnatConverter(new SecurityService(new YahooFinanceServiceMock()));
 
             let tempFileContent = "";
-            tempFileContent += "Date de transaction,Date de règlement,Type de transaction,Classe d'actif,Symbole,Description,Marché,Quantité,Prix,Devise du prix,Commission payée,Montant de l'opération,Devise du compte\n";
+            tempFileContent += "Date de transaction,Date de rÃ¨glement,Type de transaction,Classe d'actif,Symbole,Description,MarchÃ©,QuantitÃ©,Prix,Devise du prix,Commission payÃ©e,Montant de l'opÃ©ration,Devise du compte\n";
             tempFileContent += `2025-08-01,2025-08-05,VENTE,Actions,CASH-C,GLB X HIGH INT SVGS-A ETF,CAN,-10,50,CAN,0,500,CAN,,\n`;
 
             // Act
-            sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+            sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
                 // Assert
                 expect(err).toBeTruthy();
@@ -101,7 +101,7 @@ describe("disnatConverter", () => {
 
             // Arrange
             let tempFileContent = "";
-            tempFileContent += "Date de transaction,Date de règlement,Type de transaction,Classe d'actif,Symbole,Description,Marché,Quantité,Prix,Devise du prix,Commission payée,Montant de l'opération,Devise du compte\n";
+            tempFileContent += "Date de transaction,Date de rÃ¨glement,Type de transaction,Classe d'actif,Symbole,Description,MarchÃ©,QuantitÃ©,Prix,Devise du prix,Commission payÃ©e,Montant de l'opÃ©ration,Devise du compte\n";
             tempFileContent += `2025-08-01,2025-08-05,VENTE,Actions,CASH-C,GLB X HIGH INT SVGS-A ETF,CAN,-10,50,CAN,0,500,CAN\n`;
 
             // Mock Yahoo Finance service to throw error.
@@ -110,7 +110,7 @@ describe("disnatConverter", () => {
             const sut = new DisnatConverter(new SecurityService(yahooFinanceServiceMock));
 
             // Act
-            sut.processFileContents(tempFileContent, () => { done.fail("Should not succeed!"); }, (err: Error) => {
+            sut.processFileContents(tempFileContent, () => { done(new Error("Should not succeed!")); }, (err: Error) => {
 
                 // Assert
                 expect(err).toBeTruthy();
@@ -125,7 +125,7 @@ describe("disnatConverter", () => {
 
         // Arrange
         let tempFileContent = "";
-        tempFileContent += "Date de transaction,Date de règlement,Type de transaction,Classe d'actif,Symbole,Description,Marché,Quantité,Prix,Devise du prix,Commission payée,Montant de l'opération,Devise du compte\n";
+        tempFileContent += "Date de transaction,Date de rÃ¨glement,Type de transaction,Classe d'actif,Symbole,Description,MarchÃ©,QuantitÃ©,Prix,Devise du prix,Commission payÃ©e,Montant de l'opÃ©ration,Devise du compte\n";
         tempFileContent += `2025-08-01,2025-08-05,VENTE,Actions,CASH-C,GLB X HIGH INT SVGS-A ETF,CAN,-10,50,CAN,0,500,CAN\n`;
 
         // Mock Yahoo Finance service to return no quotes.
@@ -142,20 +142,20 @@ describe("disnatConverter", () => {
             expect(consoleSpy).toHaveBeenCalledWith("[i] No result found for sell action for CASH-C with currency CAD! Please add this manually..\n");
 
             done();
-        }, () => done.fail("Should not have an error!"));
+        }, () => done(new Error("Should not have an error!")));
     });
 
     it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
 
         // Arrange
-        const tempFileContent = "Date de transaction,Date de règlement,Type de transaction,Classe d'actif,Symbole,Description,Marché,Quantité,Prix,Devise du prix,Commission payée,Montant de l'opération,Devise du compte\n";
+        const tempFileContent = "Date de transaction,Date de rÃ¨glement,Type de transaction,Classe d'actif,Symbole,Description,MarchÃ©,QuantitÃ©,Prix,Devise du prix,Commission payÃ©e,Montant de l'opÃ©ration,Devise du compte\n";
         const sut = new DisnatConverter(new SecurityService(new YahooFinanceServiceMock()));
 
         const consoleSpy = jest.spyOn(console, "log");
 
         // Act
         sut.processFileContents(tempFileContent, () => {
-            done.fail("Should not succeed!");
+            done(new Error("Should not succeed!"));
         }, (err: Error) => {
 
             // Assert
@@ -167,3 +167,4 @@ describe("disnatConverter", () => {
         });
     });
 });
+
