@@ -41,6 +41,26 @@ describe("degiroConverterV3", () => {
     }, () => { done.fail("Should not have an error!"); });
   });
 
+  it("should prefix MANUAL platform fee symbols with GF_ (Ghostfolio validation requires UUID or GF_ prefix)", (done) => {
+
+    // Arrange
+    const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
+    const inputFile = "samples/degiro-export.csv";
+
+    // Act
+    sut.readAndProcessFile(inputFile, (actualExport: GhostfolioExport) => {
+
+      // Assert
+      const manualActivities = actualExport.activities.filter(a => a.dataSource === "MANUAL");
+      expect(manualActivities.length).toBeGreaterThan(0);
+      for (const activity of manualActivities) {
+        expect(activity.symbol.startsWith("GF_")).toBe(true);
+      }
+
+      done();
+    }, (err) => { done(err); });
+  });
+
   describe("should throw an error if", () => {
     it("the input file does not exist", (done) => {
 
