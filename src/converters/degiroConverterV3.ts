@@ -92,7 +92,9 @@ export class DeGiroConverterV3 extends AbstractConverter {
               a.comment === record.orderId ||
               a.comment.startsWith(`Buy ${record.isin} @ ${record.date}T`) ||
               a.comment.startsWith(`Sell ${record.isin} @ ${record.date}T`) ||
-              a.comment.startsWith(`Dividend ${record.isin} @ ${record.date}T`))
+              a.comment.startsWith(`Dividend ${record.isin} @ ${record.date}T`) ||
+              a.comment.startsWith(`Split-sell ${record.isin} @ ${record.date}T`) ||
+              a.comment.startsWith(`Split-buy ${record.isin} @ ${record.date}T`))
           ) > -1) {
 
             bar1.increment();
@@ -126,9 +128,77 @@ export class DeGiroConverterV3 extends AbstractConverter {
             continue;
           }
 
+          // Stock splits ('Ajustement fractionnement') come as two rows sharing date+ISIN+time,
+          // one debit (+N post-split shares) and one credit (-M pre-split shares). Ghostfolio has
+          // no split activity type; represent it as SELL M @ oldPx + BUY N @ newPx (cash-neutral,
+          // cost basis preserved, share count correct).
+          if (this.isStockSplitRecord(record)) {
+            const sibling = this.findSplitSibling(record, records.slice(idx + 1));
+            if (sibling) {
+              // Look up security using this record's currency (both legs share currency).
+              let splitSecurity: YahooFinanceRecord;
+              try {
+                splitSecurity = await this.securityService.getSecurity(
+                  record.isin, null, record.product, record.currency, this.progress);
+              } catch (err) {
+                this.logQueryError(record.isin || record.product, idx);
+                return errorCallback(err);
+              }
+              if (!splitSecurity) {
+                this.progress.log(`[i] No result found for ${record.isin || record.product} with currency ${record.currency}! Please add this manually..\n`);
+                bar1.increment(2);
+                continue;
+              }
+              const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
+              // Debit row has negative amount, credit row has positive.
+              const debitRow = parseFloat(record.amount.replace(/\s/g, "").replace(",", ".")) < 0 ? record : sibling;
+              const creditRow = debitRow === record ? sibling : record;
+              const debitParsed = this.parseSplitDescription(debitRow.description);
+              const creditParsed = this.parseSplitDescription(creditRow.description);
+              if (debitParsed && creditParsed) {
+                // Debit shares = post-split (added), credit shares = pre-split (removed).
+                // (In DeGiro FR: debit side has the higher qty and lower price; credit side the opposite.)
+                const postSplitQty = debitParsed.qty;
+                const postSplitPx = debitParsed.px;
+                const preSplitQty = creditParsed.qty;
+                const preSplitPx = creditParsed.px;
+
+                // SELL pre-split holding.
+                result.activities.push({
+                  accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                  comment: `Split-sell ${record.isin} @ ${record.date}T${record.time}`,
+                  fee: 0,
+                  quantity: preSplitQty,
+                  type: GhostfolioOrderType.sell,
+                  unitPrice: preSplitPx,
+                  currency: record.currency,
+                  dataSource: "YAHOO",
+                  date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                  symbol: splitSecurity.symbol,
+                  tags: getTags()
+                });
+                // BUY post-split holding.
+                result.activities.push({
+                  accountId: process.env.GHOSTFOLIO_ACCOUNT_ID,
+                  comment: `Split-buy ${record.isin} @ ${record.date}T${record.time}`,
+                  fee: 0,
+                  quantity: postSplitQty,
+                  type: GhostfolioOrderType.buy,
+                  unitPrice: postSplitPx,
+                  currency: record.currency,
+                  dataSource: "YAHOO",
+                  date: date.format("YYYY-MM-DDTHH:mm:ssZ"),
+                  symbol: splitSecurity.symbol,
+                  tags: getTags()
+                });
+                bar1.increment(2);
+                continue;
+              }
+            }
+          }
+
           // Interest does not have a security, add it immediately.
           if (this.isInterest(record)) {
-
             const interestAmount = Math.abs(parseFloat(record.amount.replace(",", ".")));
             const date = dayjs(`${record.date} ${record.time}:00`, "DD-MM-YYYY HH:mm");
 
@@ -449,5 +519,33 @@ export class DeGiroConverterV3 extends AbstractConverter {
     const platformFeeRecordType = ["degiro courtesy"];
 
     return platformFeeRecordType.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
+  }
+
+  private isStockSplitRecord(record: DeGiroRecord): boolean {
+    if (!record || !record.description) return false;
+    const stockSplitMarkers = ["ajustement fractionnement", "stock split", "aktiensplit", "frazionamento"];
+    return stockSplitMarkers.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
+  }
+
+  private findSplitSibling(record: DeGiroRecord, remaining: DeGiroRecord[]): DeGiroRecord | null {
+    return remaining.find(r =>
+      r.isin === record.isin &&
+      r.date === record.date &&
+      r.time === record.time &&
+      this.isStockSplitRecord(r)) || null;
+  }
+
+  private parseSplitDescription(description: string): { qty: number; px: number } | null {
+    // Match: "Ajustement fractionnement: 30 NVIDIA Corporation @ 120,888 USD (US67066G1040)"
+    // Also:  "Ajustement fractionnement: 3 NVIDIA Corporation @ 1 208,88 USD (US67066G1040)"
+    // Quantity is the first integer, price is the number after '@' (allowing thin/regular spaces
+    // as thousands separators and comma as decimal separator).
+    const m = description.match(/:\s*([0-9]+)\s.+@\s*([0-9\s\u00A0.,]+?)\s+[A-Z]{3}/);
+    if (!m) return null;
+    const qty = parseInt(m[1], 10);
+    const pxStr = m[2].replace(/[\s\u00A0]/g, "").replace(",", ".");
+    const px = parseFloat(pxStr);
+    if (isNaN(qty) || isNaN(px)) return null;
+    return { qty, px };
   }
 }

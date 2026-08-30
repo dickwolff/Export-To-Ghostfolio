@@ -179,6 +179,53 @@ describe("degiroConverterV3", () => {
     }, (e) => { console.log(e); done.fail("Should not have an error!"); });
   });
 
+  it("should convert an 'Ajustement fractionnement' (stock split) pair into SELL old + BUY new", (done) => {
+
+    // Arrange: DeGiro FR emits stock splits as two 'Ajustement fractionnement' rows sharing
+    // no orderId, both on the same date/product/ISIN. Example: NVIDIA 10-for-1 on 2024-06-10.
+    //   - Debit  : 'Ajustement fractionnement: 30 NVIDIA @ 120,888 USD'   amount = -3626,64 USD
+    //   - Credit : 'Ajustement fractionnement: 3 NVIDIA @ 1 208,88 USD'   amount = +3626,64 USD
+    // Before the fix, the credit row is picked up as a DIVIDEND with unitPrice=3626.64,
+    // and the debit row is silently dropped. Result: user's share count stays at 3
+    // (the original BUY) instead of jumping to 30 post-split.
+    //
+    // Ghostfolio has no split activity type; the correct representation is a cash-neutral
+    // pair: SELL 3 @ 1208.88 (close pre-split position) + BUY 30 @ 120.888 (open post-split).
+    // Cost basis preserved, share count correct.
+    let tempFileContent = "";
+    tempFileContent += "Datum,Tijd,Valutadatum,Product,ISIN,Omschrijving,FX,Mutatie,,Saldo,,Order Id\n";
+    tempFileContent += `10-06-2024,10:52,10-06-2024,NVIDIA CORPORATION,US67066G1040,"Ajustement fractionnement: 30 NVIDIA Corporation @ 120,888 USD (US67066G1040)",,USD,"-3626,64",USD,"0,00",\n`;
+    tempFileContent += `10-06-2024,10:52,10-06-2024,NVIDIA CORPORATION,US67066G1040,"Ajustement fractionnement: 3 NVIDIA Corporation @ 1 208,88 USD (US67066G1040)",,USD,"3626,64",USD,"3626,64",`;
+
+    const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
+
+    // Act
+    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+
+      // Assert: no DIVIDEND should be emitted from a split.
+      const dividends = actualExport.activities.filter(a => a.type === "DIVIDEND");
+      expect(dividends.length).toBe(0);
+
+      // Assert: one SELL of the pre-split shares, one BUY of the post-split shares.
+      const sells = actualExport.activities.filter(a => a.type === "SELL");
+      const buys = actualExport.activities.filter(a => a.type === "BUY");
+      expect(sells.length).toBe(1);
+      expect(buys.length).toBe(1);
+
+      expect(sells[0].quantity).toBe(3);
+      expect(sells[0].unitPrice).toBeCloseTo(1208.88, 2);
+      expect(sells[0].currency).toBe("USD");
+      expect(sells[0].symbol).toBe("NVDA");
+
+      expect(buys[0].quantity).toBe(30);
+      expect(buys[0].unitPrice).toBeCloseTo(120.888, 3);
+      expect(buys[0].currency).toBe("USD");
+      expect(buys[0].symbol).toBe("NVDA");
+
+      done();
+    }, (e) => { console.log(e); done(new Error("Should not have an error!")); });
+  });
+
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
    
     // Arrange
