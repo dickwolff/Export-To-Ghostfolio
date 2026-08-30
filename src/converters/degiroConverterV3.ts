@@ -273,6 +273,7 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "interesse",
       "verrekening promotie",
       "operation de change",
+      "opération de change",
       "versement de fonds",
       "débit",
       "debit",
