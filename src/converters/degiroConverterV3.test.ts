@@ -179,6 +179,32 @@ describe("degiroConverterV3", () => {
     }, (e) => { console.log(e); done.fail("Should not have an error!"); });
   });
 
+  it("should ignore Dutch money market fund sweep rows (Morgan Stanley EUR Liquidity Fund / geldmarktfonds)", (done) => {
+
+    // Arrange: DeGiro NL parks idle EUR cash daily in Morgan Stanley EUR Liquidity Fund and emits
+    // 'Koersverandering geldmarktfonds (EUR)' rows (daily NAV mark-to-market) plus
+    // 'Conversie geldmarktfonds: Koop/Verkoop' sweep-in/out rows. Neither represents a real trade
+    // or dividend. Before this fix they fell through as DIVIDEND records with null unitPrice/currency
+    // and were rejected by Ghostfolio import validation.
+    let tempFileContent = "";
+    tempFileContent += "Datum,Tijd,Valutadatum,Product,ISIN,Omschrijving,FX,Mutatie,,Saldo,,Order Id\n";
+    tempFileContent += `07-02-2021,22:06,05-02-2021,MORGAN STANLEY EUR LIQUIDITY FUND,LU1959429272,"Conversie geldmarktfonds: Koop 0,01 @ 0 EUR",,EUR,"98,98",EUR,"-0,75",\n`;
+    tempFileContent += `07-02-2021,22:06,05-02-2021,MORGAN STANLEY EUR LIQUIDITY FUND,LU1959429272,"Conversie geldmarktfonds: Verkoop 0,01 @ 0 EUR",,EUR,"-98,98",EUR,"-99,73",\n`;
+    tempFileContent += `05-02-2021,00:00,04-02-2021,MORGAN STANLEY EUR LIQUIDITY FUND,LU1959429272,Koersverandering geldmarktfonds (EUR),,EUR,"0,00",EUR,"-0,75",`;
+
+    const sut = new DeGiroConverterV3(new SecurityService(new YahooFinanceServiceMock()));
+
+    // Act
+    sut.processFileContents(tempFileContent, (actualExport: GhostfolioExport) => {
+
+      // Assert: all three rows must be silently ignored — no activities emitted for this ISIN.
+      const geldmarkt = actualExport.activities.filter(a => (a.comment || "").includes("LU1959429272"));
+      expect(geldmarkt.length).toBe(0);
+
+      done();
+    }, (e) => { console.log(e); done.fail("Should not have an error!"); });
+  });
+
   it("should log error and invoke errorCallback when an error occurs in processFileContents", (done) => {
    
     // Arrange

@@ -281,7 +281,15 @@ export class DeGiroConverterV3 extends AbstractConverter {
       "retirada",
       "levantamento de divisa",
       "dito de divisa",
-      "fonds monétaires"];
+      "fonds monétaires",
+      // Money market fund sweep (Dutch): DeGiro NL internally parks idle EUR cash in
+      // Morgan Stanley EUR Liquidity Fund and emits daily NAV changes
+      // ('Koersverandering geldmarktfonds') plus sweep in/out
+      // ('Conversie geldmarktfonds: Koop/Verkoop'). None represent real trades
+      // or dividends — they're bookkeeping noise that would otherwise produce
+      // hundreds of phantom DIVIDEND rows with null unitPrice/currency, which
+      // Ghostfolio import rejects.
+      "geldmarktfonds"];
 
     return ignoredRecordTypes.some((t) => record.description.toLocaleLowerCase().indexOf(t) > -1);
   }
