@@ -52,7 +52,7 @@ export default class GhostfolioService {
         if (validationResult.status === 401) {
 
             await this.authenticate(true);
-            return await this.validate(path, retryCount++);
+            return await this.validate(path, retryCount + 1);
         }
 
         // If status is 400, then import failed. 
@@ -107,7 +107,7 @@ export default class GhostfolioService {
         if (importResult.status === 401) {
 
             await this.authenticate(true);
-            return await this.import(path, retryCount++);
+            return await this.import(path, retryCount + 1);
         }
 
         var response = await importResult.json();
@@ -135,7 +135,11 @@ export default class GhostfolioService {
         if (!this.cachedBearerToken || refresh) {
 
             // Retrieve bearer token for authentication.
-            const bearerResponse = await fetch(`${process.env.GHOSTFOLIO_URL}/api/v1/auth/anonymous/${process.env.GHOSTFOLIO_SECRET}`);
+            const bearerResponse = await fetch(`${process.env.GHOSTFOLIO_URL}/api/v1/auth/anonymous`, {
+                method: "POST",
+                headers: [["Content-Type", "application/json"]],
+                body: JSON.stringify({ accessToken: process.env.GHOSTFOLIO_SECRET })
+            });
             const bearer = await bearerResponse.json();
             this.cachedBearerToken = bearer.authToken;
             return;
