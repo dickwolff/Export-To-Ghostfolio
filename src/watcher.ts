@@ -38,8 +38,9 @@ chokidar
         // Determine file type by checking header. As the header may not be on the first line, we need to find it.
         const lines = fileContents.split("\n");
 
-        // Find the first line that looks like a header (comma or semicolon separated with multiple values).
-        const headerLine = lines.find(line => (line.match(/[,;]/g) || []).length >= 2) || lines[0];
+        // Find the first line that looks like a header (multiple non-empty comma or semicolon separated values).
+        // This skips preamble lines such as "GA,,,,," in the Vanguard UK export.
+        const headerLine = lines.find(line => line.split(/[,;]/).filter(value => value.trim() !== "").length >= 3) || lines[0];
         const closestMatch = matcher.closestMatch(headerLine, [...headers.keys()]);
 
         let converterKey = closestMatch as string;
@@ -135,3 +136,4 @@ headers.set(`Datum;Transactietype;Waarde (netto);Opmerking;ISIN;Aantal;Kosten;Be
 headers.set(`Date;Type;Value;Note;ISIN;Shares;Fees;Taxes`, "tradeRepublic");
 headers.set(`Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee`, "trading212");
 headers.set(`ID;Type;Time;Symbol;Comment;Amount`, "xtb");
+headers.set(`Date,Details,Amount,Balance,,`, "vanguarduk");
