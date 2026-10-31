@@ -1,0 +1,27 @@
+GA,,,,,
+,,,,,
+Cash Transactions,,,,,
+,,,,,
+Date,Details,Amount,Balance,,
+25/10/2017,Deposit,"70,100.00","70,100.00",,
+26/10/2017,"Bought 1,630 Vanguard Funds PLC VANGUARD FTSE WRLD HI DIV YLD UCITS ETF","-69,957.21",142.79,,
+26/10/2017,ETF dealing fee (buy) Vanguard Funds PLC VANGUARD FTSE WRLD HI DIV YLD UCITS ETF,-7.50,135.29,,
+01/12/2017,Cash Account Interest,0.03,135.32,,
+08/01/2018,DIV: VHYL.XLON.GB @ GBP0.24627179,401.42,536.74,,
+16/01/2018,Account Fee for the period 17-Oct-2017 to 16-Jan-2018,-24.02,512.72,,
+06/11/2024,Deposit for Investment Purchases,"20,000.00","20,512.72",,
+07/11/2024,Bought 194 S&P 500 UCITS ETF - Accumulating (VUAG),"-16,949.74","3,562.98",,
+22/04/2025,Deposit for Investment Purchases,"20,000.00","23,562.98",,
+22/04/2025,Bought 133 S&P 500 UCITS ETF - Accumulating (VUAG),"-9,938.80","13,624.18",,
+22/04/2025,ETF dealing fee (buy) S&P 500 UCITS ETF - Accumulating (VUAG),-7.50,"13,616.68",,
+Balance,"13,616.68",,,,
+,,,,,
+,,,,,
+,,,,,
+Investment Transactions,,,,,
+,,,,,
+Date,InvestmentName,TransactionDetails,Quantity,Price,Cost
+24/04/2025,S&P 500 UCITS ETF - Accumulating (VUAG),Bought 133 S&P 500 UCITS ETF - Accumulating (VUAG),133.00,74.7278,"9,938.80"
+11/11/2024,S&P 500 UCITS ETF - Accumulating (VUAG),Bought 194 S&P 500 UCITS ETF - Accumulating (VUAG),194.00,87.3698,"16,949.74"
+30/10/2017,FTSE All-World High Dividend Yield UCITS ETF - Distributing (VHYL),,"1,630.00",42.9185,"69,957.21"
+Cost,"96,845.75",,,,
