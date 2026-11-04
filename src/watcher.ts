@@ -38,8 +38,9 @@ chokidar
         // Determine file type by checking header. As the header may not be on the first line, we need to find it.
         const lines = fileContents.split("\n");
 
-        // Find the first line that looks like a header (comma or semicolon separated with multiple values).
-        const headerLine = lines.find(line => (line.match(/[,;]/g) || []).length >= 2) || lines[0];
+        // Find the first line that looks like a header (multiple non-empty comma or semicolon separated values).
+        // This skips preamble lines such as "GA,,,,," in the Vanguard UK export.
+        const headerLine = lines.find(line => line.split(/[,;]/).filter(value => value.trim() !== "").length >= 3) || lines[0];
         const closestMatch = matcher.closestMatch(headerLine, [...headers.keys()]);
 
         let converterKey = closestMatch as string;
@@ -128,6 +129,7 @@ headers.set(`Portefeuille;Naam;Datum;Type mutatie;Valuta mutatie;Volume;Koers;Va
 headers.set(`Date,Transaction Type,BTC Amount,BTC Price,Currency Pair,Fiat Amount (excl. fees),Fiat Currency,Fee,Fee Currency,Destination,Operation ID,Counterparty`, "relai");
 headers.set(`Symbol,Type,Quantity,Price,Value,Fees,Date`, "revolut");
 headers.set(`Date,Ticker,Type,Quantity,Price per share,Total Amount,Currency,FX Rate`, "revolut");
+headers.set(`"Activity Date","Process Date","Settle Date","Instrument","Description","Trans Code","Quantity","Price","Amount"`, "robinhood");
 headers.set(`Client ID,Trade Date,Value Date,Type,Instrument,Instrument ISIN,Instrument currency,Exchange Description,Instrument Symbol,Event,Amount,Order ID,Conversion Rate`, "saxo");
 headers.set(`Date,Action,Symbol,Description,Quantity,Price,Fees & Comm,Amount`, "schwab");
 headers.set(`Date;Order #;Transaction;Symbol;Name;ISIN;Quantity;Unit price;Costs;Accrued Interest;Net Amount;Balance;Currency`, "swissquote");
@@ -135,3 +137,4 @@ headers.set(`Datum;Transactietype;Waarde (netto);Opmerking;ISIN;Aantal;Kosten;Be
 headers.set(`Date;Type;Value;Note;ISIN;Shares;Fees;Taxes`, "tradeRepublic");
 headers.set(`Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Notes,ID,Currency conversion fee`, "trading212");
 headers.set(`ID;Type;Time;Symbol;Comment;Amount`, "xtb");
+headers.set(`Date,Details,Amount,Balance,,`, "vanguarduk");

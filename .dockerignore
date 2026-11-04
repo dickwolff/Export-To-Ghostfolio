@@ -1,0 +1,8 @@
+.env
+*.csv
+*.pdf
+node_modules
+coverage
+lib-cov
+dist
+e2g-output

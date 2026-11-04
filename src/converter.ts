@@ -27,11 +27,13 @@ import { ParqetConverter } from "./converters/parqetConverter";
 import { RabobankConverter } from "./converters/rabobankConverter";
 import { RelaiConverter } from "./converters/relaiConverter";
 import { RevolutConverter } from "./converters/revolutConverter";
+import { RobinhoodConverter } from "./converters/robinhoodConverter";
 import { SaxoConverter } from "./converters/saxoConverter";
 import { SchwabConverter } from "./converters/schwabConverter";
 import { SwissquoteConverter } from "./converters/swissquoteConverter";
 import { TradeRepublicConverter } from "./converters/tradeRepublicConverter";
 import { Trading212Converter } from "./converters/trading212Converter";
+import { VanguardUkConverter } from "./converters/vanguardUkConverter";
 import { XtbConverter } from "./converters/xtbConverter";
 
 import packageInfo from "../package.json";
@@ -207,6 +209,11 @@ async function createConverter(converterType: string, securityService?: Security
             console.log("[i] Processing file using Revolut converter");
             converter = new RevolutConverter(securityService);
             break;
+        case "rh":
+        case "robinhood":
+            console.log("[i] Processing file using Robinhood converter");
+            converter = new RobinhoodConverter(securityService);
+            break;
         case "saxo":
             console.log("[i] Processing file using Saxo converter");
             converter = new SaxoConverter(securityService);
@@ -230,6 +237,11 @@ async function createConverter(converterType: string, securityService?: Security
         case "trading212":
             console.log("[i] Processing file using Trading212 converter");
             converter = new Trading212Converter(securityService);
+            break;
+        case "vg":
+        case "vanguarduk":
+            console.log("[i] Processing file using Vanguard UK converter");
+            converter = new VanguardUkConverter(securityService);
             break;
         case "xtb":
             console.log("[i] Processing file using XTB converter");

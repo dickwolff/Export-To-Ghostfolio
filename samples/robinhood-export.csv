@@ -1,0 +1,19 @@
+"Activity Date","Process Date","Settle Date","Instrument","Description","Trans Code","Quantity","Price","Amount"
+"9/23/2026","9/23/2026","9/23/2026","AVGO","Cash Div: R/D 2026-09-21 P/D 2026-09-30 - 11.25422 shares at 0.65 new dividend GB nra tax withhold","NRAT","","","($1.10)"
+"9/23/2026","9/23/2026","9/23/2026","AVGO","Cash Div: R/D 2026-09-21 P/D 2026-09-30 - 11.25422 shares at 0.65","CDIV","","","$7.32"
+"9/14/2026","9/14/2026","9/14/2026","","FXBUY - Buy USD Sell GBP","FXBUY","","","$900.00"
+"9/14/2026","9/14/2026","9/14/2026","","FXBUY - Buy USD Sell GBP","FXBUY","","","($665.10)"
+"9/14/2026","9/14/2026","9/15/2026","NVDA","NVIDIA
+CUSIP: 67066G104","Buy","5","$180.00","($900.00)"
+"9/14/2026","9/14/2026","9/15/2026","NVDA","NVIDIA
+CUSIP: 67066G104","Buy","0.5","$180.00","($90.00)"
+"9/10/2026","9/10/2026","9/11/2026","AMD","Advanced Micro Devices
+CUSIP: 007903107","Sell","3","$150.00","$450.00"
+"9/9/2026","9/9/2026","9/9/2026","GOOGL","Cash Div: R/D 2026-09-07 P/D 2026-09-14 - 15.951507 shares at 0.22 new dividend GB nra tax withhold","NRAT","","","($0.53)"
+"9/9/2026","9/9/2026","9/9/2026","GOOGL","Cash Div: R/D 2026-09-07 P/D 2026-09-14 - 15.951507 shares at 0.22","CDIV","","","$3.51"
+"9/30/2026","9/30/2026","9/30/2026","","Interest Payment","INT","","","$8.83"
+"11/7/2025","11/7/2025","11/7/2025","AMD","Stock Lending","SLIP","","","$0.01"
+"10/5/2026","10/5/2026","10/5/2026","","Instant bank deposit - account ending in 1234","UKGBP","","","$5,000.00"
+"11/21/2025","11/21/2025","11/21/2025","NVDA","NVDA 1/2/2026 Put $145.00","BTO","20","$1.79","($3,590.84)"
+"","","","","","","","",""
+"","","","","","","","","","The data provided is for informational purposes only. Please consult a professional tax service or personal tax advisor if you need instructions on how to calculate cost basis or questions regarding your specific tax situation. Reminder: This data does not include Robinhood Crypto or Robinhood Spending activity."
